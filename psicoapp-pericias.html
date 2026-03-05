@@ -5,299 +5,121 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Psicoapp — Pericias</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --bg: #F4F1ED;
-  --surface: #FFFFFF;
-  --primary: #2D6A4F;
-  --primary-light: #E8F5EE;
-  --accent: #F4A261;
-  --accent-light: #FEF0E6;
-  --text: #1A1A2E;
-  --text-muted: #8A8FA8;
-  --border: #E8E4DD;
+  --bg: #F4F1ED; --surface: #FFFFFF;
+  --primary: #2D6A4F; --primary-light: #E8F5EE;
+  --accent: #F4A261; --accent-light: #FEF0E6;
+  --text: #1A1A2E; --text-muted: #8A8FA8; --border: #E8E4DD;
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
   --shadow-md: 0 6px 24px rgba(0,0,0,0.11);
   --radius: 16px;
-
-  /* Stage colors */
   --s1: #1976D2; --s1-light: #E3F2FD;
   --s2: #E65100; --s2-light: #FFF3E0;
   --s3: #7B5EA7; --s3-light: #EDE9FE;
   --s4: #2D6A4F; --s4-light: #E8F5EE;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { padding-bottom: 76px !important;
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg); color: var(--text);
-  max-width: 430px; margin: 0 auto;
-  min-height: 100vh; padding-bottom: 80px;
-}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); max-width:430px; margin:0 auto; min-height:100vh; padding-bottom:80px; }
 
 /* HEADER */
-.header {
-  background: var(--surface); border-bottom: 1px solid var(--border);
-  position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm);
-}
-.header-top {
-  display: flex; align-items: center;
-  padding: 14px 18px 10px; gap: 10px;
-}
-.logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--primary); }
-.logo span { color: var(--accent); }
-.header-title { flex: 1; text-align: center; font-size: 16px; font-weight: 800; }
-.icon-btn-sm {
-  width: 34px; height: 34px; border-radius: 10px;
-  background: var(--bg); border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; font-size: 16px;
-}
+.header { background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50; box-shadow:var(--shadow-sm); }
+.header-top { display:flex; align-items:center; padding:14px 18px 10px; gap:10px; }
+.logo { font-family:'Playfair Display',serif; font-size:20px; color:var(--primary); }
+.logo span { color:var(--accent); }
+.header-title { flex:1; text-align:center; font-size:16px; font-weight:800; }
 
 /* TABS */
-.tabs { display: flex; border-bottom: 1px solid var(--border); }
-.tab {
-  flex: 1; padding: 12px 8px; text-align: center;
-  font-size: 13px; font-weight: 600; color: var(--text-muted);
-  cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s;
-}
-.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tabs { display:flex; border-bottom:1px solid var(--border); }
+.tab { flex:1; padding:12px 8px; text-align:center; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; }
+.tab.active { color:var(--primary); border-bottom-color:var(--primary); }
 
 /* STATS */
-.stats-row {
-  display: flex; gap: 10px; padding: 14px 16px 10px;
-}
-.stat-card {
-  flex: 1; background: var(--surface); border-radius: 12px;
-  padding: 10px 8px; box-shadow: var(--shadow-sm); text-align: center;
-}
-.stat-num { font-size: 20px; font-weight: 800; }
-.stat-label { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+.stats-row { display:flex; gap:10px; padding:14px 16px; }
+.stat-card { flex:1; background:var(--surface); border-radius:14px; padding:12px 14px; box-shadow:var(--shadow-sm); text-align:center; }
+.stat-num { font-size:20px; font-weight:800; }
+.stat-label { font-size:10px; color:var(--text-muted); font-weight:600; margin-top:2px; }
 
-/* PIPELINE VIEW */
-.tab-view { display: none; }
-.tab-view.active { display: block; animation: fadeUp 0.2s ease; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+/* PIPELINE */
+.stage-section { margin-bottom:6px; }
+.stage-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px 6px; }
+.stage-badge { display:flex; align-items:center; gap:8px; }
+.stage-dot { width:10px; height:10px; border-radius:50%; }
+.stage-name { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; }
+.stage-count { font-size:11px; font-weight:700; padding:3px 8px; border-radius:20px; }
+.s1 .stage-dot,.s1 .stage-count { background:var(--s1); }
+.s1 .stage-count { background:var(--s1-light); color:var(--s1); }
+.s2 .stage-dot,.s2 .stage-count { background:var(--s2); }
+.s2 .stage-count { background:var(--s2-light); color:var(--s2); }
+.s3 .stage-dot,.s3 .stage-count { background:var(--s3); }
+.s3 .stage-count { background:var(--s3-light); color:var(--s3); }
+.s4 .stage-dot,.s4 .stage-count { background:var(--s4); }
+.s4 .stage-count { background:var(--s4-light); color:var(--s4); }
 
-/* Stage section */
-.stage-section { margin-bottom: 6px; }
-.stage-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px 8px; cursor: pointer;
-}
-.stage-dot {
-  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-}
-.stage-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; flex: 1; }
-.stage-count {
-  font-size: 11px; font-weight: 700; padding: 2px 8px;
-  border-radius: 20px;
-}
-.stage-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
-.stage-arrow.open { transform: rotate(180deg); }
-.stage-items { padding: 0 16px 8px; display: flex; flex-direction: column; gap: 8px; }
+.exp-card { background:var(--surface); border-radius:14px; margin:0 16px 8px; padding:13px 14px; box-shadow:var(--shadow-sm); cursor:pointer; position:relative; overflow:hidden; transition:all 0.15s; }
+.exp-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; }
+.exp-card:active { transform:scale(0.98); }
+.s1 .exp-card::before { background:var(--s1); }
+.s2 .exp-card::before { background:var(--s2); }
+.s3 .exp-card::before { background:var(--s3); }
+.s4 .exp-card::before { background:var(--s4); }
+.exp-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px; }
+.exp-expediente { font-size:13px; font-weight:800; }
+.exp-badge { font-size:10px; font-weight:700; padding:3px 8px; border-radius:20px; }
+.exp-caratula { font-size:13px; color:var(--text-muted); margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.exp-meta-row { display:flex; gap:12px; flex-wrap:wrap; }
+.exp-meta-item { font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; }
+.exp-alerta { background:#FFF3E0; color:#E65100; border-radius:8px; padding:5px 10px; font-size:11px; font-weight:700; margin-top:8px; display:flex; align-items:center; gap:6px; }
 
-/* Expediente card */
-.exp-card {
-  background: var(--surface); border-radius: var(--radius);
-  padding: 14px 15px; box-shadow: var(--shadow-sm);
-  cursor: pointer; transition: all 0.15s;
-  position: relative; overflow: hidden;
-}
-.exp-card::before {
-  content: ''; position: absolute;
-  left: 0; top: 0; bottom: 0; width: 4px;
-  border-radius: 4px 0 0 4px;
-}
-.exp-card:hover { transform: translateX(2px); box-shadow: var(--shadow-md); }
+/* TAB VIEWS */
+.tab-view { display:none; }
+.tab-view.active { display:block; animation:fadeUp 0.2s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
-.exp-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
-.exp-num { font-size: 15px; font-weight: 800; flex: 1; }
-.exp-amount { font-size: 15px; font-weight: 800; color: var(--primary); flex-shrink: 0; }
-.exp-caratula { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.4; }
+/* LISTA */
+.lista-section { padding:0 16px; }
+.lista-card { background:var(--surface); border-radius:14px; padding:13px 14px; margin-bottom:8px; box-shadow:var(--shadow-sm); cursor:pointer; position:relative; overflow:hidden; transition:all 0.15s; }
+.lista-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; }
+.lista-card:active { transform:scale(0.98); }
 
-.exp-meta-row { display: flex; gap: 6px; flex-wrap: wrap; }
-.exp-tag {
-  font-size: 10px; font-weight: 700; padding: 3px 8px;
-  border-radius: 20px; white-space: nowrap;
-}
-
-.exp-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
-}
-.exp-juzgado { font-size: 11px; color: var(--text-muted); font-weight: 500; }
-.exp-vencimiento { font-size: 11px; font-weight: 700; }
-.venc-ok { color: var(--text-muted); }
-.venc-near { color: var(--accent); }
-.venc-urgent { color: #E53935; }
-
-/* Stage 1 — Aceptación de cargo */
-.s1 .exp-card::before { background: var(--s1); }
-.s1 .stage-dot { background: var(--s1); }
-.s1 .stage-title { color: var(--s1); }
-.s1 .stage-count { background: var(--s1-light); color: var(--s1); }
-
-/* Stage 2 — Entrega de informe */
-.s2 .exp-card::before { background: var(--s2); }
-.s2 .stage-dot { background: var(--s2); }
-.s2 .stage-title { color: var(--s2); }
-.s2 .stage-count { background: var(--s2-light); color: var(--s2); }
-
-/* Stage 3 — Conteste impugnación */
-.s3 .exp-card::before { background: var(--s3); }
-.s3 .stage-dot { background: var(--s3); }
-.s3 .stage-title { color: var(--s3); }
-.s3 .stage-count { background: var(--s3-light); color: var(--s3); }
-
-/* Stage 4 — Cobro */
-.s4 .exp-card::before { background: var(--s4); }
-.s4 .stage-dot { background: var(--s4); }
-.s4 .stage-title { color: var(--s4); }
-.s4 .stage-count { background: var(--s4-light); color: var(--s4); }
-
-/* DETAIL SCREEN */
-.detail-screen {
-  display: none; position: fixed; inset: 0;
-  background: var(--bg); z-index: 55; overflow-y: auto;
-  max-width: 430px; margin: 0 auto;
-}
-.detail-screen.open { display: block; }
-
-.detail-hero {
-  padding: 20px 20px 24px; color: white;
-  position: relative; overflow: hidden;
-}
-.detail-back {
-  width: 36px; height: 36px; border-radius: 11px;
-  background: rgba(255,255,255,0.15); border: none;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; cursor: pointer; color: white; margin-bottom: 16px;
-}
-.detail-exp-num { font-size: 28px; font-weight: 800; line-height: 1; }
-.detail-caratula { font-size: 14px; opacity: 0.75; margin-top: 6px; line-height: 1.5; }
-.detail-amount { font-size: 22px; font-weight: 800; margin-top: 12px; }
-.detail-amount-label { font-size: 11px; opacity: 0.6; font-weight: 600; }
-
-/* Pipeline steps */
-.pipeline-section { padding: 16px; }
-.pipeline-title { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
-.pipeline-steps { position: relative; }
-.pipeline-line {
-  position: absolute; left: 18px; top: 0; bottom: 0;
-  width: 2px; background: var(--border);
-}
-.pipeline-step {
-  display: flex; gap: 14px; margin-bottom: 16px;
-  position: relative; z-index: 1;
-}
-.step-dot-wrap {
-  width: 36px; height: 36px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; font-size: 16px;
-  border: 2px solid var(--border); background: var(--surface);
-}
-.step-dot-wrap.done { border-color: var(--primary); background: var(--primary); }
-.step-dot-wrap.active { border-color: var(--accent); background: var(--accent-light); }
-.step-dot-wrap.pending { background: var(--bg); }
-.step-content { flex: 1; padding-top: 4px; }
-.step-title { font-size: 14px; font-weight: 700; }
-.step-title.done { color: var(--primary); }
-.step-title.active { color: var(--accent); }
-.step-title.pending { color: var(--text-muted); }
-.step-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-.step-action {
-  margin-top: 8px; padding: 8px 14px;
-  border-radius: 10px; border: none; cursor: pointer;
-  font-size: 12px; font-weight: 700; font-family: 'DM Sans', sans-serif;
-  display: inline-flex; align-items: center; gap: 6px;
-}
-.action-primary { background: var(--primary); color: white; }
-.action-orange { background: var(--accent); color: white; }
-.action-ghost { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
-
-/* Info card */
-.info-card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin: 0 16px 14px; box-shadow: var(--shadow-sm); }
-.info-card-title { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-.info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
-.info-row:last-child { border-bottom: none; padding-bottom: 0; }
-.info-row:first-child { padding-top: 0; }
-.info-key { font-size: 12px; color: var(--text-muted); font-weight: 600; }
-.info-val { font-size: 13px; font-weight: 700; text-align: right; }
+/* EMPTY */
+.empty-sec { text-align:center; padding:40px 20px; color:var(--text-muted); background:var(--surface); border-radius:var(--radius); margin:0 16px; }
+.empty-sec-icon { font-size:36px; margin-bottom:8px; }
 
 /* FAB */
-.fab {
-  position: fixed; bottom: 72px; right: 20px;
-  width: 52px; height: 52px; background: var(--primary);
-  border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 24px rgba(45,106,79,0.4);
-  cursor: pointer; font-size: 28px; color: white; border: none; z-index: 40;
-}
+.fab { position:fixed; bottom:72px; right:20px; width:52px; height:52px; background:var(--primary); border-radius:16px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(45,106,79,0.4); cursor:pointer; font-size:26px; color:white; border:none; z-index:40; }
 
 /* MODAL */
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 60; display: none; align-items: flex-end; justify-content: center; }
-.overlay.open { display: flex; }
-.modal { background: var(--surface); border-radius: 28px 28px 0 0; padding: 20px 20px 40px; width: 100%; max-width: 430px; animation: slideUp 0.25s ease; }
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
-.modal-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
-.modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 22px; }
-.field { margin-bottom: 14px; }
-.field-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: block; }
-.field-input { width: 100%; border: 1.5px solid var(--border); border-radius: 14px; padding: 13px 16px; font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--bg); outline: none; }
-.field-input:focus { border-color: var(--primary); }
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.btn-guardar { width: 100%; background: var(--primary); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 8px; }
-.btn-cancelar { width: 100%; background: none; border: none; padding: 12px; font-size: 14px; color: var(--text-muted); font-family: 'DM Sans', sans-serif; cursor: pointer; }
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:60; display:none; align-items:flex-end; justify-content:center; }
+.overlay.open { display:flex; }
+.modal { background:var(--surface); border-radius:28px 28px 0 0; padding:20px 20px 40px; width:100%; max-width:430px; max-height:92vh; overflow-y:auto; animation:slideUp 0.25s ease; }
+@keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+.modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 20px; }
+.modal-title { font-size:20px; font-weight:800; margin-bottom:4px; }
+.modal-sub { font-size:13px; color:var(--text-muted); margin-bottom:20px; }
+.field { margin-bottom:14px; }
+.field-label { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.req-star { color:var(--primary); }
+.field-input { width:100%; border:1.5px solid var(--border); border-radius:14px; padding:13px 16px; font-size:15px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--bg); outline:none; }
+.field-input:focus { border-color:var(--primary); background:white; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.btn-guardar { width:100%; background:var(--primary); color:white; border:none; border-radius:14px; padding:16px; font-size:16px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:8px; }
+.btn-guardar:disabled { opacity:0.6; cursor:not-allowed; }
+.msg-error { background:#fdf0ef; color:#B94A48; border:1px solid #f0c8c7; border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:12px; display:none; }
 
-/* BOTTOM NAV */
-.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: var(--surface); border-top: 1px solid var(--border); display: flex; padding: 10px 0 6px; z-index: 40; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); }
-.bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
-.bnav-icon { font-size: 20px; }
-.bnav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
-.bnav-label.on { color: var(--primary); }
+/* DETALLE MODAL */
+.det-actions { display:flex; gap:10px; margin-top:16px; }
+.btn-det { flex:1; padding:12px; border-radius:12px; border:none; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
+.btn-det-del { background:#fdf0ef; color:#B94A48; }
+.estado-select { width:100%; border:1.5px solid var(--border); border-radius:12px; padding:10px 14px; font-size:14px; font-family:'DM Sans',sans-serif; background:var(--bg); margin-top:8px; }
 
-/* Web promo banner */
-.web-banner {
-  margin: 0 16px 16px;
-  background: linear-gradient(135deg, #1B4332, #2D6A4F);
-  border-radius: var(--radius); padding: 16px;
-  color: white; display: flex; align-items: center; gap: 14px;
-  cursor: pointer;
-}
-.wb-icon { font-size: 28px; flex-shrink: 0; }
-.wb-title { font-size: 14px; font-weight: 800; }
-.wb-sub { font-size: 11px; opacity: 0.7; margin-top: 3px; line-height: 1.4; }
-.wb-arrow { font-size: 20px; margin-left: auto; opacity: 0.7; flex-shrink: 0; }
-
-/* ── UNIFIED NAV ── */
-.unified-bnav {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  max-width: 430px !important;
-  margin: 0 auto !important;
-  background: #FFFFFF !important;
-  border-top: 1px solid #E8E4DD !important;
-  display: flex !important;
-  padding: 8px 0 14px !important;
-  z-index: 999999 !important;
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.10) !important;
-}
-.unav-item {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  gap: 3px !important;
-  text-decoration: none !important;
-  color: inherit !important;
-  padding: 2px 0 !important;
-}
-.unav-icon { font-size: 20px; line-height: 1; }
-.unav-label { font-size: 10px; font-weight: 600; color: #8A8FA8; }
-.unav-item.unav-active .unav-label { color: #2D6A4F !important; }
-
+/* NAV */
+.app-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; height:64px; background:#fff; border-top:1.5px solid #E8E4DD; display:flex; align-items:center; z-index:2147483647; box-shadow:0 -2px 12px rgba(0,0,0,0.09); }
+.app-nav a { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; text-decoration:none; color:#8A8FA8; padding:4px 0; }
+.app-nav a .ni { font-size:22px; line-height:1; display:block; }
+.app-nav a .nl { font-size:10px; font-weight:700; display:block; }
+.app-nav a.on .nl { color:#2D6A4F; }
 </style>
 </head>
 <body>
@@ -307,410 +129,131 @@ body { padding-bottom: 76px !important;
   <div class="header-top">
     <div class="logo">Psico<span>app</span></div>
     <div class="header-title">Pericias</div>
-    <button class="icon-btn-sm">🔍</button>
+    <div style="width:34px"></div>
   </div>
   <div class="tabs">
-    <div class="tab active" onclick="setTab('pipeline')">⚖️ Pipeline</div>
-    <div class="tab" onclick="setTab('finalizadas')">✓ Finalizadas</div>
+    <div class="tab active" id="tab-pipeline" onclick="setTab('pipeline')">⚖️ Pipeline</div>
+    <div class="tab" id="tab-lista" onclick="setTab('lista')">📋 Todas</div>
   </div>
 </div>
 
 <!-- STATS -->
 <div class="stats-row">
   <div class="stat-card">
-    <div class="stat-num" style="color:var(--primary)">6</div>
+    <div class="stat-num" style="color:var(--s1)" id="stat-en-curso">—</div>
     <div class="stat-label">En curso</div>
   </div>
   <div class="stat-card">
-    <div class="stat-num" style="color:var(--s2)">2</div>
-    <div class="stat-label">Vencimiento próximo</div>
+    <div class="stat-num" style="color:var(--s2)" id="stat-vencimiento">—</div>
+    <div class="stat-label">Próx. vencimiento</div>
   </div>
   <div class="stat-card">
-    <div class="stat-num" style="color:var(--primary)">$80.000</div>
-    <div class="stat-label">Anticipos cobrados</div>
+    <div class="stat-num" style="color:var(--s4);font-size:16px" id="stat-honorarios">$0</div>
+    <div class="stat-label">Honorarios pend.</div>
   </div>
 </div>
 
-<!-- ══ TAB PIPELINE ══ -->
-<div class="tab-view active" id="tab-pipeline">
-
-  <!-- STAGE 1: Aceptación de cargo -->
-  <div class="stage-section s1">
-    <div class="stage-header" onclick="toggleStage('s1')">
-      <div class="stage-dot"></div>
-      <div class="stage-title">1 · Aceptación de cargo</div>
-      <div class="stage-count">2 expedientes</div>
-      <div class="stage-arrow open" id="arrow-s1">▾</div>
-    </div>
-    <div class="stage-items" id="items-s1">
-      <div class="exp-card" onclick="openDetail('s1')">
-        <div class="exp-top">
-          <div class="exp-num">Exp. 4821/24</div>
-          <div style="text-align:right">
-            <div class="exp-amount">$40.000</div>
-            <div style="font-size:9px;color:var(--text-muted);font-weight:700;margin-top:1px">Anticipo gastos</div>
-          </div>
-        </div>
-        <div class="exp-caratula">González c/ Transportes del Sur S.A. s/ daños y perjuicios</div>
-        <div class="exp-meta-row">
-          <div class="exp-tag" style="background:var(--s1-light);color:var(--s1)">🔵 Aceptar cargo</div>
-          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Civil</div>
-        </div>
-        <div class="exp-footer">
-          <div class="exp-juzgado">Juzgado Civil Nº3 · Chivilcoy</div>
-          <div class="exp-vencimiento venc-near">⚠️ Vence 28 Feb</div>
-        </div>
-      </div>
-      <div class="exp-card" onclick="openDetail('s1')">
-        <div class="exp-top">
-          <div class="exp-num">Exp. 5102/24</div>
-          <div style="text-align:right">
-            <div class="exp-amount">$40.000</div>
-            <div style="font-size:9px;color:var(--text-muted);font-weight:700;margin-top:1px">Anticipo gastos</div>
-          </div>
-        </div>
-        <div class="exp-caratula">Rodríguez c/ Municipalidad s/ accidente laboral</div>
-        <div class="exp-meta-row">
-          <div class="exp-tag" style="background:var(--s1-light);color:var(--s1)">🔵 Aceptar cargo</div>
-          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Laboral</div>
-        </div>
-        <div class="exp-footer">
-          <div class="exp-juzgado">Juzgado Laboral Nº1 · Chivilcoy</div>
-          <div class="exp-vencimiento venc-ok">Vence 15 Mar</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STAGE 2: Entrega de informe -->
-  <div class="stage-section s2">
-    <div class="stage-header" onclick="toggleStage('s2')">
-      <div class="stage-dot"></div>
-      <div class="stage-title">2 · Entrega de informe</div>
-      <div class="stage-count">2 expedientes</div>
-      <div class="stage-arrow open" id="arrow-s2">▾</div>
-    </div>
-    <div class="stage-items" id="items-s2">
-      <div class="exp-card" onclick="openDetail('s2')">
-        <div class="exp-top">
-          <div class="exp-num">Exp. 3847/23</div>
-        </div>
-        <div class="exp-caratula">Martínez c/ OSDE s/ mala praxis</div>
-        <div class="exp-meta-row">
-          <div class="exp-tag" style="background:var(--s2-light);color:var(--s2)">🟠 Redactar informe</div>
-          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Civil</div>
-        </div>
-        <div class="exp-footer">
-          <div class="exp-juzgado">Juzgado Civil Nº1 · Chivilcoy</div>
-          <div class="exp-vencimiento venc-urgent">🚨 Vence 22 Feb</div>
-        </div>
-      </div>
-      <div class="exp-card" onclick="openDetail('s2')">
-        <div class="exp-top">
-          <div class="exp-num">Exp. 4103/23</div>
-        </div>
-        <div class="exp-caratula">Fernández c/ ART Galeno s/ accidente tránsito</div>
-        <div class="exp-meta-row">
-          <div class="exp-tag" style="background:var(--s2-light);color:var(--s2)">🟠 Redactar informe</div>
-          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Tránsito</div>
-        </div>
-        <div class="exp-footer">
-          <div class="exp-juzgado">Juzgado Civil Nº2 · Chivilcoy</div>
-          <div class="exp-vencimiento venc-near">⚠️ Vence 5 Mar</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STAGE 3: Conteste impugnación -->
-  <div class="stage-section s3">
-    <div class="stage-header" onclick="toggleStage('s3')">
-      <div class="stage-dot"></div>
-      <div class="stage-title">3 · Conteste impugnación</div>
-      <div class="stage-count">1 expediente</div>
-      <div class="stage-arrow open" id="arrow-s3">▾</div>
-    </div>
-    <div class="stage-items" id="items-s3">
-      <div class="exp-card" onclick="openDetail('s3')">
-        <div class="exp-top">
-          <div class="exp-num">Exp. 2956/22</div>
-        </div>
-        <div class="exp-caratula">López c/ Empresa de Colectivos s/ daños psicológicos</div>
-        <div class="exp-meta-row">
-          <div class="exp-tag" style="background:var(--s3-light);color:var(--s3)">🟣 Contestar impugnación</div>
-          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Tránsito</div>
-        </div>
-        <div class="exp-footer">
-          <div class="exp-juzgado">Cámara Civil · Chivilcoy</div>
-          <div class="exp-vencimiento venc-near">⚠️ Vence 3 Mar</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STAGE 4: Cobro de honorarios -->
-  <div class="stage-section s4">
-    <div class="stage-header" onclick="toggleStage('s4')">
-      <div class="stage-dot"></div>
-      <div class="stage-title">4 · Cobro de honorarios</div>
-      <div class="stage-count">1 expediente</div>
-      <div class="stage-arrow open" id="arrow-s4">▾</div>
-    </div>
-    <div class="stage-items" id="items-s4">
-      <div class="exp-card" onclick="openDetail('s4')">
-        <div class="exp-top">
-          <div class="exp-num">Exp. 1834/21</div>
-          <div style="text-align:right">
-            <div class="exp-amount">$450.000</div>
-            <div style="font-size:9px;color:var(--text-muted);font-weight:700;margin-top:1px">Honorarios regulados</div>
-          </div>
-        </div>
-        <div class="exp-caratula">Sánchez c/ Transporte Rápido s/ daños</div>
-        <div class="exp-meta-row">
-          <div class="exp-tag" style="background:var(--s4-light);color:var(--s4)">🟢 Gestionar cobro</div>
-          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Tránsito</div>
-        </div>
-        <div class="exp-footer">
-          <div class="exp-juzgado">Juzgado Civil Nº3 · Chivilcoy</div>
-          <div class="exp-vencimiento venc-ok">Regulado · En cobro</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Web promo -->
-  <div class="web-banner">
-    <div class="wb-icon">🤖</div>
-    <div>
-      <div class="wb-title">Versión web — Próximamente</div>
-      <div class="wb-sub">Procuración automática de expedientes + notificaciones de novedades sin que tengas que entrar al portal judicial. Te avisamos cuando hay movimientos.</div>
-    </div>
-    <div class="wb-arrow">›</div>
-  </div>
-
+<!-- PIPELINE VIEW -->
+<div class="tab-view active" id="view-pipeline">
+  <div id="pipeline-content"><div style="text-align:center;padding:40px;color:var(--text-muted)">Cargando...</div></div>
 </div>
 
-<!-- ══ TAB FINALIZADAS ══ -->
-<div class="tab-view" id="tab-finalizadas">
-  <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
-
-    <div class="exp-card" style="opacity:0.7">
-      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#9E9E9E;border-radius:4px 0 0 4px"></div>
-      <div class="exp-top">
-        <div class="exp-num">Exp. 1201/20</div>
-        <div class="exp-amount" style="color:#388E3C">✓ $780.000</div>
-      </div>
-      <div class="exp-caratula">Pérez c/ ART Provincia s/ accidente laboral</div>
-      <div class="exp-footer">
-        <div class="exp-juzgado">Juzgado Laboral Nº1</div>
-        <div class="exp-vencimiento" style="color:#388E3C">Cobrado · Dic 2024</div>
-      </div>
-    </div>
-
-    <div class="exp-card" style="opacity:0.7">
-      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#9E9E9E;border-radius:4px 0 0 4px"></div>
-      <div class="exp-top">
-        <div class="exp-num">Exp. 0934/19</div>
-        <div class="exp-amount" style="color:#388E3C">✓ $520.000</div>
-      </div>
-      <div class="exp-caratula">Torres c/ Empresa Tránsito s/ daños</div>
-      <div class="exp-footer">
-        <div class="exp-juzgado">Juzgado Civil Nº2</div>
-        <div class="exp-vencimiento" style="color:#388E3C">Cobrado · Oct 2024</div>
-      </div>
-    </div>
-
+<!-- LISTA VIEW -->
+<div class="tab-view" id="view-lista">
+  <div class="lista-section" style="padding-top:14px" id="lista-content">
+    <div style="text-align:center;padding:40px;color:var(--text-muted)">Cargando...</div>
   </div>
 </div>
 
 <!-- FAB -->
-<button class="fab" onclick="document.getElementById('overlay').classList.add('open')">＋</button>
+<button class="fab" onclick="abrirModal()">＋</button>
 
-
-
-
-<!-- ══ DETALLE EXPEDIENTE ══ -->
-<div class="detail-screen" id="detailScreen">
-  <div class="detail-hero" id="detailHero" style="background:linear-gradient(135deg,#1B4332,#2D6A4F)">
-    <button class="detail-back" onclick="closeDetail()">←</button>
-    <div class="detail-exp-num">Exp. 3847/23</div>
-    <div class="detail-caratula">Martínez c/ OSDE s/ mala praxis — Juzgado Civil Nº1 · Chivilcoy</div>
-    <div style="margin-top:10px;font-size:11px;opacity:0.6;font-weight:700;text-transform:uppercase;letter-spacing:1px">Honorarios estimados</div>
-    <div class="detail-amount">$950.000</div>
-  </div>
-
-  <!-- Pipeline steps -->
-  <div class="pipeline-section">
-    <div class="pipeline-title">Estado del expediente</div>
-    <div class="pipeline-steps">
-      <div class="pipeline-line"></div>
-
-      <div class="pipeline-step">
-        <div class="step-dot-wrap done">✓</div>
-        <div class="step-content">
-          <div class="step-title done">1 · Aceptación de cargo</div>
-          <div class="step-date">Completado el 12 Ene 2024</div>
-        </div>
-      </div>
-
-      <div class="pipeline-step">
-        <div class="step-dot-wrap active">✍️</div>
-        <div class="step-content">
-          <div class="step-title active">2 · Entrega de informe</div>
-          <div class="step-date">🚨 Vence el 22 de febrero</div>
-          <button class="step-action action-orange">✍️ Marcar como entregado</button>
-        </div>
-      </div>
-
-      <div class="pipeline-step">
-        <div class="step-dot-wrap pending">💬</div>
-        <div class="step-content">
-          <div class="step-title pending">3 · Conteste impugnación</div>
-          <div class="step-date">Pendiente</div>
-        </div>
-      </div>
-
-      <div class="pipeline-step">
-        <div class="step-dot-wrap pending">💰</div>
-        <div class="step-content">
-          <div class="step-title pending">4 · Cobro de honorarios</div>
-          <div class="step-date">Pendiente</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Info -->
-  <div class="info-card">
-    <div class="info-card-title">Datos del expediente</div>
-    <div class="info-row"><div class="info-key">Número</div><div class="info-val">3847/23</div></div>
-    <div class="info-row"><div class="info-key">Carátula</div><div class="info-val" style="max-width:200px;text-align:right;font-size:12px">Martínez c/ OSDE s/ mala praxis</div></div>
-    <div class="info-row"><div class="info-key">Juzgado</div><div class="info-val">Civil Nº1 · Chivilcoy</div></div>
-    <div class="info-row"><div class="info-key">Fuero</div><div class="info-val">Civil</div></div>
-    <div class="info-row"><div class="info-key">Fecha sorteo</div><div class="info-val">8 Ene 2024</div></div>
-    <div class="info-row"><div class="info-key">Honorarios estimados</div><div class="info-val" style="color:var(--primary)">$950.000</div></div>
-  </div>
-
-  <div style="height:30px"></div>
-</div>
-
-<!-- ══ MODAL NUEVO EXPEDIENTE ══ -->
+<!-- MODAL NUEVA PERICIA -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">⚖️ Nuevo expediente</div>
-    <div class="modal-sub">Cargá los datos del expediente pericial.</div>
+    <div class="modal-title">⚖️ Nueva pericia</div>
+    <div class="modal-sub">Registrá los datos del expediente.</div>
+    <div id="msgError" class="msg-error"></div>
 
-    <div class="field">
-      <label class="field-label">Número de expediente</label>
-      <input class="field-input" placeholder="Ej: 4821/24" type="text">
+    <div class="two-col">
+      <div class="field">
+        <div class="field-label">Expediente <span class="req-star">*</span></div>
+        <input class="field-input" id="f-expediente" type="text" placeholder="Nº expediente">
+      </div>
+      <div class="field">
+        <div class="field-label">Juzgado</div>
+        <input class="field-input" id="f-juzgado" type="text" placeholder="Ej: Civil Nº3">
+      </div>
     </div>
     <div class="field">
-      <label class="field-label">Carátula</label>
-      <input class="field-input" placeholder="Ej: González c/ Transportes..." type="text">
+      <div class="field-label">Carátula <span class="req-star">*</span></div>
+      <input class="field-input" id="f-caratula" type="text" placeholder="Ej: García c/ Empresa SA">
+    </div>
+    <div class="field">
+      <div class="field-label">Peritado</div>
+      <input class="field-input" id="f-peritado" type="text" placeholder="Nombre del peritado">
     </div>
     <div class="two-col">
       <div class="field">
-        <label class="field-label">Juzgado</label>
-        <input class="field-input" placeholder="Civil Nº3" type="text">
+        <div class="field-label">Fecha entrevista</div>
+        <input class="field-input" id="f-entrevista" type="date">
       </div>
       <div class="field">
-        <label class="field-label">Fuero</label>
-        <input class="field-input" placeholder="Civil / Laboral" type="text">
+        <div class="field-label">Fecha vencimiento</div>
+        <input class="field-input" id="f-vencimiento" type="date">
       </div>
     </div>
     <div class="two-col">
       <div class="field">
-        <label class="field-label">Fecha sorteo</label>
-        <input class="field-input" placeholder="DD/MM/AAAA" type="text">
+        <div class="field-label">Honorarios</div>
+        <input class="field-input" id="f-honorarios" type="number" placeholder="$0">
       </div>
       <div class="field">
-        <label class="field-label">Honorarios est.</label>
-        <input class="field-input" placeholder="$1.000.000" type="text">
+        <div class="field-label">Estado</div>
+        <select class="field-input" id="f-estado">
+          <option value="en_curso">En curso</option>
+          <option value="entrevista">Entrevista</option>
+          <option value="redaccion">Redacción</option>
+          <option value="presentado">Presentado</option>
+          <option value="cobrado">Cobrado</option>
+        </select>
       </div>
     </div>
+    <div class="field">
+      <div class="field-label">Notas</div>
+      <textarea class="field-input" id="f-notas" placeholder="Observaciones..." style="resize:none;min-height:60px;font-size:14px;line-height:1.5"></textarea>
+    </div>
 
-    <button class="btn-guardar" onclick="document.getElementById('overlay').classList.remove('open')">✓ Guardar expediente</button>
-    <button class="btn-cancelar" onclick="document.getElementById('overlay').classList.remove('open')">Cancelar</button>
+    <button class="btn-guardar" id="btnGuardar" onclick="guardarPericia()">✓ Guardar pericia</button>
+    <button onclick="cerrarModal()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Cancelar</button>
   </div>
 </div>
 
-<script>
-function setTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  const idx = name === 'pipeline' ? 0 : 1;
-  document.querySelectorAll('.tab')[idx].classList.add('active');
-}
+<!-- MODAL DETALLE -->
+<div class="overlay" id="overlayDet">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="det-content"></div>
+    <div style="margin-top:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Cambiar estado</div>
+      <select class="estado-select" id="det-estado" onchange="cambiarEstado(this.value)">
+        <option value="en_curso">⚙️ En curso</option>
+        <option value="entrevista">🗣 Entrevista programada</option>
+        <option value="redaccion">✍️ En redacción</option>
+        <option value="presentado">📬 Presentado</option>
+        <option value="cobrado">✅ Cobrado</option>
+      </select>
+    </div>
+    <div class="det-actions">
+      <button class="btn-det btn-det-del" onclick="eliminarPericia()">🗑 Eliminar</button>
+    </div>
+    <button onclick="cerrarDetalle()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Cerrar</button>
+  </div>
+</div>
 
-function toggleStage(id) {
-  const items = document.getElementById('items-' + id);
-  const arrow = document.getElementById('arrow-' + id);
-  const isOpen = items.style.display !== 'none';
-  items.style.display = isOpen ? 'none' : 'flex';
-  arrow.classList.toggle('open', !isOpen);
-}
-
-function openDetail(stage) {
-  const colors = {
-    s1: 'linear-gradient(135deg,#0D47A1,#1976D2)',
-    s2: 'linear-gradient(135deg,#BF360C,#E65100)',
-    s3: 'linear-gradient(135deg,#4A148C,#7B5EA7)',
-    s4: 'linear-gradient(135deg,#1B4332,#2D6A4F)',
-  };
-  document.getElementById('detailHero').style.background = colors[stage] || colors.s4;
-  document.getElementById('detailScreen').classList.add('open');
-}
-
-function closeDetail() {
-  document.getElementById('detailScreen').classList.remove('open');
-}
-</script>
-
-
-</body>
-
-
-
-
-
-<style>
-.app-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 430px;
-  height: 64px;
-  background: #fff;
-  border-top: 1.5px solid #E8E4DD;
-  display: flex;
-  align-items: center;
-  z-index: 2147483647;
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
-}
-.app-nav a {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  text-decoration: none;
-  color: #8A8FA8;
-  font-family: sans-serif;
-  padding: 4px 0;
-}
-.app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
-.app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
-.app-nav a.on .nl { color: #2D6A4F; }
-.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(45,106,79,0.5)); }
-</style>
 <nav class="app-nav">
-  <a href="index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
   <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
   <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
   <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
@@ -718,4 +261,242 @@ function closeDetail() {
   <a href="psicoapp-pericias.html" class="on"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
 </nav>
 
+<script>
+const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+const ESTADOS = {
+  en_curso:    { label:'En curso',      cls:'s1', icon:'⚙️' },
+  entrevista:  { label:'Entrevista',    cls:'s2', icon:'🗣' },
+  redaccion:   { label:'Redacción',     cls:'s3', icon:'✍️' },
+  presentado:  { label:'Presentado',    cls:'s3', icon:'📬' },
+  cobrado:     { label:'Cobrado',       cls:'s4', icon:'✅' },
+};
+
+let todasPericias = [];
+let periciaSeleccionada = null;
+let tabActual = 'pipeline';
+
+(async () => {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  await cargarPericias();
+})();
+
+async function cargarPericias() {
+  const { data } = await sb.from('pericias').select('*').order('created_at', { ascending: false });
+  todasPericias = data || [];
+  actualizarStats();
+  if (tabActual === 'pipeline') renderPipeline();
+  else renderLista();
+}
+
+function actualizarStats() {
+  const enCurso   = todasPericias.filter(p => p.estado !== 'cobrado').length;
+  const hoy       = new Date();
+  const en15dias  = new Date(); en15dias.setDate(hoy.getDate() + 15);
+  const proxVenc  = todasPericias.filter(p => {
+    if (!p.fecha_vencimiento || p.estado === 'cobrado') return false;
+    const fv = new Date(p.fecha_vencimiento);
+    return fv >= hoy && fv <= en15dias;
+  }).length;
+  const honorarios = todasPericias
+    .filter(p => p.estado !== 'cobrado')
+    .reduce((s, p) => s + (p.honorarios || 0), 0);
+
+  document.getElementById('stat-en-curso').textContent   = enCurso;
+  document.getElementById('stat-vencimiento').textContent = proxVenc;
+  document.getElementById('stat-honorarios').textContent  = formatPeso(honorarios);
+}
+
+function renderPipeline() {
+  const cont = document.getElementById('pipeline-content');
+  const activas = todasPericias.filter(p => p.estado !== 'cobrado');
+
+  if (!activas.length) {
+    cont.innerHTML = '<div class="empty-sec"><div class="empty-sec-icon">⚖️</div>Sin pericias activas.<br>Tocá + para registrar una.</div>';
+    return;
+  }
+
+  // agrupar por estado
+  const grupos = {};
+  activas.forEach(p => {
+    if (!grupos[p.estado]) grupos[p.estado] = [];
+    grupos[p.estado].push(p);
+  });
+
+  const orden = ['en_curso','entrevista','redaccion','presentado'];
+  let html = '';
+  orden.forEach(estado => {
+    const items = grupos[estado];
+    if (!items || !items.length) return;
+    const est = ESTADOS[estado] || ESTADOS.en_curso;
+    html += `<div class="stage-section ${est.cls}">
+      <div class="stage-header">
+        <div class="stage-badge">
+          <div class="stage-dot"></div>
+          <div class="stage-name" style="color:var(--${est.cls})">${est.label}</div>
+        </div>
+        <div class="stage-count">${items.length}</div>
+      </div>`;
+    items.forEach(p => { html += cardHtml(p, est.cls); });
+    html += `</div>`;
+  });
+
+  cont.innerHTML = html;
+}
+
+function renderLista() {
+  const cont = document.getElementById('lista-content');
+  if (!todasPericias.length) {
+    cont.innerHTML = '<div class="empty-sec"><div class="empty-sec-icon">⚖️</div>Sin pericias registradas.</div>';
+    return;
+  }
+  let html = '';
+  todasPericias.forEach(p => {
+    const est = ESTADOS[p.estado] || ESTADOS.en_curso;
+    html += `<div class="lista-card ${est.cls}" onclick="abrirDetalle('${p.id}')" style="border-left:4px solid var(--${est.cls})">
+      <div class="exp-top">
+        <div class="exp-expediente">📋 ${p.expediente || 'Sin nº'}</div>
+        <div class="exp-badge" style="background:var(--${est.cls}-light);color:var(--${est.cls})">${est.icon} ${est.label}</div>
+      </div>
+      <div class="exp-caratula">${p.caratula || '—'}</div>
+      <div class="exp-meta-row">
+        ${p.juzgado ? `<div class="exp-meta-item">⚖️ ${p.juzgado}</div>` : ''}
+        ${p.peritado ? `<div class="exp-meta-item">👤 ${p.peritado}</div>` : ''}
+        ${p.honorarios ? `<div class="exp-meta-item">💰 ${formatPeso(p.honorarios)}</div>` : ''}
+      </div>
+    </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+function cardHtml(p, clsEstado) {
+  const hoy = new Date();
+  const fv  = p.fecha_vencimiento ? new Date(p.fecha_vencimiento) : null;
+  const diasAlVenc = fv ? Math.ceil((fv - hoy) / 86400000) : null;
+  const alertaVenc = diasAlVenc !== null && diasAlVenc <= 15 && diasAlVenc >= 0;
+
+  return `<div class="exp-card" onclick="abrirDetalle('${p.id}')">
+    <div class="exp-top">
+      <div class="exp-expediente">📋 ${p.expediente || 'Sin nº'}</div>
+      ${p.honorarios ? `<div class="exp-badge" style="background:var(--s4-light);color:var(--s4)">${formatPeso(p.honorarios)}</div>` : ''}
+    </div>
+    <div class="exp-caratula">${p.caratula || '—'}</div>
+    <div class="exp-meta-row">
+      ${p.juzgado  ? `<div class="exp-meta-item">⚖️ ${p.juzgado}</div>` : ''}
+      ${p.peritado ? `<div class="exp-meta-item">👤 ${p.peritado}</div>` : ''}
+      ${p.fecha_entrevista ? `<div class="exp-meta-item">📅 ${fmtFecha(p.fecha_entrevista)}</div>` : ''}
+    </div>
+    ${alertaVenc ? `<div class="exp-alerta">⏰ Vence en ${diasAlVenc} día${diasAlVenc!==1?'s':''}</div>` : ''}
+  </div>`;
+}
+
+function setTab(t) {
+  tabActual = t;
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+  document.getElementById('view-' + t).classList.add('active');
+  if (t === 'pipeline') renderPipeline();
+  else renderLista();
+}
+
+// ── MODAL NUEVA PERICIA ──
+function abrirModal() {
+  ['f-expediente','f-juzgado','f-caratula','f-peritado','f-entrevista','f-vencimiento','f-notas'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-honorarios').value = '';
+  document.getElementById('f-estado').value = 'en_curso';
+  document.getElementById('msgError').style.display = 'none';
+  document.getElementById('overlay').classList.add('open');
+}
+function cerrarModal() { document.getElementById('overlay').classList.remove('open'); }
+
+async function guardarPericia() {
+  const expediente = document.getElementById('f-expediente').value.trim();
+  const caratula   = document.getElementById('f-caratula').value.trim();
+  if (!expediente || !caratula) {
+    const err = document.getElementById('msgError');
+    err.textContent = 'Expediente y carátula son obligatorios.'; err.style.display = 'block'; return;
+  }
+
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  const { data:{ session } } = await sb.auth.getSession();
+  const hon = document.getElementById('f-honorarios').value;
+  const { error } = await sb.from('pericias').insert({
+    user_id:          session.user.id,
+    expediente,
+    caratula,
+    juzgado:          document.getElementById('f-juzgado').value.trim() || null,
+    peritado:         document.getElementById('f-peritado').value.trim() || null,
+    fecha_entrevista: document.getElementById('f-entrevista').value || null,
+    fecha_vencimiento:document.getElementById('f-vencimiento').value || null,
+    honorarios:       hon ? parseFloat(hon) : null,
+    estado:           document.getElementById('f-estado').value,
+    notas:            document.getElementById('f-notas').value.trim() || null,
+  });
+
+  btn.disabled = false; btn.textContent = '✓ Guardar pericia';
+  if (error) {
+    const err = document.getElementById('msgError');
+    err.textContent = 'Error al guardar.'; err.style.display = 'block'; return;
+  }
+  cerrarModal();
+  await cargarPericias();
+}
+
+// ── DETALLE ──
+function abrirDetalle(id) {
+  periciaSeleccionada = todasPericias.find(p => p.id === id);
+  if (!periciaSeleccionada) return;
+  const p = periciaSeleccionada;
+  const est = ESTADOS[p.estado] || ESTADOS.en_curso;
+
+  document.getElementById('det-content').innerHTML = `
+    <div style="font-size:20px;font-weight:800;margin-bottom:4px">📋 ${p.expediente || 'Sin nº'}</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${p.caratula || '—'}</div>
+    ${filaD('⚖️','Juzgado', p.juzgado || '—')}
+    ${filaD('👤','Peritado', p.peritado || '—')}
+    ${p.fecha_entrevista ? filaD('📅','Fecha entrevista', fmtFecha(p.fecha_entrevista)) : ''}
+    ${p.fecha_vencimiento ? filaD('⏰','Vencimiento', fmtFecha(p.fecha_vencimiento)) : ''}
+    ${p.honorarios ? filaD('💰','Honorarios', formatPeso(p.honorarios)) : ''}
+    ${p.notas ? filaD('📝','Notas', p.notas) : ''}
+  `;
+  document.getElementById('det-estado').value = p.estado;
+  document.getElementById('overlayDet').classList.add('open');
+}
+function cerrarDetalle() { document.getElementById('overlayDet').classList.remove('open'); periciaSeleccionada = null; }
+
+async function cambiarEstado(nuevoEstado) {
+  if (!periciaSeleccionada) return;
+  await sb.from('pericias').update({ estado: nuevoEstado }).eq('id', periciaSeleccionada.id);
+  cerrarDetalle();
+  await cargarPericias();
+}
+
+async function eliminarPericia() {
+  if (!periciaSeleccionada) return;
+  if (!confirm('¿Eliminar esta pericia?')) return;
+  await sb.from('pericias').delete().eq('id', periciaSeleccionada.id);
+  cerrarDetalle();
+  await cargarPericias();
+}
+
+// cerrar al tocar fuera
+['overlay','overlayDet'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target.id === id) id === 'overlay' ? cerrarModal() : cerrarDetalle();
+  });
+});
+
+// helpers
+function fmtFecha(f) { if(!f)return'—'; const[y,m,d]=f.split('-'); return`${d}/${m}/${y}`; }
+function formatPeso(n) { if(!n)return'$0'; if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M'; if(n>=1000)return'$'+Math.round(n/1000)+'k'; return'$'+n; }
+function filaD(icon,label,val) { return`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:16px">${icon}</span><div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">${label}</div><div style="font-size:14px;font-weight:600;margin-top:2px">${val}</div></div></div>`; }
+</script>
+</body>
 </html>
