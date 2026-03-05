@@ -185,7 +185,7 @@ body {
   <div class="header-row">
     <div class="logo">Psico<span>app</span></div>
     <div class="header-icons">
-      <button class="icon-btn" onclick="window.location.href='psicoapp-agenda.html'">📅</button>
+      <button class="icon-btn" onclick="window.location.href='psicoapp-perfil.html'" title="Mi perfil">👤</button>
     </div>
   </div>
   <div class="greeting">
@@ -301,17 +301,23 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
   ]);
 })();
 
-function setGreeting() {
+async function setGreeting() {
   const now  = new Date();
   const hora = now.getHours();
   const sub  = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
   document.getElementById('greeting-sub').textContent  = sub;
-  document.getElementById('greeting-name').textContent = 'Dr. Juan José Pérez Aré';
   document.getElementById('greeting-date').textContent =
     `${DIAS[now.getDay()]} ${now.getDate()} de ${MESES[now.getMonth()]} · ${String(hora).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const mesNombre = MESES[now.getMonth()];
   document.getElementById('titulo-ingresos').textContent = `Ingresos — ${mesNombre}`;
   document.getElementById('trend-mes').textContent = mesNombre.slice(0,3);
+
+  // leer perfil
+  const { data:{ session } } = await sb.auth.getSession();
+  const { data: perfil } = await sb.from('profiles').select('titulo,nombre_completo').eq('id', session.user.id).maybeSingle();
+  const titulo = perfil?.titulo || '';
+  const nombre = perfil?.nombre_completo || session.user.email;
+  document.getElementById('greeting-name').textContent = `${titulo} ${nombre}`.trim();
 }
 
 async function cargarTurnosHoy() {
