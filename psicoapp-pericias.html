@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Psicoapp — Pericias</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F1ED;
+  --surface: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-light: #E8F5EE;
+  --accent: #F4A261;
+  --accent-light: #FEF0E6;
+  --text: #1A1A2E;
+  --text-muted: #8A8FA8;
+  --border: #E8E4DD;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 24px rgba(0,0,0,0.11);
+  --radius: 16px;
+
+  /* Stage colors */
+  --s1: #1976D2; --s1-light: #E3F2FD;
+  --s2: #E65100; --s2-light: #FFF3E0;
+  --s3: #7B5EA7; --s3-light: #EDE9FE;
+  --s4: #2D6A4F; --s4-light: #E8F5EE;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { padding-bottom: 76px !important;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg); color: var(--text);
+  max-width: 430px; margin: 0 auto;
+  min-height: 100vh; padding-bottom: 80px;
+}
+
+/* HEADER */
+.header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm);
+}
+.header-top {
+  display: flex; align-items: center;
+  padding: 14px 18px 10px; gap: 10px;
+}
+.logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--primary); }
+.logo span { color: var(--accent); }
+.header-title { flex: 1; text-align: center; font-size: 16px; font-weight: 800; }
+.icon-btn-sm {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--bg); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+
+/* TABS */
+.tabs { display: flex; border-bottom: 1px solid var(--border); }
+.tab {
+  flex: 1; padding: 12px 8px; text-align: center;
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s;
+}
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* STATS */
+.stats-row {
+  display: flex; gap: 10px; padding: 14px 16px 10px;
+}
+.stat-card {
+  flex: 1; background: var(--surface); border-radius: 12px;
+  padding: 10px 8px; box-shadow: var(--shadow-sm); text-align: center;
+}
+.stat-num { font-size: 20px; font-weight: 800; }
+.stat-label { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+
+/* PIPELINE VIEW */
+.tab-view { display: none; }
+.tab-view.active { display: block; animation: fadeUp 0.2s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Stage section */
+.stage-section { margin-bottom: 6px; }
+.stage-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px 8px; cursor: pointer;
+}
+.stage-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.stage-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; flex: 1; }
+.stage-count {
+  font-size: 11px; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px;
+}
+.stage-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+.stage-arrow.open { transform: rotate(180deg); }
+.stage-items { padding: 0 16px 8px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Expediente card */
+.exp-card {
+  background: var(--surface); border-radius: var(--radius);
+  padding: 14px 15px; box-shadow: var(--shadow-sm);
+  cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden;
+}
+.exp-card::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+.exp-card:hover { transform: translateX(2px); box-shadow: var(--shadow-md); }
+
+.exp-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.exp-num { font-size: 15px; font-weight: 800; flex: 1; }
+.exp-amount { font-size: 15px; font-weight: 800; color: var(--primary); flex-shrink: 0; }
+.exp-caratula { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.4; }
+
+.exp-meta-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.exp-tag {
+  font-size: 10px; font-weight: 700; padding: 3px 8px;
+  border-radius: 20px; white-space: nowrap;
+}
+
+.exp-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
+}
+.exp-juzgado { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.exp-vencimiento { font-size: 11px; font-weight: 700; }
+.venc-ok { color: var(--text-muted); }
+.venc-near { color: var(--accent); }
+.venc-urgent { color: #E53935; }
+
+/* Stage 1 — Aceptación de cargo */
+.s1 .exp-card::before { background: var(--s1); }
+.s1 .stage-dot { background: var(--s1); }
+.s1 .stage-title { color: var(--s1); }
+.s1 .stage-count { background: var(--s1-light); color: var(--s1); }
+
+/* Stage 2 — Entrega de informe */
+.s2 .exp-card::before { background: var(--s2); }
+.s2 .stage-dot { background: var(--s2); }
+.s2 .stage-title { color: var(--s2); }
+.s2 .stage-count { background: var(--s2-light); color: var(--s2); }
+
+/* Stage 3 — Conteste impugnación */
+.s3 .exp-card::before { background: var(--s3); }
+.s3 .stage-dot { background: var(--s3); }
+.s3 .stage-title { color: var(--s3); }
+.s3 .stage-count { background: var(--s3-light); color: var(--s3); }
+
+/* Stage 4 — Cobro */
+.s4 .exp-card::before { background: var(--s4); }
+.s4 .stage-dot { background: var(--s4); }
+.s4 .stage-title { color: var(--s4); }
+.s4 .stage-count { background: var(--s4-light); color: var(--s4); }
+
+/* DETAIL SCREEN */
+.detail-screen {
+  display: none; position: fixed; inset: 0;
+  background: var(--bg); z-index: 55; overflow-y: auto;
+  max-width: 430px; margin: 0 auto;
+}
+.detail-screen.open { display: block; }
+
+.detail-hero {
+  padding: 20px 20px 24px; color: white;
+  position: relative; overflow: hidden;
+}
+.detail-back {
+  width: 36px; height: 36px; border-radius: 11px;
+  background: rgba(255,255,255,0.15); border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; color: white; margin-bottom: 16px;
+}
+.detail-exp-num { font-size: 28px; font-weight: 800; line-height: 1; }
+.detail-caratula { font-size: 14px; opacity: 0.75; margin-top: 6px; line-height: 1.5; }
+.detail-amount { font-size: 22px; font-weight: 800; margin-top: 12px; }
+.detail-amount-label { font-size: 11px; opacity: 0.6; font-weight: 600; }
+
+/* Pipeline steps */
+.pipeline-section { padding: 16px; }
+.pipeline-title { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+.pipeline-steps { position: relative; }
+.pipeline-line {
+  position: absolute; left: 18px; top: 0; bottom: 0;
+  width: 2px; background: var(--border);
+}
+.pipeline-step {
+  display: flex; gap: 14px; margin-bottom: 16px;
+  position: relative; z-index: 1;
+}
+.step-dot-wrap {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 16px;
+  border: 2px solid var(--border); background: var(--surface);
+}
+.step-dot-wrap.done { border-color: var(--primary); background: var(--primary); }
+.step-dot-wrap.active { border-color: var(--accent); background: var(--accent-light); }
+.step-dot-wrap.pending { background: var(--bg); }
+.step-content { flex: 1; padding-top: 4px; }
+.step-title { font-size: 14px; font-weight: 700; }
+.step-title.done { color: var(--primary); }
+.step-title.active { color: var(--accent); }
+.step-title.pending { color: var(--text-muted); }
+.step-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.step-action {
+  margin-top: 8px; padding: 8px 14px;
+  border-radius: 10px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 700; font-family: 'DM Sans', sans-serif;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.action-primary { background: var(--primary); color: white; }
+.action-orange { background: var(--accent); color: white; }
+.action-ghost { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+/* Info card */
+.info-card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin: 0 16px 14px; box-shadow: var(--shadow-sm); }
+.info-card-title { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.info-row:first-child { padding-top: 0; }
+.info-key { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.info-val { font-size: 13px; font-weight: 700; text-align: right; }
+
+/* FAB */
+.fab {
+  position: fixed; bottom: 72px; right: 20px;
+  width: 52px; height: 52px; background: var(--primary);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(45,106,79,0.4);
+  cursor: pointer; font-size: 28px; color: white; border: none; z-index: 40;
+}
+
+/* MODAL */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 60; display: none; align-items: flex-end; justify-content: center; }
+.overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 28px 28px 0 0; padding: 20px 20px 40px; width: 100%; max-width: 430px; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 22px; }
+.field { margin-bottom: 14px; }
+.field-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: block; }
+.field-input { width: 100%; border: 1.5px solid var(--border); border-radius: 14px; padding: 13px 16px; font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--bg); outline: none; }
+.field-input:focus { border-color: var(--primary); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.btn-guardar { width: 100%; background: var(--primary); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 8px; }
+.btn-cancelar { width: 100%; background: none; border: none; padding: 12px; font-size: 14px; color: var(--text-muted); font-family: 'DM Sans', sans-serif; cursor: pointer; }
+
+/* BOTTOM NAV */
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: var(--surface); border-top: 1px solid var(--border); display: flex; padding: 10px 0 6px; z-index: 40; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); }
+.bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+.bnav-icon { font-size: 20px; }
+.bnav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+.bnav-label.on { color: var(--primary); }
+
+/* Web promo banner */
+.web-banner {
+  margin: 0 16px 16px;
+  background: linear-gradient(135deg, #1B4332, #2D6A4F);
+  border-radius: var(--radius); padding: 16px;
+  color: white; display: flex; align-items: center; gap: 14px;
+  cursor: pointer;
+}
+.wb-icon { font-size: 28px; flex-shrink: 0; }
+.wb-title { font-size: 14px; font-weight: 800; }
+.wb-sub { font-size: 11px; opacity: 0.7; margin-top: 3px; line-height: 1.4; }
+.wb-arrow { font-size: 20px; margin-left: auto; opacity: 0.7; flex-shrink: 0; }
+
+/* ── UNIFIED NAV ── */
+.unified-bnav {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: 430px !important;
+  margin: 0 auto !important;
+  background: #FFFFFF !important;
+  border-top: 1px solid #E8E4DD !important;
+  display: flex !important;
+  padding: 8px 0 14px !important;
+  z-index: 999999 !important;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.10) !important;
+}
+.unav-item {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 3px !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  padding: 2px 0 !important;
+}
+.unav-icon { font-size: 20px; line-height: 1; }
+.unav-label { font-size: 10px; font-weight: 600; color: #8A8FA8; }
+.unav-item.unav-active .unav-label { color: #2D6A4F !important; }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">Psico<span>app</span></div>
+    <div class="header-title">Pericias</div>
+    <button class="icon-btn-sm">🔍</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="setTab('pipeline')">⚖️ Pipeline</div>
+    <div class="tab" onclick="setTab('finalizadas')">✓ Finalizadas</div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--primary)">6</div>
+    <div class="stat-label">En curso</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--s2)">2</div>
+    <div class="stat-label">Vencimiento próximo</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--primary)">$80.000</div>
+    <div class="stat-label">Anticipos cobrados</div>
+  </div>
+</div>
+
+<!-- ══ TAB PIPELINE ══ -->
+<div class="tab-view active" id="tab-pipeline">
+
+  <!-- STAGE 1: Aceptación de cargo -->
+  <div class="stage-section s1">
+    <div class="stage-header" onclick="toggleStage('s1')">
+      <div class="stage-dot"></div>
+      <div class="stage-title">1 · Aceptación de cargo</div>
+      <div class="stage-count">2 expedientes</div>
+      <div class="stage-arrow open" id="arrow-s1">▾</div>
+    </div>
+    <div class="stage-items" id="items-s1">
+      <div class="exp-card" onclick="openDetail('s1')">
+        <div class="exp-top">
+          <div class="exp-num">Exp. 4821/24</div>
+          <div style="text-align:right">
+            <div class="exp-amount">$40.000</div>
+            <div style="font-size:9px;color:var(--text-muted);font-weight:700;margin-top:1px">Anticipo gastos</div>
+          </div>
+        </div>
+        <div class="exp-caratula">González c/ Transportes del Sur S.A. s/ daños y perjuicios</div>
+        <div class="exp-meta-row">
+          <div class="exp-tag" style="background:var(--s1-light);color:var(--s1)">🔵 Aceptar cargo</div>
+          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Civil</div>
+        </div>
+        <div class="exp-footer">
+          <div class="exp-juzgado">Juzgado Civil Nº3 · Chivilcoy</div>
+          <div class="exp-vencimiento venc-near">⚠️ Vence 28 Feb</div>
+        </div>
+      </div>
+      <div class="exp-card" onclick="openDetail('s1')">
+        <div class="exp-top">
+          <div class="exp-num">Exp. 5102/24</div>
+          <div style="text-align:right">
+            <div class="exp-amount">$40.000</div>
+            <div style="font-size:9px;color:var(--text-muted);font-weight:700;margin-top:1px">Anticipo gastos</div>
+          </div>
+        </div>
+        <div class="exp-caratula">Rodríguez c/ Municipalidad s/ accidente laboral</div>
+        <div class="exp-meta-row">
+          <div class="exp-tag" style="background:var(--s1-light);color:var(--s1)">🔵 Aceptar cargo</div>
+          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Laboral</div>
+        </div>
+        <div class="exp-footer">
+          <div class="exp-juzgado">Juzgado Laboral Nº1 · Chivilcoy</div>
+          <div class="exp-vencimiento venc-ok">Vence 15 Mar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 2: Entrega de informe -->
+  <div class="stage-section s2">
+    <div class="stage-header" onclick="toggleStage('s2')">
+      <div class="stage-dot"></div>
+      <div class="stage-title">2 · Entrega de informe</div>
+      <div class="stage-count">2 expedientes</div>
+      <div class="stage-arrow open" id="arrow-s2">▾</div>
+    </div>
+    <div class="stage-items" id="items-s2">
+      <div class="exp-card" onclick="openDetail('s2')">
+        <div class="exp-top">
+          <div class="exp-num">Exp. 3847/23</div>
+        </div>
+        <div class="exp-caratula">Martínez c/ OSDE s/ mala praxis</div>
+        <div class="exp-meta-row">
+          <div class="exp-tag" style="background:var(--s2-light);color:var(--s2)">🟠 Redactar informe</div>
+          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Civil</div>
+        </div>
+        <div class="exp-footer">
+          <div class="exp-juzgado">Juzgado Civil Nº1 · Chivilcoy</div>
+          <div class="exp-vencimiento venc-urgent">🚨 Vence 22 Feb</div>
+        </div>
+      </div>
+      <div class="exp-card" onclick="openDetail('s2')">
+        <div class="exp-top">
+          <div class="exp-num">Exp. 4103/23</div>
+        </div>
+        <div class="exp-caratula">Fernández c/ ART Galeno s/ accidente tránsito</div>
+        <div class="exp-meta-row">
+          <div class="exp-tag" style="background:var(--s2-light);color:var(--s2)">🟠 Redactar informe</div>
+          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Tránsito</div>
+        </div>
+        <div class="exp-footer">
+          <div class="exp-juzgado">Juzgado Civil Nº2 · Chivilcoy</div>
+          <div class="exp-vencimiento venc-near">⚠️ Vence 5 Mar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 3: Conteste impugnación -->
+  <div class="stage-section s3">
+    <div class="stage-header" onclick="toggleStage('s3')">
+      <div class="stage-dot"></div>
+      <div class="stage-title">3 · Conteste impugnación</div>
+      <div class="stage-count">1 expediente</div>
+      <div class="stage-arrow open" id="arrow-s3">▾</div>
+    </div>
+    <div class="stage-items" id="items-s3">
+      <div class="exp-card" onclick="openDetail('s3')">
+        <div class="exp-top">
+          <div class="exp-num">Exp. 2956/22</div>
+        </div>
+        <div class="exp-caratula">López c/ Empresa de Colectivos s/ daños psicológicos</div>
+        <div class="exp-meta-row">
+          <div class="exp-tag" style="background:var(--s3-light);color:var(--s3)">🟣 Contestar impugnación</div>
+          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Tránsito</div>
+        </div>
+        <div class="exp-footer">
+          <div class="exp-juzgado">Cámara Civil · Chivilcoy</div>
+          <div class="exp-vencimiento venc-near">⚠️ Vence 3 Mar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 4: Cobro de honorarios -->
+  <div class="stage-section s4">
+    <div class="stage-header" onclick="toggleStage('s4')">
+      <div class="stage-dot"></div>
+      <div class="stage-title">4 · Cobro de honorarios</div>
+      <div class="stage-count">1 expediente</div>
+      <div class="stage-arrow open" id="arrow-s4">▾</div>
+    </div>
+    <div class="stage-items" id="items-s4">
+      <div class="exp-card" onclick="openDetail('s4')">
+        <div class="exp-top">
+          <div class="exp-num">Exp. 1834/21</div>
+          <div style="text-align:right">
+            <div class="exp-amount">$450.000</div>
+            <div style="font-size:9px;color:var(--text-muted);font-weight:700;margin-top:1px">Honorarios regulados</div>
+          </div>
+        </div>
+        <div class="exp-caratula">Sánchez c/ Transporte Rápido s/ daños</div>
+        <div class="exp-meta-row">
+          <div class="exp-tag" style="background:var(--s4-light);color:var(--s4)">🟢 Gestionar cobro</div>
+          <div class="exp-tag" style="background:var(--bg);color:var(--text-muted)">Tránsito</div>
+        </div>
+        <div class="exp-footer">
+          <div class="exp-juzgado">Juzgado Civil Nº3 · Chivilcoy</div>
+          <div class="exp-vencimiento venc-ok">Regulado · En cobro</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Web promo -->
+  <div class="web-banner">
+    <div class="wb-icon">🤖</div>
+    <div>
+      <div class="wb-title">Versión web — Próximamente</div>
+      <div class="wb-sub">Procuración automática de expedientes + notificaciones de novedades sin que tengas que entrar al portal judicial. Te avisamos cuando hay movimientos.</div>
+    </div>
+    <div class="wb-arrow">›</div>
+  </div>
+
+</div>
+
+<!-- ══ TAB FINALIZADAS ══ -->
+<div class="tab-view" id="tab-finalizadas">
+  <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+
+    <div class="exp-card" style="opacity:0.7">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#9E9E9E;border-radius:4px 0 0 4px"></div>
+      <div class="exp-top">
+        <div class="exp-num">Exp. 1201/20</div>
+        <div class="exp-amount" style="color:#388E3C">✓ $780.000</div>
+      </div>
+      <div class="exp-caratula">Pérez c/ ART Provincia s/ accidente laboral</div>
+      <div class="exp-footer">
+        <div class="exp-juzgado">Juzgado Laboral Nº1</div>
+        <div class="exp-vencimiento" style="color:#388E3C">Cobrado · Dic 2024</div>
+      </div>
+    </div>
+
+    <div class="exp-card" style="opacity:0.7">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#9E9E9E;border-radius:4px 0 0 4px"></div>
+      <div class="exp-top">
+        <div class="exp-num">Exp. 0934/19</div>
+        <div class="exp-amount" style="color:#388E3C">✓ $520.000</div>
+      </div>
+      <div class="exp-caratula">Torres c/ Empresa Tránsito s/ daños</div>
+      <div class="exp-footer">
+        <div class="exp-juzgado">Juzgado Civil Nº2</div>
+        <div class="exp-vencimiento" style="color:#388E3C">Cobrado · Oct 2024</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="document.getElementById('overlay').classList.add('open')">＋</button>
+
+
+
+
+<!-- ══ DETALLE EXPEDIENTE ══ -->
+<div class="detail-screen" id="detailScreen">
+  <div class="detail-hero" id="detailHero" style="background:linear-gradient(135deg,#1B4332,#2D6A4F)">
+    <button class="detail-back" onclick="closeDetail()">←</button>
+    <div class="detail-exp-num">Exp. 3847/23</div>
+    <div class="detail-caratula">Martínez c/ OSDE s/ mala praxis — Juzgado Civil Nº1 · Chivilcoy</div>
+    <div style="margin-top:10px;font-size:11px;opacity:0.6;font-weight:700;text-transform:uppercase;letter-spacing:1px">Honorarios estimados</div>
+    <div class="detail-amount">$950.000</div>
+  </div>
+
+  <!-- Pipeline steps -->
+  <div class="pipeline-section">
+    <div class="pipeline-title">Estado del expediente</div>
+    <div class="pipeline-steps">
+      <div class="pipeline-line"></div>
+
+      <div class="pipeline-step">
+        <div class="step-dot-wrap done">✓</div>
+        <div class="step-content">
+          <div class="step-title done">1 · Aceptación de cargo</div>
+          <div class="step-date">Completado el 12 Ene 2024</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step">
+        <div class="step-dot-wrap active">✍️</div>
+        <div class="step-content">
+          <div class="step-title active">2 · Entrega de informe</div>
+          <div class="step-date">🚨 Vence el 22 de febrero</div>
+          <button class="step-action action-orange">✍️ Marcar como entregado</button>
+        </div>
+      </div>
+
+      <div class="pipeline-step">
+        <div class="step-dot-wrap pending">💬</div>
+        <div class="step-content">
+          <div class="step-title pending">3 · Conteste impugnación</div>
+          <div class="step-date">Pendiente</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step">
+        <div class="step-dot-wrap pending">💰</div>
+        <div class="step-content">
+          <div class="step-title pending">4 · Cobro de honorarios</div>
+          <div class="step-date">Pendiente</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="info-card">
+    <div class="info-card-title">Datos del expediente</div>
+    <div class="info-row"><div class="info-key">Número</div><div class="info-val">3847/23</div></div>
+    <div class="info-row"><div class="info-key">Carátula</div><div class="info-val" style="max-width:200px;text-align:right;font-size:12px">Martínez c/ OSDE s/ mala praxis</div></div>
+    <div class="info-row"><div class="info-key">Juzgado</div><div class="info-val">Civil Nº1 · Chivilcoy</div></div>
+    <div class="info-row"><div class="info-key">Fuero</div><div class="info-val">Civil</div></div>
+    <div class="info-row"><div class="info-key">Fecha sorteo</div><div class="info-val">8 Ene 2024</div></div>
+    <div class="info-row"><div class="info-key">Honorarios estimados</div><div class="info-val" style="color:var(--primary)">$950.000</div></div>
+  </div>
+
+  <div style="height:30px"></div>
+</div>
+
+<!-- ══ MODAL NUEVO EXPEDIENTE ══ -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚖️ Nuevo expediente</div>
+    <div class="modal-sub">Cargá los datos del expediente pericial.</div>
+
+    <div class="field">
+      <label class="field-label">Número de expediente</label>
+      <input class="field-input" placeholder="Ej: 4821/24" type="text">
+    </div>
+    <div class="field">
+      <label class="field-label">Carátula</label>
+      <input class="field-input" placeholder="Ej: González c/ Transportes..." type="text">
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label class="field-label">Juzgado</label>
+        <input class="field-input" placeholder="Civil Nº3" type="text">
+      </div>
+      <div class="field">
+        <label class="field-label">Fuero</label>
+        <input class="field-input" placeholder="Civil / Laboral" type="text">
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label class="field-label">Fecha sorteo</label>
+        <input class="field-input" placeholder="DD/MM/AAAA" type="text">
+      </div>
+      <div class="field">
+        <label class="field-label">Honorarios est.</label>
+        <input class="field-input" placeholder="$1.000.000" type="text">
+      </div>
+    </div>
+
+    <button class="btn-guardar" onclick="document.getElementById('overlay').classList.remove('open')">✓ Guardar expediente</button>
+    <button class="btn-cancelar" onclick="document.getElementById('overlay').classList.remove('open')">Cancelar</button>
+  </div>
+</div>
+
+<script>
+function setTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const idx = name === 'pipeline' ? 0 : 1;
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+
+function toggleStage(id) {
+  const items = document.getElementById('items-' + id);
+  const arrow = document.getElementById('arrow-' + id);
+  const isOpen = items.style.display !== 'none';
+  items.style.display = isOpen ? 'none' : 'flex';
+  arrow.classList.toggle('open', !isOpen);
+}
+
+function openDetail(stage) {
+  const colors = {
+    s1: 'linear-gradient(135deg,#0D47A1,#1976D2)',
+    s2: 'linear-gradient(135deg,#BF360C,#E65100)',
+    s3: 'linear-gradient(135deg,#4A148C,#7B5EA7)',
+    s4: 'linear-gradient(135deg,#1B4332,#2D6A4F)',
+  };
+  document.getElementById('detailHero').style.background = colors[stage] || colors.s4;
+  document.getElementById('detailScreen').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailScreen').classList.remove('open');
+}
+</script>
+
+
+</body>
+
+
+
+
+
+<style>
+.app-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  height: 64px;
+  background: #fff;
+  border-top: 1.5px solid #E8E4DD;
+  display: flex;
+  align-items: center;
+  z-index: 2147483647;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
+}
+.app-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: #8A8FA8;
+  font-family: sans-serif;
+  padding: 4px 0;
+}
+.app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
+.app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
+.app-nav a.on .nl { color: #2D6A4F; }
+.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(45,106,79,0.5)); }
+</style>
+<nav class="app-nav">
+  <a href="index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-pericias.html" class="on"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
+</nav>
+
+</html>

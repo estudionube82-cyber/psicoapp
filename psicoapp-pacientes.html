@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Psicoapp — Pacientes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #F4F1ED;
+  --surface: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-light: #E8F5EE;
+  --primary-mid: #52B788;
+  --accent: #F4A261;
+  --accent-light: #FEF0E6;
+  --text: #1A1A2E;
+  --text-muted: #8A8FA8;
+  --border: #E8E4DD;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 8px 28px rgba(0,0,0,0.13);
+  --radius: 16px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* HEADER */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+.header-top {
+  display: flex; align-items: center;
+  padding: 14px 18px 10px; gap: 10px;
+}
+.logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--primary); }
+.logo span { color: var(--accent); }
+.header-title { flex: 1; text-align: center; font-size: 16px; font-weight: 800; }
+.icon-btn-sm {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--bg); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+
+/* SEARCH */
+.search-bar { padding: 10px 16px 8px; display: flex; gap: 8px; }
+.search-wrap { flex: 1; position: relative; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--text-muted); }
+.search-input {
+  width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 10px 14px 10px 36px;
+  font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none;
+}
+.search-input:focus { border-color: var(--primary); }
+
+/* FILTER */
+.filter-row {
+  display: flex; gap: 8px; padding: 0 16px 12px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.fchip {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  white-space: nowrap; cursor: pointer; border: 1.5px solid var(--border);
+  background: var(--bg); color: var(--text-muted); font-family: 'DM Sans', sans-serif;
+}
+.fchip.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* STATS */
+.stats-mini { display: flex; gap: 10px; padding: 0 16px 14px; }
+.stat-mini {
+  flex: 1; background: var(--surface); border-radius: 12px;
+  padding: 10px 6px; box-shadow: var(--shadow-sm); text-align: center;
+}
+.stat-mini-num { font-size: 20px; font-weight: 800; color: var(--primary); }
+.stat-mini-label { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-top: 1px; }
+
+/* PATIENT LIST */
+.patient-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.alpha-divider {
+  font-size: 11px; font-weight: 800; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1.5px; padding: 8px 4px 2px;
+}
+.patient-card {
+  background: var(--surface); border-radius: var(--radius);
+  padding: 13px 14px; display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.15s;
+}
+.patient-card:active { transform: scale(0.98); }
+.patient-avatar {
+  width: 44px; height: 44px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800; flex-shrink: 0;
+  font-family: 'Playfair Display', serif;
+}
+.av-green  { background: var(--primary-light); color: var(--primary); }
+.av-blue   { background: #E3F2FD; color: #1565C0; }
+.av-purple { background: #EDE9FE; color: #5B21B6; }
+.av-orange { background: var(--accent-light); color: #9A3412; }
+.av-teal   { background: #E0F2F1; color: #00695C; }
+.patient-info { flex: 1; min-width: 0; }
+.patient-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.patient-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.patient-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.patient-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+.pb-os       { background: #EDE9FE; color: #5B21B6; }
+.pb-particular { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center; padding: 48px 24px;
+  color: var(--text-muted);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; }
+
+/* LOADING */
+.loading-state { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+
+/* FAB */
+.fab {
+  position: fixed; bottom: 72px; right: 20px;
+  width: 52px; height: 52px; background: var(--primary);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(45,106,79,0.4);
+  cursor: pointer; font-size: 28px; color: white; border: none; z-index: 40;
+  transition: transform 0.15s;
+}
+.fab:active { transform: scale(0.93); }
+
+/* MODAL */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 60; display: none;
+  align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 28px 28px 0 0;
+  padding: 20px 20px 40px;
+  width: 100%; max-width: 430px;
+  max-height: 92vh; overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 20px; font-weight: 800; margin-bottom: 2px; }
+.modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 22px; }
+
+.field { margin-bottom: 14px; }
+.field-label {
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: flex;
+  align-items: center; gap: 6px;
+}
+.req-star { color: var(--primary); font-size: 14px; }
+.field-input {
+  width: 100%; border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 14px 16px; font-size: 16px; font-family: 'DM Sans', sans-serif;
+  color: var(--text); background: var(--bg); outline: none;
+}
+.field-input:focus { border-color: var(--primary); background: white; }
+.field-input.wp { padding-left: 46px; }
+.field-wrap { position: relative; }
+.field-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; }
+.field-hint { font-size: 11px; color: var(--text-muted); margin-top: 5px; padding-left: 4px; }
+
+.divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 18px 0 16px;
+}
+.divider-line { flex: 1; height: 1px; background: var(--border); }
+.divider-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn-crear {
+  width: 100%; background: var(--primary); color: white;
+  border: none; border-radius: 14px; padding: 16px;
+  font-size: 16px; font-weight: 700; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; margin-top: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-crear:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.msg-error {
+  background: #fdf0ef; color: #B94A48; border: 1px solid #f0c8c7;
+  border-radius: 10px; padding: 10px 14px; font-size: 13px;
+  margin-bottom: 12px; display: none;
+}
+
+/* DETAIL MODAL */
+.detail-actions { display: flex; gap: 10px; margin-top: 20px; }
+.btn-action {
+  flex: 1; padding: 13px; border-radius: 12px; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-wp   { background: #E8F8EE; color: #1B5E20; }
+.btn-edit { background: var(--primary-light); color: var(--primary); }
+.btn-del  { background: #fdf0ef; color: #B94A48; }
+
+/* NAV */
+.app-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; height: 64px;
+  background: #fff; border-top: 1.5px solid #E8E4DD;
+  display: flex; align-items: center;
+  z-index: 2147483647; box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
+}
+.app-nav a {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 2px; text-decoration: none; color: #8A8FA8;
+  font-family: sans-serif; padding: 4px 0;
+}
+.app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
+.app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
+.app-nav a.on .nl { color: #2D6A4F; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">Psico<span>app</span></div>
+    <div class="header-title">Pacientes</div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="search-bar">
+    <div class="search-wrap">
+      <div class="search-icon">🔍</div>
+      <input class="search-input" id="searchInput" placeholder="Buscar paciente..." oninput="filtrarPacientes()">
+    </div>
+  </div>
+  <div class="filter-row">
+    <button class="fchip active" onclick="setFiltro('todos', this)">Todos (<span id="cnt-todos">0</span>)</button>
+    <button class="fchip" onclick="setFiltro('os', this)">🏥 Obra social</button>
+    <button class="fchip" onclick="setFiltro('particular', this)">💳 Particular</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-mini">
+  <div class="stat-mini"><div class="stat-mini-num" id="stat-activos">—</div><div class="stat-mini-label">Activos</div></div>
+  <div class="stat-mini"><div class="stat-mini-num" id="stat-os" style="color:#7B5EA7">—</div><div class="stat-mini-label">Obra social</div></div>
+  <div class="stat-mini"><div class="stat-mini-num" id="stat-part" style="color:var(--accent)">—</div><div class="stat-mini-label">Particular</div></div>
+</div>
+
+<!-- LIST -->
+<div class="patient-list" id="patientList">
+  <div class="loading-state">Cargando pacientes...</div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="abrirModal()">＋</button>
+
+<!-- MODAL NUEVO PACIENTE -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">➕ Nuevo paciente</div>
+    <div class="modal-sub">Solo nombre y apellido son obligatorios.</div>
+
+    <div id="msgError" class="msg-error"></div>
+
+    <div class="two-col">
+      <div class="field">
+        <label class="field-label">Nombre <span class="req-star">*</span></label>
+        <input class="field-input" id="f-nombre" placeholder="María" type="text">
+      </div>
+      <div class="field">
+        <label class="field-label">Apellido <span class="req-star">*</span></label>
+        <input class="field-input" id="f-apellido" placeholder="González" type="text">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">WhatsApp</label>
+      <div class="field-wrap">
+        <div class="field-prefix">💬</div>
+        <input class="field-input wp" id="f-telefono" placeholder="2346 699176" type="tel">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Email</label>
+      <input class="field-input" id="f-email" placeholder="mail@ejemplo.com" type="email">
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-label">Datos opcionales</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="field">
+        <label class="field-label">DNI</label>
+        <input class="field-input" id="f-dni" placeholder="12.345.678" type="text">
+      </div>
+      <div class="field">
+        <label class="field-label">Fecha de nac.</label>
+        <input class="field-input" id="f-fnac" type="date">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Obra social</label>
+      <input class="field-input" id="f-os" placeholder="OSDE, IOMA, Swiss Medical..." type="text">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Nº de afiliado</label>
+      <input class="field-input" id="f-nroafil" placeholder="Solo si tiene obra social" type="text">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Notas / Motivo de consulta</label>
+      <textarea class="field-input" id="f-notas" placeholder="Derivación, motivo de consulta..." style="resize:none;min-height:72px;font-size:15px;line-height:1.5"></textarea>
+    </div>
+
+    <button class="btn-crear" id="btnCrear" onclick="crearPaciente()">
+      ✓ Crear paciente
+    </button>
+    <button onclick="cerrarModal()"
+      style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">
+      Cancelar
+    </button>
+  </div>
+</div>
+
+<!-- MODAL DETALLE PACIENTE -->
+<div class="overlay" id="overlayDetalle">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <div class="patient-avatar av-green" id="det-avatar" style="width:54px;height:54px;font-size:18px"></div>
+      <div>
+        <div style="font-size:20px;font-weight:800" id="det-nombre"></div>
+        <div style="font-size:13px;color:var(--text-muted)" id="det-meta"></div>
+      </div>
+    </div>
+    <div id="det-body" style="display:flex;flex-direction:column;gap:8px;font-size:14px"></div>
+    <div class="detail-actions">
+      <button class="btn-action btn-wp" id="det-wp-btn">💬 WhatsApp</button>
+      <button class="btn-action btn-del" onclick="eliminarPaciente()">🗑 Eliminar</button>
+    </div>
+    <button onclick="cerrarDetalle()"
+      style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">
+      Cerrar
+    </button>
+  </div>
+</div>
+
+<nav class="app-nav">
+  <a href="psicoapp-index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html" class="on"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-pericias.html"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
+</nav>
+
+<script>
+const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+const COLORES = ['av-green','av-blue','av-purple','av-orange','av-teal'];
+let todosLosPacientes = [];
+let filtroActual = 'todos';
+let pacienteSeleccionado = null;
+
+// — INIT —
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  await cargarPacientes();
+})();
+
+async function cargarPacientes() {
+  const { data, error } = await sb
+    .from('pacientes')
+    .select('*')
+    .eq('activo', true)
+    .order('apellido', { ascending: true });
+
+  if (error) {
+    document.getElementById('patientList').innerHTML =
+      '<div class="loading-state">Error al cargar pacientes.</div>';
+    return;
+  }
+  todosLosPacientes = data || [];
+  actualizarStats();
+  renderLista(todosLosPacientes);
+}
+
+function actualizarStats() {
+  const total = todosLosPacientes.length;
+  const conOS  = todosLosPacientes.filter(p => p.obra_social).length;
+  const part   = total - conOS;
+  document.getElementById('stat-activos').textContent = total;
+  document.getElementById('stat-os').textContent = conOS;
+  document.getElementById('stat-part').textContent = part;
+  document.getElementById('cnt-todos').textContent = total;
+}
+
+function renderLista(lista) {
+  const container = document.getElementById('patientList');
+  if (!lista.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <div class="empty-title">Sin pacientes aún</div>
+        <div class="empty-sub">Tocá el botón + para agregar tu primer paciente.</div>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  let letraActual = '';
+  lista.forEach((p, i) => {
+    const inicial1 = (p.nombre || '?')[0].toUpperCase();
+    const inicial2 = (p.apellido || '?')[0].toUpperCase();
+    const color = COLORES[i % COLORES.length];
+    const letra = inicial2;
+    if (letra !== letraActual) {
+      letraActual = letra;
+      html += `<div class="alpha-divider">${letra}</div>`;
+    }
+    const badge = p.obra_social
+      ? `<div class="patient-badge pb-os">${p.obra_social}</div>`
+      : `<div class="patient-badge pb-particular">Particular</div>`;
+    const tel = p.telefono ? `💬 ${p.telefono}` : 'Sin teléfono';
+    html += `
+      <div class="patient-card" onclick="abrirDetalle('${p.id}')">
+        <div class="patient-avatar ${color}">${inicial1}${inicial2}</div>
+        <div class="patient-info">
+          <div class="patient-name">${p.apellido}, ${p.nombre}</div>
+          <div class="patient-meta">${tel}</div>
+        </div>
+        <div class="patient-right">${badge}</div>
+      </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function filtrarPacientes() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let lista = todosLosPacientes;
+  if (filtroActual === 'os')         lista = lista.filter(p => p.obra_social);
+  if (filtroActual === 'particular') lista = lista.filter(p => !p.obra_social);
+  if (q) lista = lista.filter(p =>
+    (p.nombre + ' ' + p.apellido).toLowerCase().includes(q) ||
+    (p.telefono || '').includes(q)
+  );
+  renderLista(lista);
+}
+
+function setFiltro(f, el) {
+  filtroActual = f;
+  document.querySelectorAll('.fchip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filtrarPacientes();
+}
+
+// — MODAL NUEVO —
+function abrirModal() {
+  ['f-nombre','f-apellido','f-telefono','f-email','f-dni','f-os','f-nroafil','f-notas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const fnac = document.getElementById('f-fnac');
+  if (fnac) fnac.value = '';
+  document.getElementById('msgError').style.display = 'none';
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('f-nombre').focus(), 300);
+}
+
+function cerrarModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+async function crearPaciente() {
+  const nombre   = document.getElementById('f-nombre').value.trim();
+  const apellido = document.getElementById('f-apellido').value.trim();
+  if (!nombre || !apellido) {
+    mostrarError('Nombre y apellido son obligatorios.');
+    return;
+  }
+
+  const btn = document.getElementById('btnCrear');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const { data: { session } } = await sb.auth.getSession();
+  const { error } = await sb.from('pacientes').insert({
+    user_id:         session.user.id,
+    nombre,
+    apellido,
+    telefono:        document.getElementById('f-telefono').value.trim() || null,
+    email:           document.getElementById('f-email').value.trim() || null,
+    dni:             document.getElementById('f-dni').value.trim() || null,
+    fecha_nacimiento:document.getElementById('f-fnac').value || null,
+    obra_social:     document.getElementById('f-os').value.trim() || null,
+    nro_afiliado:    document.getElementById('f-nroafil').value.trim() || null,
+    notas:           document.getElementById('f-notas').value.trim() || null,
+  });
+
+  btn.disabled = false;
+  btn.textContent = '✓ Crear paciente';
+
+  if (error) { mostrarError('Error al guardar. Intentá de nuevo.'); return; }
+  cerrarModal();
+  await cargarPacientes();
+}
+
+function mostrarError(msg) {
+  const el = document.getElementById('msgError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// — DETALLE —
+function abrirDetalle(id) {
+  const p = todosLosPacientes.find(x => x.id === id);
+  if (!p) return;
+  pacienteSeleccionado = p;
+
+  const inicial1 = (p.nombre || '?')[0].toUpperCase();
+  const inicial2 = (p.apellido || '?')[0].toUpperCase();
+  document.getElementById('det-avatar').textContent = inicial1 + inicial2;
+  document.getElementById('det-nombre').textContent = `${p.nombre} ${p.apellido}`;
+  document.getElementById('det-meta').textContent = p.obra_social || 'Particular';
+
+  let body = '';
+  if (p.telefono)         body += fila('💬', 'Teléfono', p.telefono);
+  if (p.email)            body += fila('✉️', 'Email', p.email);
+  if (p.dni)              body += fila('🪪', 'DNI', p.dni);
+  if (p.fecha_nacimiento) body += fila('🎂', 'Nacimiento', formatFecha(p.fecha_nacimiento));
+  if (p.obra_social)      body += fila('🏥', 'Obra social', p.obra_social + (p.nro_afiliado ? ` · Afil. ${p.nro_afiliado}` : ''));
+  if (p.notas)            body += fila('📝', 'Notas', p.notas);
+  if (!body)              body = '<div style="color:var(--text-muted);font-size:13px">Sin datos adicionales.</div>';
+  document.getElementById('det-body').innerHTML = body;
+
+  const wpBtn = document.getElementById('det-wp-btn');
+  if (p.telefono) {
+    const num = p.telefono.replace(/\D/g,'');
+    wpBtn.onclick = () => window.open(`https://wa.me/54${num}`, '_blank');
+    wpBtn.style.opacity = '1';
+  } else {
+    wpBtn.onclick = null;
+    wpBtn.style.opacity = '0.4';
+  }
+
+  document.getElementById('overlayDetalle').classList.add('open');
+}
+
+function fila(icon, label, val) {
+  return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:16px">${icon}</span>
+    <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">${label}</div>
+    <div style="font-size:14px;font-weight:600;margin-top:2px">${val}</div></div>
+  </div>`;
+}
+
+function cerrarDetalle() {
+  document.getElementById('overlayDetalle').classList.remove('open');
+  pacienteSeleccionado = null;
+}
+
+async function eliminarPaciente() {
+  if (!pacienteSeleccionado) return;
+  if (!confirm(`¿Eliminar a ${pacienteSeleccionado.nombre} ${pacienteSeleccionado.apellido}?`)) return;
+  await sb.from('pacientes').update({ activo: false }).eq('id', pacienteSeleccionado.id);
+  cerrarDetalle();
+  await cargarPacientes();
+}
+
+function formatFecha(f) {
+  if (!f) return '';
+  const [y, m, d] = f.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+// cerrar overlay al tocar fuera
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('overlay')) cerrarModal();
+});
+document.getElementById('overlayDetalle').addEventListener('click', e => {
+  if (e.target === document.getElementById('overlayDetalle')) cerrarDetalle();
+});
+</script>
+</body>
+</html>

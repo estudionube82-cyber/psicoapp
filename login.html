@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PsicoApp — Ingresar</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:   #2D6A4F;
+      --green-l: #40916C;
+      --green-xl:#D8F3DC;
+      --bg:      #F4F1ED;
+      --card:    #FDFCFB;
+      --text:    #1A2E24;
+      --muted:   #6B8C7A;
+      --border:  #D9D4CC;
+      --err:     #B94A48;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    /* subtle grain overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    .card {
+      position: relative; z-index: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.8rem 2.5rem 2.5rem;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 4px 32px rgba(45,106,79,.07), 0 1px 4px rgba(45,106,79,.05);
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: .55rem;
+      margin-bottom: 1.8rem;
+    }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-icon svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .logo-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.7rem;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: .4rem;
+    }
+    .subtitle {
+      font-size: .9rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    /* tabs */
+    .tabs {
+      display: flex;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 1.8rem;
+      gap: 3px;
+    }
+    .tab {
+      flex: 1; padding: .55rem;
+      border: none; background: transparent;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .875rem; font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tab.active {
+      background: var(--card);
+      color: var(--green);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+
+    /* form */
+    .field { margin-bottom: 1.1rem; }
+    label {
+      display: block;
+      font-size: .8rem; font-weight: 500;
+      color: var(--muted);
+      letter-spacing: .03em; text-transform: uppercase;
+      margin-bottom: .4rem;
+    }
+    input {
+      width: 100%;
+      padding: .7rem .9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(45,106,79,.1);
+      background: #fff;
+    }
+    input::placeholder { color: #b5b0a8; }
+
+    .btn {
+      width: 100%; padding: .78rem;
+      border: none; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem; font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      margin-top: .3rem;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+    }
+    .btn-primary {
+      background: var(--green);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(45,106,79,.25);
+    }
+    .btn-primary:hover { background: #245940; box-shadow: 0 3px 12px rgba(45,106,79,.35); }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* spinner */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* message */
+    .msg {
+      padding: .65rem .9rem;
+      border-radius: 8px;
+      font-size: .875rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .msg.error   { background: #fdf0ef; color: var(--err); border: 1px solid #f0c8c7; }
+    .msg.success { background: var(--green-xl); color: var(--green); border: 1px solid #b7e4c7; }
+
+    .divider {
+      text-align: center;
+      font-size: .8rem;
+      color: var(--border);
+      margin: 1.5rem 0 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4-4-1.79-4-4z"/></svg>
+    </div>
+    <span class="logo-text">PsicoApp</span>
+  </div>
+
+  <h1>Bienvenido</h1>
+  <p class="subtitle">Gestioná tus informes con claridad.</p>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-login" onclick="switchTab('login')">Ingresar</button>
+    <button class="tab" id="tab-register" onclick="switchTab('register')">Registrarse</button>
+  </div>
+
+  <div id="msg" class="msg"></div>
+
+  <!-- LOGIN -->
+  <div id="form-login">
+    <div class="field">
+      <label>Email</label>
+      <input id="login-email" type="email" placeholder="tu@email.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn btn-primary" id="btn-login" onclick="doLogin()">
+      <span class="spinner" id="spin-login"></span>
+      <span id="lbl-login">Ingresar</span>
+    </button>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="form-register" style="display:none">
+    <div class="field">
+      <label>Email</label>
+      <input id="reg-email" type="email" placeholder="tu@email.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input id="reg-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
+    </div>
+    <button class="btn btn-primary" id="btn-reg" onclick="doRegister()">
+      <span class="spinner" id="spin-reg"></span>
+      <span id="lbl-reg">Crear cuenta</span>
+    </button>
+  </div>
+
+  <p class="divider">PsicoApp © 2025</p>
+</div>
+
+<script>
+  const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+  const { createClient } = supabase;
+  const sb = createClient(SUPA_URL, SUPA_KEY);
+
+  // redirect if already logged in
+  sb.auth.getSession().then(({ data }) => {
+    if (data.session) window.location.href = 'psicoapp-index.html';
+  });
+
+  function switchTab(t) {
+    const isLogin = t === 'login';
+    document.getElementById('tab-login').classList.toggle('active', isLogin);
+    document.getElementById('tab-register').classList.toggle('active', !isLogin);
+    document.getElementById('form-login').style.display    = isLogin ? '' : 'none';
+    document.getElementById('form-register').style.display = isLogin ? 'none' : '';
+    hideMsg();
+  }
+
+  function showMsg(text, type) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'msg ' + type;
+    el.style.display = 'block';
+  }
+  function hideMsg() {
+    const el = document.getElementById('msg');
+    el.style.display = 'none';
+  }
+
+  function setLoading(btnId, spinId, lblId, loading, label) {
+    document.getElementById(btnId).disabled = loading;
+    document.getElementById(spinId).style.display = loading ? 'block' : 'none';
+    document.getElementById(lblId).textContent = loading ? '' : label;
+  }
+
+  async function doLogin() {
+    hideMsg();
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    if (!email || !pass) { showMsg('Completá email y contraseña.', 'error'); return; }
+
+    setLoading('btn-login','spin-login','lbl-login', true, 'Ingresar');
+    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    setLoading('btn-login','spin-login','lbl-login', false, 'Ingresar');
+
+    if (error) { showMsg(translateError(error.message), 'error'); return; }
+    window.location.href = 'psicoapp-index.html';
+  }
+
+  async function doRegister() {
+    hideMsg();
+    const email = document.getElementById('reg-email').value.trim();
+    const pass  = document.getElementById('reg-pass').value;
+    if (!email || !pass) { showMsg('Completá todos los campos.', 'error'); return; }
+    if (pass.length < 6)  { showMsg('La contraseña debe tener al menos 6 caracteres.', 'error'); return; }
+
+    setLoading('btn-reg','spin-reg','lbl-reg', true, 'Crear cuenta');
+    const { error } = await sb.auth.signUp({ email, password: pass });
+    setLoading('btn-reg','spin-reg','lbl-reg', false, 'Crear cuenta');
+
+    if (error) { showMsg(translateError(error.message), 'error'); return; }
+    showMsg('¡Cuenta creada! Revisá tu email para confirmar, luego ingresá.', 'success');
+    switchTab('login');
+  }
+
+  // allow Enter key
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const loginVisible = document.getElementById('form-login').style.display !== 'none';
+    if (loginVisible) doLogin(); else doRegister();
+  });
+
+  function translateError(msg) {
+    if (msg.includes('Invalid login'))      return 'Email o contraseña incorrectos.';
+    if (msg.includes('Email not confirmed')) return 'Confirmá tu email antes de ingresar.';
+    if (msg.includes('already registered')) return 'Este email ya está registrado. Ingresá en lugar de registrarte.';
+    if (msg.includes('Password should'))    return 'La contraseña debe tener al menos 6 caracteres.';
+    return msg;
+  }
+</script>
+</body>
+</html>

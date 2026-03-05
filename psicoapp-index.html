@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Psicoapp — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F1ED;
+  --surface: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-light: #E8F5EE;
+  --primary-mid: #52B788;
+  --accent: #F4A261;
+  --accent-light: #FEF0E6;
+  --text: #1A1A2E;
+  --text-muted: #8A8FA8;
+  --border: #E8E4DD;
+  --danger: #E53935;
+  --danger-light: #FFEBEE;
+  --wp-green: #25D366;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 24px rgba(0,0,0,0.10);
+  --radius: 16px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { padding-bottom: 76px !important;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(145deg, #1B4332 0%, #2D6A4F 60%, #40916C 100%);
+  padding: 20px 20px 28px;
+  position: relative;
+  overflow: hidden;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  right: -40px; top: -40px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+.header::before {
+  content: '';
+  position: absolute;
+  left: -30px; bottom: -60px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: white;
+}
+.logo span { color: var(--accent); }
+.header-icons { display: flex; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 11px;
+  background: rgba(255,255,255,0.15);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  position: relative;
+}
+.notif-badge {
+  position: absolute;
+  top: -3px; right: -3px;
+  width: 16px; height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 800;
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+}
+.greeting {
+  margin-top: 16px;
+  position: relative;
+  z-index: 1;
+}
+.greeting-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+.greeting-name {
+  font-size: 24px;
+  font-weight: 800;
+  color: white;
+  margin-top: 2px;
+  line-height: 1.1;
+}
+.greeting-date {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  margin-top: 4px;
+}
+
+/* ── QUICK STATS (4 cards under header) ── */
+.quick-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 16px 16px 0;
+  margin-top: -20px;
+  position: relative;
+  z-index: 5;
+}
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.stat-icon {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+.si-green { background: var(--primary-light); }
+.si-orange { background: var(--accent-light); }
+.si-red { background: var(--danger-light); }
+.si-blue { background: #E3F2FD; }
+.stat-trend {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 20px;
+}
+.trend-up { background: var(--primary-light); color: var(--primary); }
+.trend-down { background: var(--danger-light); color: var(--danger); }
+.trend-neutral { background: var(--bg); color: var(--text-muted); }
+.stat-num {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+/* ── SECTION ── */
+.section { padding: 16px 16px 0; }
+.section-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-link {
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── TURNOS DE HOY ── */
+.turnos-list { display: flex; flex-direction: column; gap: 8px; }
+.turno-card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.turno-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+}
+.tc-pac::before { background: var(--primary); }
+.tc-per::before { background: var(--accent); }
+.tc-jud::before { background: #7B5EA7; }
+.tc-past { opacity: 0.5; }
+.tc-now { box-shadow: 0 0 0 2px var(--primary), var(--shadow-md); }
+.turno-time {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+  min-width: 44px;
+  text-align: center;
+}
+.turno-time.now { color: var(--danger); }
+.turno-info { flex: 1; }
+.turno-name { font-size: 14px; font-weight: 700; }
+.turno-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.turno-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+.tb-ok { background: #D1FAE5; color: #065F46; }
+.tb-wait { background: #FEF3C7; color: #92400E; }
+.tb-done { background: var(--bg); color: var(--text-muted); }
+.tb-jud { background: #EDE9FE; color: #5B21B6; }
+
+.now-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+.now-line-h {
+  flex: 1;
+  height: 1.5px;
+  background: var(--danger);
+}
+.now-dot-h {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  flex-shrink: 0;
+}
+.now-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--danger);
+  flex-shrink: 0;
+}
+
+/* ── INGRESOS ── */
+.income-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.income-main {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.income-amount {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+.income-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding-bottom: 4px;
+}
+.income-bar-container {
+  background: var(--bg);
+  border-radius: 20px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.income-bar {
+  height: 100%;
+  border-radius: 20px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-mid));
+  width: 58%;
+  transition: width 1s ease;
+}
+.income-rows { display: flex; flex-direction: column; gap: 8px; }
+.income-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.income-row-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.income-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.income-val { font-size: 14px; font-weight: 700; color: var(--text); }
+.income-meta { font-size: 11px; color: var(--text-muted); }
+
+/* ── WHATSAPP PENDIENTES ── */
+.wp-alert-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  border: 1.5px solid #C8E6C0;
+}
+.wp-alert-icon {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  background: #E8F8EE;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.wp-alert-info { flex: 1; }
+.wp-alert-title { font-size: 15px; font-weight: 700; }
+.wp-alert-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.wp-alert-count {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--wp-green);
+}
+
+.wp-pending-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.wp-pending-item {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+  border-left: 3px solid var(--wp-green);
+}
+.wp-pi-avatar {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: #E8F8EE;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.wp-pi-info { flex: 1; }
+.wp-pi-name { font-size: 13px; font-weight: 700; }
+.wp-pi-meta { font-size: 11px; color: var(--text-muted); }
+.wp-pi-time { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+/* ── INASISTENCIAS ── */
+.inasistencias-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.inasist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.inasist-count {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--danger);
+  line-height: 1;
+}
+.inasist-label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+.inasist-money {
+  text-align: right;
+}
+.inasist-lost { font-size: 20px; font-weight: 800; color: var(--danger); }
+.inasist-lost-label { font-size: 11px; color: var(--text-muted); }
+.inasist-list { display: flex; flex-direction: column; gap: 8px; }
+.inasist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--danger-light);
+  border-radius: 10px;
+}
+.inasist-avatar {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: #FFCDD2;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.inasist-name { font-size: 13px; font-weight: 700; flex: 1; }
+.inasist-detail { font-size: 11px; color: var(--danger); font-weight: 700; }
+
+.inasist-trend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ── ACCESOS RÁPIDOS ── */
+.quick-access {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.qa-item {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s;
+}
+.qa-item:hover { transform: translateY(-2px); }
+.qa-icon { font-size: 24px; }
+.qa-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-align: center; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 10px 0 6px;
+  z-index: 40;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+}
+.bnav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+.bnav-icon { font-size: 20px; }
+.bnav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+.bnav-label.on { color: var(--primary); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.stat-card { animation: fadeUp 0.3s ease both; }
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.10s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.20s; }
+
+/* ── UNIFIED NAV ── */
+.unified-bnav {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: 430px !important;
+  margin: 0 auto !important;
+  background: #FFFFFF !important;
+  border-top: 1px solid #E8E4DD !important;
+  display: flex !important;
+  padding: 8px 0 14px !important;
+  z-index: 999999 !important;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.10) !important;
+}
+.unav-item {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 3px !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  padding: 2px 0 !important;
+}
+.unav-icon { font-size: 20px; line-height: 1; }
+.unav-label { font-size: 10px; font-weight: 600; color: #8A8FA8; }
+.unav-item.unav-active .unav-label { color: #2D6A4F !important; }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <div class="logo">Psico<span>app</span></div>
+    <div class="header-icons">
+      <button class="icon-btn">💬
+        <div class="notif-badge">3</div>
+      </button>
+      <button class="icon-btn">🔔
+        <div class="notif-badge">5</div>
+      </button>
+    </div>
+  </div>
+  <div class="greeting">
+    <div class="greeting-sub">Buenos días</div>
+    <div class="greeting-name">Lic. Juan García</div>
+    <div class="greeting-date">Martes 18 de febrero · 8:47 AM</div>
+  </div>
+</div>
+
+<!-- QUICK STATS -->
+<div class="quick-stats">
+  <div class="stat-card">
+    <div class="stat-card-top">
+      <div class="stat-icon si-green">📅</div>
+      <div class="stat-trend trend-up">4 confirmados</div>
+    </div>
+    <div class="stat-num">6</div>
+    <div class="stat-label">Turnos hoy</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-top">
+      <div class="stat-icon si-blue">👥</div>
+      <div class="stat-trend trend-neutral">En curso</div>
+    </div>
+    <div class="stat-num" style="color:#1976D2">20</div>
+    <div class="stat-label">Pacientes activos</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-top">
+      <div class="stat-icon" style="background:#F3FFF6">🌱</div>
+      <div class="stat-trend trend-up">Este mes</div>
+    </div>
+    <div class="stat-num" style="color:#388E3C">2</div>
+    <div class="stat-label">Pacientes nuevos</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-top">
+      <div class="stat-icon si-orange">💰</div>
+      <div class="stat-trend trend-up">↑ 12%</div>
+    </div>
+    <div class="stat-num" style="font-size:18px">$900k</div>
+    <div class="stat-label">Facturado Feb</div>
+  </div>
+</div>
+
+<!-- TURNOS DE HOY -->
+<div class="section" style="margin-top:16px">
+  <div class="section-title">
+    Turnos de hoy
+    <span class="section-link">Ver agenda →</span>
+  </div>
+  <div class="turnos-list">
+
+    <!-- Pasados -->
+    <div class="turno-card tc-pac tc-past">
+      <div class="turno-time">9:00</div>
+      <div class="turno-info">
+        <div class="turno-name">María González</div>
+        <div class="turno-meta">Sesión individual · 50 min</div>
+      </div>
+      <div class="turno-badge tb-done">Realizada</div>
+    </div>
+
+    <div class="turno-card tc-pac tc-past">
+      <div class="turno-time">10:00</div>
+      <div class="turno-info">
+        <div class="turno-name">Carlos Fernández</div>
+        <div class="turno-meta">Sesión individual · 50 min</div>
+      </div>
+      <div class="turno-badge tb-done">Realizada</div>
+    </div>
+
+    <!-- Ahora -->
+    <div class="now-indicator">
+      <div class="now-dot-h"></div>
+      <div class="now-label">AHORA · 8:47</div>
+      <div class="now-line-h"></div>
+    </div>
+
+    <div class="turno-card tc-pac tc-now">
+      <div class="turno-time now">15:00</div>
+      <div class="turno-info">
+        <div class="turno-name">Ana Rodríguez</div>
+        <div class="turno-meta">Sesión individual · 50 min</div>
+      </div>
+      <div class="turno-badge tb-ok">✓ Confirmó</div>
+    </div>
+
+    <!-- Próximos -->
+    <div class="turno-card tc-jud">
+      <div class="turno-time">16:00</div>
+      <div class="turno-info">
+        <div class="turno-name">⚖️ Pericia Exp. 4821</div>
+        <div class="turno-meta">Juzgado Civil Nº3 · Chivilcoy</div>
+      </div>
+      <div class="turno-badge tb-jud">Judicial</div>
+    </div>
+
+    <div class="turno-card tc-pac">
+      <div class="turno-time">18:00</div>
+      <div class="turno-info">
+        <div class="turno-name">Diego Martínez</div>
+        <div class="turno-meta">Sesión individual · 50 min</div>
+      </div>
+      <div class="turno-badge tb-ok">✓ Confirmó</div>
+    </div>
+
+    <div class="turno-card tc-pac">
+      <div class="turno-time">19:00</div>
+      <div class="turno-info">
+        <div class="turno-name">Laura Pérez</div>
+        <div class="turno-meta">Sesión individual · 50 min</div>
+      </div>
+      <div class="turno-badge tb-wait">⏳ Sin confirmar</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- INGRESOS DEL MES -->
+<div class="section" style="margin-top:16px">
+  <div class="section-title">
+    Ingresos — Febrero
+    <span class="section-link">Ver detalle →</span>
+  </div>
+  <div class="income-card">
+    <div class="income-main">
+      <div class="income-amount">$900.000</div>
+      <div class="income-sub">de $1.550.000 esperados</div>
+    </div>
+    <div class="income-bar-container">
+      <div class="income-bar"></div>
+    </div>
+    <div class="income-rows">
+      <div class="income-row">
+        <div class="income-row-label">
+          <div class="income-dot" style="background:var(--primary)"></div>
+          Sesiones particulares
+        </div>
+        <div>
+          <div class="income-val">$720.000</div>
+          <div class="income-meta">16 sesiones cobradas</div>
+        </div>
+      </div>
+      <div class="income-row">
+        <div class="income-row-label">
+          <div class="income-dot" style="background:#7B5EA7"></div>
+          Obras sociales
+        </div>
+        <div>
+          <div class="income-val">$180.000</div>
+          <div class="income-meta">⏳ Pendiente presentación</div>
+        </div>
+      </div>
+      <div class="income-row">
+        <div class="income-row-label">
+          <div class="income-dot" style="background:var(--accent)"></div>
+          Pericias judiciales
+        </div>
+        <div>
+          <div class="income-val">$0</div>
+          <div class="income-meta">1 en curso</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHATSAPP PENDIENTES -->
+<div class="section" style="margin-top:16px">
+  <div class="section-title">
+    WhatsApp
+    <span class="section-link">Ver historial →</span>
+  </div>
+  <div class="wp-pending-list">
+    <div class="wp-pending-item">
+      <div class="wp-pi-avatar">👤</div>
+      <div class="wp-pi-info">
+        <div class="wp-pi-name">Recordatorio enviado — Ana Rodríguez</div>
+        <div class="wp-pi-meta">Turno hoy 15:00 · Entregado y leído ✓✓</div>
+      </div>
+      <div class="wp-pi-time">08:00</div>
+    </div>
+    <div class="wp-pending-item">
+      <div class="wp-pi-avatar">👤</div>
+      <div class="wp-pi-info">
+        <div class="wp-pi-name">Recordatorio enviado — Diego Martínez</div>
+        <div class="wp-pi-meta">Turno hoy 18:00 · Entregado ✓</div>
+      </div>
+      <div class="wp-pi-time">08:00</div>
+    </div>
+    <div class="wp-pending-item" style="border-left-color:var(--danger);background:#FFF8F8">
+      <div class="wp-pi-avatar" style="background:#FFCDD2">⚠️</div>
+      <div class="wp-pi-info">
+        <div class="wp-pi-name" style="color:var(--danger)">Error — Laura Pérez</div>
+        <div class="wp-pi-meta">Número inválido · Actualizá el teléfono</div>
+      </div>
+      <div class="wp-pi-time" style="color:var(--danger)">Error</div>
+    </div>
+  </div>
+</div>
+
+<!-- ACCESOS RÁPIDOS -->
+<div class="section" style="margin-top:16px; margin-bottom: 16px">
+  <div class="section-title">Acceso rápido</div>
+  <div class="quick-access">
+    <div class="qa-item"><div class="qa-icon">➕</div><div class="qa-label">Nuevo turno</div></div>
+    <div class="qa-item"><div class="qa-icon">👤</div><div class="qa-label">Nuevo paciente</div></div>
+    <div class="qa-item"><div class="qa-icon">💰</div><div class="qa-label">Registrar pago</div></div>
+    <div class="qa-item"><div class="qa-icon">⚖️</div><div class="qa-label">Nueva pericia</div></div>
+  </div>
+</div>
+
+
+
+
+
+
+</body>
+
+
+
+
+
+<style>
+.app-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  height: 64px;
+  background: #fff;
+  border-top: 1.5px solid #E8E4DD;
+  display: flex;
+  align-items: center;
+  z-index: 2147483647;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
+}
+.app-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: #8A8FA8;
+  font-family: sans-serif;
+  padding: 4px 0;
+}
+.app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
+.app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
+.app-nav a.on .nl { color: #2D6A4F; }
+.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(45,106,79,0.5)); }
+</style>
+<nav class="app-nav">
+  <a href="index.html" class="on"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-pericias.html"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
+</nav>
+
+</html>

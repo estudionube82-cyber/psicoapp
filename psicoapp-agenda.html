@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Psicoapp — Agenda</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #F4F1ED;
+  --surface: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-light: #E8F5EE;
+  --primary-mid: #B7DFC8;
+  --accent: #F4A261;
+  --accent-light: #FEF0E6;
+  --text: #1A1A2E;
+  --text-muted: #8A8FA8;
+  --border: #E8E4DD;
+  --free: #F0F8F4;
+  --free-border: #C8E6D4;
+  --judicial: #EDE9FE;
+  --judicial-border: #C4B5FD;
+  --danger: #FEE2E2;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+  --radius: 14px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* HEADER */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+.header-top {
+  display: flex; align-items: center;
+  padding: 14px 18px 10px; gap: 10px;
+}
+.logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--primary); }
+.logo span { color: var(--accent); }
+.header-date { flex: 1; text-align: center; }
+.header-date-main { font-size: 15px; font-weight: 700; }
+.header-date-sub { font-size: 11px; color: var(--text-muted); }
+.icon-btn-sm {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--bg); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+
+/* VIEW TOGGLE */
+.view-toggle {
+  display: flex; padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  align-items: center; gap: 0;
+}
+.view-btn {
+  flex: 1; padding: 8px 4px; font-size: 13px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif; border: 1.5px solid var(--border);
+  background: var(--bg); color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+}
+.view-btn:first-child { border-radius: 10px 0 0 10px; }
+.view-btn:last-child  { border-radius: 0 10px 10px 0; }
+.view-btn:not(:last-child) { border-right: none; }
+.view-btn.active { background: var(--primary); color: white; border-color: var(--primary); z-index:1; }
+.week-nav { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.nav-arrow {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+  cursor: pointer; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* LEGEND */
+.legend {
+  display: flex; gap: 10px; padding: 8px 18px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; align-items: center;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.legend-dot { width: 9px; height: 9px; border-radius: 3px; }
+.ld-pac { background: var(--primary); }
+.ld-jud { background: #7B5EA7; }
+
+/* DAY VIEW */
+.day-view { display: none; }
+.day-view.active { display: block; }
+
+.day-strip {
+  display: flex; padding: 10px 18px 6px; gap: 6px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+}
+.day-strip::-webkit-scrollbar { display: none; }
+.day-pill {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 12px; border-radius: 12px; cursor: pointer; min-width: 46px; transition: all 0.2s;
+}
+.day-pill.selected { background: var(--primary); }
+.day-name { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.day-pill.selected .day-name { color: rgba(255,255,255,0.75); }
+.day-num { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 1px; }
+.day-pill.selected .day-num { color: white; }
+.day-pip { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin-top: 3px; }
+.day-pill.selected .day-pip { background: rgba(255,255,255,0.6); }
+
+.time-grid { overflow-y: auto; max-height: calc(100vh - 260px); padding-bottom: 20px; }
+.time-row {
+  display: flex; min-height: 52px;
+  border-bottom: 1px solid var(--border); position: relative;
+}
+.time-label {
+  width: 48px; flex-shrink: 0; padding: 6px 6px 0 10px;
+  font-size: 10px; font-weight: 600; color: var(--text-muted);
+}
+.slot-area { flex: 1; padding: 4px 8px 4px 3px; }
+.free-slot {
+  min-height: 36px; border-radius: 8px;
+  display: flex; align-items: center; padding: 0 12px;
+  font-size: 11px; font-weight: 600; color: var(--free-border);
+  border: 1.5px dashed var(--free-border); background: var(--free);
+  cursor: pointer; transition: all 0.2s;
+}
+.free-slot:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+.free-slot::before { content: '+ '; }
+
+.event-block {
+  border-radius: 8px; padding: 7px 10px; cursor: pointer;
+  transition: transform 0.15s; position: relative; overflow: hidden;
+}
+.event-block::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px; border-radius: 4px 0 0 4px;
+}
+.event-block:active { transform: scale(0.98); }
+.ev-paciente { background: var(--primary-light); }
+.ev-paciente::before { background: var(--primary); }
+.ev-judicial { background: var(--judicial); }
+.ev-judicial::before { background: #7B5EA7; }
+.ev-name { font-size: 13px; font-weight: 700; }
+.ev-meta { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+.ev-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 9px; font-weight: 700; padding: 2px 6px;
+  border-radius: 20px; margin-top: 3px;
+}
+.badge-ok   { background: #D1FAE5; color: #065F46; }
+.badge-wait { background: #FEF3C7; color: #92400E; }
+.badge-done { background: var(--bg); color: var(--text-muted); }
+.badge-jud  { background: #EDE9FE; color: #5B21B6; }
+
+.now-line { position: absolute; left: 52px; right: 0; height: 2px; background: #E53935; z-index: 5; }
+.now-dot { width: 10px; height: 10px; border-radius: 50%; background: #E53935; position: absolute; left: -5px; top: -4px; }
+
+/* WEEK VIEW */
+.week-view { display: none; }
+.week-view.active { display: block; }
+.week-header { display: flex; background: var(--surface); border-bottom: 2px solid var(--border); }
+.week-col-header { flex: 1; text-align: center; padding: 10px 4px; border-left: 1px solid var(--border); }
+.week-col-header:first-child { border-left: none; flex: 0 0 48px; }
+.wch-day { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+.wch-num { font-size: 18px; font-weight: 800; }
+.wch-num.today { color: var(--primary); }
+.week-pip { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin: 3px auto 0; }
+.week-grid { overflow-y: auto; max-height: calc(100vh - 260px); padding-bottom: 20px; }
+.week-row { display: flex; border-bottom: 1px solid var(--border); min-height: 44px; }
+.week-time { flex: 0 0 48px; padding: 6px 8px 0; font-size: 10px; font-weight: 600; color: var(--text-muted); border-right: 1px solid var(--border); }
+.week-cell { flex: 1; border-left: 1px solid var(--border); padding: 2px; min-height: 44px; }
+.week-event {
+  border-radius: 6px; padding: 4px 6px; font-size: 10px; font-weight: 700;
+  line-height: 1.3; cursor: pointer; margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.we-paciente { background: var(--primary-light); color: var(--primary); border-left: 3px solid var(--primary); }
+.we-judicial { background: var(--judicial); color: #5B21B6; border-left: 3px solid #7B5EA7; }
+
+/* MONTH VIEW */
+.month-view { display: none; }
+.month-view.active { display: block; }
+.month-header {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 0 4px;
+}
+.month-day-name { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+.month-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding-bottom: 80px; }
+.month-cell {
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  min-height: 72px; padding: 6px 4px; cursor: pointer; transition: background 0.15s;
+}
+.month-cell:hover { background: var(--primary-light); }
+.month-cell.other-month { opacity: 0.35; }
+.month-cell.today-cell { background: var(--primary-light); }
+.month-num {
+  font-size: 13px; font-weight: 700; width: 24px; height: 24px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
+}
+.month-cell.today-cell .month-num { background: var(--primary); color: white; }
+.month-event-pill {
+  font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
+  margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.mp-pac { background: var(--primary-light); color: var(--primary); }
+.mp-jud { background: var(--judicial); color: #5B21B6; }
+
+/* EMPTY / LOADING */
+.empty-day { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+.empty-day-icon { font-size: 36px; margin-bottom: 8px; }
+.loading-row { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+/* FAB */
+.fab {
+  position: fixed; bottom: 72px; right: 20px;
+  width: 52px; height: 52px; background: var(--primary);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(45,106,79,0.4);
+  cursor: pointer; font-size: 26px; color: white; border: none; z-index: 40;
+}
+
+/* MODAL */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 60; display: none; align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 28px 28px 0 0;
+  padding: 20px 20px 40px; width: 100%; max-width: 430px;
+  max-height: 92vh; overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+.field { margin-bottom: 14px; }
+.field-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.req-star { color: var(--primary); }
+.field-input {
+  width: 100%; border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 13px 16px; font-size: 15px; font-family: 'DM Sans', sans-serif;
+  color: var(--text); background: var(--bg); outline: none;
+}
+.field-input:focus { border-color: var(--primary); background: white; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn-crear {
+  width: 100%; background: var(--primary); color: white;
+  border: none; border-radius: 14px; padding: 16px;
+  font-size: 16px; font-weight: 700; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; margin-top: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-crear:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.msg-error {
+  background: #fdf0ef; color: #B94A48; border: 1px solid #f0c8c7;
+  border-radius: 10px; padding: 10px 14px; font-size: 13px;
+  margin-bottom: 12px; display: none;
+}
+
+/* DETALLE TURNO */
+.det-actions { display: flex; gap: 10px; margin-top: 16px; }
+.btn-det {
+  flex: 1; padding: 12px; border-radius: 12px; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.btn-det-ok  { background: var(--primary-light); color: var(--primary); }
+.btn-det-del { background: #fdf0ef; color: #B94A48; }
+.btn-det-wp  { background: #E8F8EE; color: #1B5E20; }
+
+/* SETTINGS DRAWER */
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 60; display: none; }
+.drawer-overlay.open { display: block; }
+.drawer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-radius: 24px 24px 0 0;
+  padding: 20px; max-height: 70vh; overflow-y: auto;
+}
+.drawer-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.drawer-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.setting-label { font-size: 15px; font-weight: 500; }
+.setting-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.select-input { border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-family: 'DM Sans', sans-serif; background: var(--bg); }
+
+/* NAV */
+.app-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; height: 64px;
+  background: #fff; border-top: 1.5px solid #E8E4DD;
+  display: flex; align-items: center;
+  z-index: 2147483647; box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
+}
+.app-nav a {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 2px; text-decoration: none; color: #8A8FA8; padding: 4px 0;
+}
+.app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
+.app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
+.app-nav a.on .nl { color: #2D6A4F; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">Psico<span>app</span></div>
+    <div class="header-date">
+      <div class="header-date-main" id="headerDateMain"></div>
+      <div class="header-date-sub" id="headerDateSub"></div>
+    </div>
+    <button class="icon-btn-sm" onclick="openSettings()">⚙️</button>
+  </div>
+  <div class="view-toggle">
+    <button class="view-btn active" id="btnDia" onclick="setView('dia')">Día</button>
+    <button class="view-btn" id="btnSemana" onclick="setView('semana')">Semana</button>
+    <button class="view-btn" id="btnMes" onclick="setView('mes')">Mes</button>
+    <div class="week-nav">
+      <div class="nav-arrow" onclick="navBack()">‹</div>
+      <div class="nav-arrow" onclick="navFwd()">›</div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot ld-pac"></div>Paciente</div>
+    <div class="legend-item"><div class="legend-dot ld-jud"></div>Judicial</div>
+    <div class="legend-item" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--primary)" id="turnosCount"></div>
+  </div>
+</div>
+
+<!-- DAY VIEW -->
+<div class="day-view active" id="dayView">
+  <div class="day-strip" id="dayStrip"></div>
+  <div class="time-grid" id="timeGrid"><div class="loading-row">Cargando turnos...</div></div>
+</div>
+
+<!-- WEEK VIEW -->
+<div class="week-view" id="weekView">
+  <div class="week-header" id="weekHeader"></div>
+  <div class="week-grid" id="weekGrid"></div>
+</div>
+
+<!-- MONTH VIEW -->
+<div class="month-view" id="monthView">
+  <div class="month-header">
+    <div class="month-day-name">D</div><div class="month-day-name">L</div>
+    <div class="month-day-name">M</div><div class="month-day-name">X</div>
+    <div class="month-day-name">J</div><div class="month-day-name">V</div>
+    <div class="month-day-name">S</div>
+  </div>
+  <div class="month-grid" id="monthGrid"></div>
+</div>
+
+<!-- FAB -->
+<div id="fabOverlay" style="display:none;position:fixed;inset:0;z-index:40" onclick="closeFabMenu()"></div>
+<div id="fabMenu" style="display:none;position:fixed;bottom:140px;right:16px;z-index:42;gap:8px;align-items:flex-end;flex-direction:column">
+  <button style="display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:none;padding:0" onclick="closeFabMenu();abrirModal('turno')">
+    <span style="background:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.12)">Agendar paciente</span>
+    <div style="width:40px;height:40px;background:var(--primary);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(45,106,79,0.35)">👤</div>
+  </button>
+  <button style="display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:none;padding:0" onclick="closeFabMenu();abrirModal('evento')">
+    <span style="background:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.12)">Agregar evento</span>
+    <div style="width:40px;height:40px;background:#7B5EA7;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(123,94,167,0.35)">🗓</div>
+  </button>
+</div>
+<button class="fab" id="fabBtn" onclick="toggleFabMenu()" style="z-index:43">＋</button>
+
+<!-- MODAL NUEVO TURNO -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">📅 Nuevo turno</div>
+    <div class="modal-sub">Agendá un turno con un paciente.</div>
+    <div id="msgError" class="msg-error"></div>
+
+    <div id="seccion-titulo" class="field" style="display:none">
+      <div class="field-label">Título del evento <span class="req-star">*</span></div>
+      <input class="field-input" id="f-titulo" placeholder="Ej: Reunión, Supervisión..." type="text">
+    </div>
+    <div id="seccion-paciente" class="field">
+      <div class="field-label">Paciente <span class="req-star">*</span></div>
+      <select class="field-input" id="f-paciente">
+        <option value="">— Seleccioná un paciente —</option>
+      </select>
+    </div>
+
+    <div class="two-col">
+      <div class="field">
+        <div class="field-label">Fecha <span class="req-star">*</span></div>
+        <input class="field-input" id="f-fecha" type="date">
+      </div>
+      <div class="field">
+        <div class="field-label">Hora <span class="req-star">*</span></div>
+        <input class="field-input" id="f-hora" type="time">
+      </div>
+    </div>
+
+    <div id="seccion-tipo" class="two-col">
+      <div class="field">
+        <div class="field-label">Duración</div>
+        <select class="field-input" id="f-duracion">
+          <option value="45">45 min</option>
+          <option value="50" selected>50 min</option>
+          <option value="60">60 min</option>
+          <option value="90">90 min</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Tipo</div>
+        <select class="field-input" id="f-tipo">
+          <option value="sesion">Sesión</option>
+          <option value="judicial">Judicial</option>
+          <option value="evaluacion">Evaluación</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Notas</div>
+      <textarea class="field-input" id="f-notas" placeholder="Observaciones..." style="resize:none;min-height:64px;font-size:14px;line-height:1.5"></textarea>
+    </div>
+
+    <button class="btn-crear" id="btnCrear" onclick="crearTurno()">✓ Agendar turno</button>
+    <button onclick="cerrarModal()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL DETALLE TURNO -->
+<div class="overlay" id="overlayDetalle">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="det-header" style="margin-bottom:16px"></div>
+    <div id="det-body" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="det-actions">
+      <button class="btn-det btn-det-ok" id="btn-confirmar" onclick="cambiarEstado('confirmado')">✓ Confirmar</button>
+      <button class="btn-det btn-det-ok" id="btn-realizada" onclick="cambiarEstado('realizado')" style="background:#D1FAE5;color:#065F46">✓ Realizada</button>
+      <button class="btn-det btn-det-del" onclick="eliminarTurno()">🗑</button>
+    </div>
+    <button onclick="cerrarDetalle()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Cerrar</button>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeSettings()">
+  <div class="drawer" onclick="event.stopPropagation()">
+    <div class="drawer-handle"></div>
+    <div class="drawer-title">⚙️ Configuración</div>
+    <div class="setting-row">
+      <div><div class="setting-label">Horario de inicio</div></div>
+      <select class="select-input" id="cfg-inicio"><option>7:00</option><option selected>8:00</option><option>9:00</option></select>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Horario de cierre</div></div>
+      <select class="select-input" id="cfg-fin"><option>19:00</option><option selected>20:00</option><option>21:00</option></select>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Duración por defecto</div></div>
+      <select class="select-input" id="cfg-dur"><option>45 min</option><option selected>50 min</option><option>60 min</option></select>
+    </div>
+  </div>
+</div>
+
+<nav class="app-nav">
+  <a href="psicoapp-index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html" class="on"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-pericias.html"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
+</nav>
+
+<script>
+const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+const DIAS   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MESES  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const HORAS  = [8,9,10,11,12,13,14,15,16,17,18,19,20];
+
+let hoy         = new Date();
+let fechaActual = new Date(hoy);
+let currentView = 'dia';
+let todosTurnos = [];
+let todosPacientes = [];
+let turnoSeleccionado = null;
+
+// ── INIT ──
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  await Promise.all([cargarPacientes(), cargarTurnos()]);
+  actualizarHeader();
+  buildDayStrip();
+  renderDia();
+})();
+
+async function cargarPacientes() {
+  const { data } = await sb.from('pacientes').select('id,nombre,apellido').eq('activo', true).order('apellido');
+  todosPacientes = data || [];
+  const sel = document.getElementById('f-paciente');
+  todosPacientes.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.apellido}, ${p.nombre}`;
+    sel.appendChild(opt);
+  });
+}
+
+async function cargarTurnos() {
+  const { data } = await sb
+    .from('turnos')
+    .select('*, pacientes(nombre, apellido, telefono)')
+    .order('fecha').order('hora');
+  todosTurnos = data || [];
+}
+
+function turnosDeFecha(fecha) {
+  const key = fmtDate(fecha);
+  return todosTurnos.filter(t => t.fecha === key);
+}
+
+// ── HEADER ──
+function actualizarHeader() {
+  const d = fechaActual;
+  document.getElementById('headerDateMain').textContent =
+    `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;
+  document.getElementById('headerDateSub').textContent = d.getFullYear();
+}
+
+// ── DAY STRIP ──
+function buildDayStrip() {
+  const strip = document.getElementById('dayStrip');
+  strip.innerHTML = '';
+  const lunes = new Date(fechaActual);
+  lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lunes); d.setDate(lunes.getDate() + i);
+    const tieneT = todosTurnos.some(t => t.fecha === fmtDate(d));
+    const esSel  = fmtDate(d) === fmtDate(fechaActual);
+    const esHoy  = fmtDate(d) === fmtDate(hoy);
+    const pill = document.createElement('div');
+    pill.className = 'day-pill' + (esSel ? ' selected' : '') + (esHoy && !esSel ? ' today-marker' : '');
+    pill.innerHTML = `<div class="day-name">${DIAS[d.getDay()]}</div><div class="day-num">${d.getDate()}</div>${tieneT ? '<div class="day-pip"></div>' : ''}`;
+    pill.addEventListener('click', () => {
+      fechaActual = new Date(d);
+      actualizarHeader();
+      buildDayStrip();
+      renderDia();
+    });
+    strip.appendChild(pill);
+  }
+}
+
+// ── DAY GRID ──
+function renderDia() {
+  const grid = document.getElementById('timeGrid');
+  const turnos = turnosDeFecha(fechaActual);
+  const ahora  = new Date();
+  const esHoy  = fmtDate(fechaActual) === fmtDate(hoy);
+
+  document.getElementById('turnosCount').textContent =
+    turnos.length ? `${turnos.length} turno${turnos.length > 1 ? 's' : ''}` : '';
+
+  let html = '';
+  HORAS.forEach(h => {
+    const turno = turnos.find(t => parseInt(t.hora) === h);
+    const label = `${h}:00`;
+    const esAhora = esHoy && ahora.getHours() === h;
+    let rowStyle = esAhora ? ' style="position:relative"' : '';
+
+    html += `<div class="time-row"${rowStyle}>`;
+    if (esAhora) html += `<div class="now-line"><div class="now-dot"></div></div>`;
+    html += `<div class="time-label" ${esAhora ? 'style="color:#E53935;font-weight:800"' : ''}>${label}</div>`;
+    html += `<div class="slot-area">`;
+
+    if (turno) {
+      const pac = turno.pacientes;
+      const nombre = pac ? `${pac.nombre} ${pac.apellido}` : turno.tipo;
+      const tipo   = turno.tipo === 'judicial' ? 'ev-judicial' : 'ev-paciente';
+      const badge  = badgeEstado(turno.estado);
+      const icono  = turno.tipo === 'judicial' ? '⚖️' : '👤';
+      html += `
+        <div class="event-block ${tipo}" onclick="abrirDetalle('${turno.id}')">
+          <div class="ev-name">${icono} ${nombre}</div>
+          <div class="ev-meta">${label} · ${turno.duracion || 50} min · ${tipoLabel(turno.tipo)}</div>
+          ${badge}
+        </div>`;
+    } else if (h < 20) {
+      html += `<div class="free-slot" onclick="abrirModalConHora('${h}:00')">Turno disponible</div>`;
+    }
+    html += `</div></div>`;
+  });
+  grid.innerHTML = html;
+}
+
+// ── WEEK GRID ──
+function renderSemana() {
+  const lunes = new Date(fechaActual);
+  lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+
+  // Header
+  let hdr = '<div class="week-col-header" style="flex:0 0 48px"></div>';
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(lunes); d.setDate(lunes.getDate() + i);
+    const esHoy = fmtDate(d) === fmtDate(hoy);
+    hdr += `<div class="week-col-header">
+      <div class="wch-day">${DIAS[d.getDay()]}</div>
+      <div class="wch-num ${esHoy ? 'today' : ''}">${d.getDate()}</div>
+      ${esHoy ? '<div class="week-pip"></div>' : ''}
+    </div>`;
+  }
+  document.getElementById('weekHeader').innerHTML = hdr;
+
+  let grid = '';
+  HORAS.forEach(h => {
+    grid += `<div class="week-row"><div class="week-time">${h}:00</div>`;
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(lunes); d.setDate(lunes.getDate() + i);
+      const turno = todosTurnos.find(t => t.fecha === fmtDate(d) && parseInt(t.hora) === h);
+      grid += '<div class="week-cell">';
+      if (turno) {
+        const pac = turno.pacientes;
+        const nombre = pac ? `${pac.apellido}` : turno.tipo;
+        const cls = turno.tipo === 'judicial' ? 'we-judicial' : 'we-paciente';
+        grid += `<div class="week-event ${cls}" onclick="abrirDetalle('${turno.id}')">${nombre} ${h}:00</div>`;
+      }
+      grid += '</div>';
+    }
+    grid += '</div>';
+  });
+  document.getElementById('weekGrid').innerHTML = grid;
+}
+
+// ── MONTH GRID ──
+function renderMes() {
+  const grid = document.getElementById('monthGrid');
+  grid.innerHTML = '';
+  const y = fechaActual.getFullYear(), m = fechaActual.getMonth();
+  const primerDia = new Date(y, m, 1).getDay();
+  const diasEnMes = new Date(y, m + 1, 0).getDate();
+
+  for (let i = 0; i < primerDia; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'month-cell other-month';
+    grid.appendChild(cell);
+  }
+  for (let d = 1; d <= diasEnMes; d++) {
+    const fecha = new Date(y, m, d);
+    const esHoy = fmtDate(fecha) === fmtDate(hoy);
+    const turnos = turnosDeFecha(fecha);
+    const cell = document.createElement('div');
+    cell.className = 'month-cell' + (esHoy ? ' today-cell' : '');
+    cell.innerHTML = `<div class="month-num">${d}</div>`;
+    turnos.slice(0, 2).forEach(t => {
+      const pac = t.pacientes;
+      const nombre = pac ? pac.apellido : t.tipo;
+      const cls = t.tipo === 'judicial' ? 'mp-jud' : 'mp-pac';
+      const pill = document.createElement('div');
+      pill.className = `month-event-pill ${cls}`;
+      pill.textContent = nombre;
+      cell.appendChild(pill);
+    });
+    if (turnos.length > 2) {
+      const mas = document.createElement('div');
+      mas.style.cssText = 'font-size:10px;color:#8A8FA8;font-weight:700;padding:2px 4px';
+      mas.textContent = `+${turnos.length - 2} más`;
+      cell.appendChild(mas);
+    }
+    cell.addEventListener('click', () => {
+      fechaActual = fecha;
+      setView('dia');
+    });
+    grid.appendChild(cell);
+  }
+}
+
+// ── VIEWS ──
+function setView(v) {
+  currentView = v;
+  ['dia','semana','mes'].forEach(x => {
+    document.getElementById(x === 'dia' ? 'dayView' : x === 'semana' ? 'weekView' : 'monthView').classList.toggle('active', x === v);
+    document.getElementById('btn' + x.charAt(0).toUpperCase() + x.slice(1)).classList.toggle('active', x === v);
+  });
+  actualizarHeader();
+  if (v === 'dia')    { buildDayStrip(); renderDia(); }
+  if (v === 'semana') renderSemana();
+  if (v === 'mes')    renderMes();
+}
+
+function navBack() {
+  if (currentView === 'dia')    fechaActual.setDate(fechaActual.getDate() - 1);
+  if (currentView === 'semana') fechaActual.setDate(fechaActual.getDate() - 7);
+  if (currentView === 'mes')    fechaActual.setMonth(fechaActual.getMonth() - 1);
+  setView(currentView);
+}
+function navFwd() {
+  if (currentView === 'dia')    fechaActual.setDate(fechaActual.getDate() + 1);
+  if (currentView === 'semana') fechaActual.setDate(fechaActual.getDate() + 7);
+  if (currentView === 'mes')    fechaActual.setMonth(fechaActual.getMonth() + 1);
+  setView(currentView);
+}
+
+// ── MODAL NUEVO TURNO ──
+function horaActualRedondeada() {
+  return String(new Date().getHours()).padStart(2,'0') + ':00';
+}
+function abrirModal(tipo) {
+  modoModal = tipo || 'turno';
+  document.getElementById('f-fecha').value = fmtDate(fechaActual);
+  document.getElementById('f-hora').value  = horaActualRedondeada();
+  document.getElementById('f-paciente').value = '';
+  document.getElementById('f-notas').value = '';
+  document.getElementById('msgError').style.display = 'none';
+  // mostrar/ocultar secciones según modo
+  const esTurno = modoModal === 'turno';
+  document.getElementById('seccion-paciente').style.display = esTurno ? '' : 'none';
+  document.getElementById('seccion-tipo').style.display = esTurno ? '' : 'none';
+  document.getElementById('seccion-titulo').style.display = esTurno ? 'none' : '';
+  document.getElementById('modal-title').textContent = esTurno ? '📅 Nuevo turno' : '🗓 Nuevo evento';
+  document.getElementById('btnCrear').textContent = esTurno ? '✓ Agendar turno' : '✓ Guardar evento';
+  document.getElementById('overlay').classList.add('open');
+}
+function abrirModalConHora(hora) {
+  abrirModal('turno');
+  document.getElementById('f-hora').value = hora;
+}
+function cerrarModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+let modoModal = 'turno';
+let fabOpen = false;
+function toggleFabMenu() {
+  fabOpen = !fabOpen;
+  const menu = document.getElementById('fabMenu');
+  const ov   = document.getElementById('fabOverlay');
+  const btn  = document.getElementById('fabBtn');
+  if (fabOpen) {
+    menu.style.cssText = 'display:flex;flex-direction:column;position:fixed;bottom:140px;right:16px;z-index:42;gap:8px;align-items:flex-end';
+    ov.style.display = 'block';
+    btn.textContent = '✕';
+  } else {
+    menu.style.display = 'none';
+    ov.style.display = 'none';
+    btn.textContent = '＋';
+  }
+}
+function closeFabMenu() {
+  fabOpen = false;
+  document.getElementById('fabMenu').style.display = 'none';
+  document.getElementById('fabOverlay').style.display = 'none';
+  document.getElementById('fabBtn').textContent = '＋';
+}
+
+async function crearTurno() {
+  const fecha  = document.getElementById('f-fecha').value;
+  const hora   = document.getElementById('f-hora').value;
+  if (!fecha || !hora) { mostrarError('Fecha y hora son obligatorios.'); return; }
+
+  const btn = document.getElementById('btnCrear');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  const { data: { session } } = await sb.auth.getSession();
+  let insertData = {
+    user_id: session.user.id,
+    fecha,
+    hora: hora + ':00',
+    duracion: parseInt(document.getElementById('f-duracion').value),
+    estado: 'pendiente',
+    notas: document.getElementById('f-notas').value.trim() || null,
+  };
+
+  if (modoModal === 'turno') {
+    const pacId = document.getElementById('f-paciente').value;
+    if (!pacId) { btn.disabled = false; btn.textContent = '✓ Agendar turno'; mostrarError('Seleccioná un paciente.'); return; }
+    insertData.paciente_id = pacId;
+    insertData.tipo = document.getElementById('f-tipo').value;
+  } else {
+    const titulo = document.getElementById('f-titulo').value.trim();
+    if (!titulo) { btn.disabled = false; btn.textContent = '✓ Guardar evento'; mostrarError('Escribí un título para el evento.'); return; }
+    insertData.tipo = 'evento';
+    insertData.notas = titulo + (insertData.notas ? ' — ' + insertData.notas : '');
+  }
+
+  const { error } = await sb.from('turnos').insert(insertData);
+  btn.disabled = false; btn.textContent = modoModal === 'turno' ? '✓ Agendar turno' : '✓ Guardar evento';
+  if (error) { mostrarError('Error al guardar.'); return; }
+  cerrarModal();
+  await cargarTurnos();
+  buildDayStrip();
+  renderDia();
+}
+
+function mostrarError(msg) {
+  const el = document.getElementById('msgError');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+// ── DETALLE ──
+function abrirDetalle(id) {
+  turnoSeleccionado = todosTurnos.find(t => t.id === id);
+  if (!turnoSeleccionado) return;
+  const t = turnoSeleccionado;
+  const pac = t.pacientes;
+  const nombre = pac ? `${pac.nombre} ${pac.apellido}` : t.tipo;
+
+  document.getElementById('det-header').innerHTML = `
+    <div style="font-size:20px;font-weight:800">${nombre}</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${tipoLabel(t.tipo)} · ${fmtFechaLinda(t.fecha)} · ${t.hora?.slice(0,5)}</div>`;
+
+  let body = '';
+  body += filaD('🕐', 'Duración', `${t.duracion || 50} min`);
+  body += filaD('📋', 'Estado', estadoLabel(t.estado));
+  if (t.notas) body += filaD('📝', 'Notas', t.notas);
+  document.getElementById('det-body').innerHTML = body;
+
+  // botón confirmar / realizada
+  document.getElementById('btn-confirmar').style.display = t.estado === 'pendiente' ? '' : 'none';
+  document.getElementById('btn-realizada').style.display = t.estado !== 'realizado' ? '' : 'none';
+
+  document.getElementById('overlayDetalle').classList.add('open');
+}
+function cerrarDetalle() {
+  document.getElementById('overlayDetalle').classList.remove('open');
+  turnoSeleccionado = null;
+}
+async function cambiarEstado(estado) {
+  if (!turnoSeleccionado) return;
+  await sb.from('turnos').update({ estado }).eq('id', turnoSeleccionado.id);
+  cerrarDetalle();
+  await cargarTurnos();
+  renderDia();
+}
+async function eliminarTurno() {
+  if (!turnoSeleccionado) return;
+  if (!confirm('¿Eliminar este turno?')) return;
+  await sb.from('turnos').delete().eq('id', turnoSeleccionado.id);
+  cerrarDetalle();
+  await cargarTurnos();
+  buildDayStrip();
+  renderDia();
+}
+
+// ── SETTINGS ──
+function openSettings()  { document.getElementById('drawerOverlay').classList.add('open'); }
+function closeSettings() { document.getElementById('drawerOverlay').classList.remove('open'); }
+
+// ── HELPERS ──
+function fmtDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+function fmtFechaLinda(f) {
+  if (!f) return '';
+  const [y, m, d] = f.split('-');
+  return `${d}/${m}/${y}`;
+}
+function tipoLabel(t) {
+  return { sesion: 'Sesión', judicial: 'Judicial', evaluacion: 'Evaluación', otro: 'Otro' }[t] || t;
+}
+function estadoLabel(e) {
+  return { pendiente: '⏳ Pendiente', confirmado: '✓ Confirmado', realizado: '✅ Realizado', cancelado: '❌ Cancelado' }[e] || e;
+}
+function badgeEstado(e) {
+  const map = {
+    pendiente:  '<span class="ev-badge badge-wait">⏳ Sin confirmar</span>',
+    confirmado: '<span class="ev-badge badge-ok">✓ Confirmado</span>',
+    realizado:  '<span class="ev-badge badge-done">✅ Realizado</span>',
+    cancelado:  '<span class="ev-badge badge-done">❌ Cancelado</span>',
+  };
+  return map[e] || '';
+}
+function filaD(icon, label, val) {
+  return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:16px">${icon}</span>
+    <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">${label}</div>
+    <div style="font-size:14px;font-weight:600;margin-top:2px">${val}</div></div>
+  </div>`;
+}
+
+// cerrar overlays al tocar fuera
+['overlay','overlayDetalle'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target.id === id) {
+      if (id === 'overlay') cerrarModal(); else cerrarDetalle();
+    }
+  });
+});
+</script>
+</body>
+</html>

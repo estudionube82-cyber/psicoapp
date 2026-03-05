@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Psicoapp — Pagos</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F1ED;
+  --surface: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-light: #E8F5EE;
+  --primary-mid: #52B788;
+  --accent: #F4A261;
+  --accent-light: #FEF0E6;
+  --text: #1A1A2E;
+  --text-muted: #8A8FA8;
+  --border: #E8E4DD;
+  --os-color: #7B5EA7;
+  --os-light: #EDE9FE;
+  --paid: #2D6A4F;
+  --paid-light: #E8F5EE;
+  --pending: #E65100;
+  --pending-light: #FFF3E0;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 24px rgba(0,0,0,0.11);
+  --radius: 16px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { padding-bottom: 76px !important;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg); color: var(--text);
+  max-width: 430px; margin: 0 auto;
+  min-height: 100vh; padding-bottom: 80px;
+}
+
+/* HEADER */
+.header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm);
+}
+.header-top {
+  display: flex; align-items: center;
+  padding: 14px 18px 10px; gap: 10px;
+}
+.logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--primary); }
+.logo span { color: var(--accent); }
+.header-title { flex: 1; text-align: center; font-size: 16px; font-weight: 800; }
+.icon-btn-sm {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--bg); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+
+/* TABS */
+.tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+}
+.tab {
+  flex: 1; padding: 12px 8px; text-align: center;
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s;
+}
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* MONTH SELECTOR */
+.month-selector {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.month-nav { width: 32px; height: 32px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
+.month-label { font-size: 16px; font-weight: 800; }
+
+/* ── TAB 1: RESUMEN ── */
+.tab-view { display: none; }
+.tab-view.active { display: block; animation: fadeUp 0.2s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Balance card */
+.balance-card {
+  margin: 14px 16px 0;
+  background: linear-gradient(135deg, #1B4332, #2D6A4F);
+  border-radius: 20px; padding: 20px 22px;
+  color: white; position: relative; overflow: hidden;
+}
+.balance-card::after {
+  content: '$'; position: absolute; right: -8px; top: -20px;
+  font-size: 110px; font-weight: 900; opacity: 0.06;
+  font-family: 'Playfair Display', serif;
+}
+.balance-label { font-size: 11px; opacity: 0.65; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.balance-amount { font-size: 34px; font-weight: 800; margin: 6px 0 2px; letter-spacing: -1px; }
+.balance-sub { font-size: 12px; opacity: 0.6; }
+.balance-row {
+  display: flex; gap: 10px; margin-top: 16px;
+}
+.balance-chip {
+  flex: 1; background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px; padding: 10px 12px; text-align: center;
+}
+.bc-num { font-size: 18px; font-weight: 800; }
+.bc-label { font-size: 10px; opacity: 0.7; font-weight: 600; margin-top: 2px; }
+
+/* Progress bar */
+.progress-section { padding: 14px 16px 0; }
+.progress-card {
+  background: var(--surface); border-radius: var(--radius);
+  padding: 16px; box-shadow: var(--shadow-sm);
+}
+.progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.progress-title { font-size: 14px; font-weight: 700; }
+.progress-pct { font-size: 20px; font-weight: 800; color: var(--primary); }
+.progress-bar-bg { background: var(--bg); border-radius: 20px; height: 8px; overflow: hidden; margin-bottom: 10px; }
+.progress-bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--primary), var(--primary-mid)); transition: width 1s ease; }
+.progress-rows { display: flex; flex-direction: column; gap: 8px; }
+.progress-row { display: flex; align-items: center; justify-content: space-between; }
+.prow-left { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.prow-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.prow-val { font-size: 14px; font-weight: 700; }
+.prow-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.tag-paid { background: var(--paid-light); color: var(--paid); }
+.tag-pending { background: var(--pending-light); color: var(--pending); }
+
+/* Pendientes list */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 8px;
+}
+.section-title { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.section-link { font-size: 12px; font-weight: 700; color: var(--primary); }
+
+.payment-item {
+  background: var(--surface); border-radius: 14px;
+  margin: 0 16px 8px; padding: 13px 14px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-sm); cursor: pointer;
+}
+.pay-avatar {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800; flex-shrink: 0;
+  font-family: 'Playfair Display', serif;
+}
+.pa-green { background: var(--primary-light); color: var(--primary); }
+.pa-blue { background: #E3F2FD; color: #1565C0; }
+.pa-purple { background: var(--os-light); color: var(--os-color); }
+.pa-orange { background: var(--accent-light); color: #9A3412; }
+.pay-info { flex: 1; min-width: 0; }
+.pay-name { font-size: 14px; font-weight: 700; }
+.pay-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.pay-right { text-align: right; flex-shrink: 0; }
+.pay-amount { font-size: 16px; font-weight: 800; }
+.pay-amount.pending { color: var(--pending); }
+.pay-amount.paid { color: var(--paid); }
+.pay-method {
+  font-size: 10px; font-weight: 700; padding: 2px 7px;
+  border-radius: 20px; margin-top: 3px; display: inline-block;
+}
+.pm-transfer { background: #E3F2FD; color: #1565C0; }
+.pm-cash { background: #E8F5E9; color: #2E7D32; }
+.pm-mp { background: #E3F2FD; color: #1565C0; }
+.pm-pending { background: var(--pending-light); color: var(--pending); }
+
+/* Export button */
+.export-btn {
+  margin: 4px 16px 0;
+  width: calc(100% - 32px);
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 13px;
+  font-size: 14px; font-weight: 700; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  color: var(--text-muted);
+}
+
+/* ── TAB 2: OBRAS SOCIALES ── */
+.os-card {
+  background: var(--surface); border-radius: var(--radius);
+  margin: 14px 16px 0; padding: 16px; box-shadow: var(--shadow-sm);
+}
+.os-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.os-icon {
+  width: 42px; height: 42px; border-radius: 13px;
+  background: var(--os-light); display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.os-name { font-size: 16px; font-weight: 800; }
+.os-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.os-status {
+  margin-left: auto; font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 20px; flex-shrink: 0;
+}
+.os-ok { background: var(--paid-light); color: var(--paid); }
+.os-pending { background: var(--pending-light); color: var(--pending); }
+.os-rows { display: flex; flex-direction: column; gap: 8px; }
+.os-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.os-row:last-child { border-bottom: none; padding-bottom: 0; }
+.os-row-label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.os-row-val { font-size: 14px; font-weight: 700; }
+.os-action-btn {
+  width: 100%; margin-top: 14px;
+  background: var(--os-light); color: var(--os-color);
+  border: 1.5px solid var(--os-color); border-radius: 12px; padding: 12px;
+  font-size: 14px; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+/* ── FAB ── */
+.fab {
+  position: fixed; bottom: 72px; right: 20px;
+  width: 52px; height: 52px; background: var(--primary);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(45,106,79,0.4);
+  cursor: pointer; font-size: 28px; color: white; border: none; z-index: 40;
+}
+
+/* MODAL REGISTRAR PAGO */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 60; display: none; align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 28px 28px 0 0;
+  padding: 20px 20px 40px; width: 100%; max-width: 430px;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 22px; }
+.field { margin-bottom: 14px; }
+.field-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: block; }
+.field-input {
+  width: 100%; border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 13px 16px; font-size: 16px; font-family: 'DM Sans', sans-serif;
+  color: var(--text); background: var(--bg); outline: none;
+}
+.field-input:focus { border-color: var(--primary); background: white; }
+.method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
+.method-btn {
+  padding: 12px 8px; border-radius: 12px; border: 1.5px solid var(--border);
+  background: var(--bg); text-align: center; cursor: pointer;
+  font-size: 12px; font-weight: 700; font-family: 'DM Sans', sans-serif;
+  color: var(--text-muted); transition: all 0.2s;
+}
+.method-btn.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+.method-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+.btn-guardar {
+  width: 100%; background: var(--primary); color: white;
+  border: none; border-radius: 14px; padding: 16px;
+  font-size: 16px; font-weight: 700; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; margin-top: 8px;
+}
+.btn-cancelar {
+  width: 100%; background: none; border: none; padding: 12px;
+  font-size: 14px; color: var(--text-muted); font-family: 'DM Sans', sans-serif; cursor: pointer;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; background: var(--surface);
+  border-top: 1px solid var(--border); display: flex;
+  padding: 10px 0 6px; z-index: 40;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+}
+.bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+.bnav-icon { font-size: 20px; }
+.bnav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+.bnav-label.on { color: var(--primary); }
+
+/* ── UNIFIED NAV ── */
+.unified-bnav {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: 430px !important;
+  margin: 0 auto !important;
+  background: #FFFFFF !important;
+  border-top: 1px solid #E8E4DD !important;
+  display: flex !important;
+  padding: 8px 0 14px !important;
+  z-index: 999999 !important;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.10) !important;
+}
+.unav-item {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 3px !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  padding: 2px 0 !important;
+}
+.unav-icon { font-size: 20px; line-height: 1; }
+.unav-label { font-size: 10px; font-weight: 600; color: #8A8FA8; }
+.unav-item.unav-active .unav-label { color: #2D6A4F !important; }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">Psico<span>app</span></div>
+    <div class="header-title">Pagos</div>
+    <button class="icon-btn-sm">📤</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="setTab('resumen')">💰 Resumen</div>
+    <div class="tab" onclick="setTab('os')">🏥 Obras sociales</div>
+  </div>
+  <div class="month-selector">
+    <div class="month-nav">‹</div>
+    <div class="month-label">Febrero 2025</div>
+    <div class="month-nav">›</div>
+  </div>
+</div>
+
+<!-- ══ TAB RESUMEN ══ -->
+<div class="tab-view active" id="tab-resumen">
+
+  <!-- Balance card -->
+  <div class="balance-card">
+    <div class="balance-label">Facturado este mes</div>
+    <div class="balance-amount">$900.000</div>
+    <div class="balance-sub">20 sesiones · 20 pacientes</div>
+    <div class="balance-row">
+      <div class="balance-chip">
+        <div class="bc-num">$720.000</div>
+        <div class="bc-label">✓ Cobrado</div>
+      </div>
+      <div class="balance-chip">
+        <div class="bc-num">$180.000</div>
+        <div class="bc-label">⏳ Pendiente</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-card">
+      <div class="progress-header">
+        <div class="progress-title">Objetivo mensual</div>
+        <div class="progress-pct">58%</div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width:58%"></div>
+      </div>
+      <div class="progress-rows">
+        <div class="progress-row">
+          <div class="prow-left"><div class="prow-dot" style="background:var(--primary)"></div>Sesiones particulares</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="prow-val">$630.000</div>
+            <div class="prow-tag tag-paid">✓ Cobrado</div>
+          </div>
+        </div>
+        <div class="progress-row">
+          <div class="prow-left"><div class="prow-dot" style="background:var(--pending)"></div>Sesiones particulares</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="prow-val">$90.000</div>
+            <div class="prow-tag tag-pending">⏳ Pendiente</div>
+          </div>
+        </div>
+        <div class="progress-row">
+          <div class="prow-left"><div class="prow-dot" style="background:var(--os-color)"></div>Obras sociales</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="prow-val">$180.000</div>
+            <div class="prow-tag" style="background:var(--os-light);color:var(--os-color)">En proceso</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pendientes -->
+  <div class="section-header">
+    <div class="section-title">Pendientes de cobro</div>
+  </div>
+
+  <div class="payment-item">
+    <div class="pay-avatar pa-blue">CF</div>
+    <div class="pay-info">
+      <div class="pay-name">Carlos Fernández</div>
+      <div class="pay-meta">Sesión 18 Feb · Particular</div>
+    </div>
+    <div class="pay-right">
+      <div class="pay-amount pending">$45.000</div>
+      <div class="pay-method pm-pending">⏳ Pendiente</div>
+    </div>
+  </div>
+
+  <div class="payment-item">
+    <div class="pay-avatar pa-orange">LP</div>
+    <div class="pay-info">
+      <div class="pay-name">Laura Pérez</div>
+      <div class="pay-meta">Sesión 18 Feb · Particular</div>
+    </div>
+    <div class="pay-right">
+      <div class="pay-amount pending">$45.000</div>
+      <div class="pay-method pm-pending">⏳ Pendiente</div>
+    </div>
+  </div>
+
+  <!-- Cobrados -->
+  <div class="section-header">
+    <div class="section-title">Cobrados</div>
+  </div>
+
+  <div class="payment-item">
+    <div class="pay-avatar pa-green">AR</div>
+    <div class="pay-info">
+      <div class="pay-name">Ana Rodríguez</div>
+      <div class="pay-meta">Sesión 11 Feb · Transferencia</div>
+    </div>
+    <div class="pay-right">
+      <div class="pay-amount paid">$45.000</div>
+      <div class="pay-method pm-transfer">🏦 Transferencia</div>
+    </div>
+  </div>
+
+  <div class="payment-item">
+    <div class="pay-avatar pa-purple">MG</div>
+    <div class="pay-info">
+      <div class="pay-name">María González</div>
+      <div class="pay-meta">Sesión 11 Feb · Efectivo</div>
+    </div>
+    <div class="pay-right">
+      <div class="pay-amount paid">$45.000</div>
+      <div class="pay-method pm-cash">💵 Efectivo</div>
+    </div>
+  </div>
+
+  <div class="payment-item">
+    <div class="pay-avatar pa-blue">DM</div>
+    <div class="pay-info">
+      <div class="pay-name">Diego Martínez</div>
+      <div class="pay-meta">Sesión 10 Feb · Mercado Pago</div>
+    </div>
+    <div class="pay-right">
+      <div class="pay-amount paid">$45.000</div>
+      <div class="pay-method pm-mp">💙 Mercado Pago</div>
+    </div>
+  </div>
+
+  <!-- Export -->
+  <div style="height:12px"></div>
+  <button class="export-btn">📊 Exportar resumen para contador</button>
+  <div style="height:16px"></div>
+
+</div>
+
+<!-- ══ TAB OBRAS SOCIALES ══ -->
+<div class="tab-view" id="tab-os">
+
+  <!-- OSDE -->
+  <div class="os-card">
+    <div class="os-header">
+      <div class="os-icon">🏥</div>
+      <div>
+        <div class="os-name">OSDE 310</div>
+        <div class="os-meta">3 pacientes · 8 sesiones feb</div>
+      </div>
+      <div class="os-status os-pending">⏳ Sin presentar</div>
+    </div>
+    <div class="os-rows">
+      <div class="os-row">
+        <div class="os-row-label">Sesiones a presentar</div>
+        <div class="os-row-val">8 sesiones</div>
+      </div>
+      <div class="os-row">
+        <div class="os-row-label">Monto a cobrar</div>
+        <div class="os-row-val" style="color:var(--primary)">$120.000</div>
+      </div>
+      <div class="os-row">
+        <div class="os-row-label">Vencimiento presentación</div>
+        <div class="os-row-val" style="color:var(--pending)">28 Feb</div>
+      </div>
+    </div>
+    <button class="os-action-btn">📋 Generar planilla de presentación</button>
+  </div>
+
+  <!-- IOMA -->
+  <div class="os-card" style="margin-top:12px">
+    <div class="os-header">
+      <div class="os-icon">🏥</div>
+      <div>
+        <div class="os-name">IOMA</div>
+        <div class="os-meta">2 pacientes · 4 sesiones feb</div>
+      </div>
+      <div class="os-status os-ok">✓ Presentado</div>
+    </div>
+    <div class="os-rows">
+      <div class="os-row">
+        <div class="os-row-label">Sesiones presentadas</div>
+        <div class="os-row-val">4 sesiones</div>
+      </div>
+      <div class="os-row">
+        <div class="os-row-label">Monto presentado</div>
+        <div class="os-row-val">$60.000</div>
+      </div>
+      <div class="os-row">
+        <div class="os-row-label">Estado del cobro</div>
+        <div class="os-row-val" style="color:var(--pending)">⏳ En proceso</div>
+      </div>
+      <div class="os-row">
+        <div class="os-row-label">Fecha presentación</div>
+        <div class="os-row-val">5 Feb 2025</div>
+      </div>
+    </div>
+    <button class="os-action-btn" style="background:var(--bg);color:var(--text-muted);border-color:var(--border)">📄 Ver planilla enviada</button>
+  </div>
+
+  <div style="height:16px"></div>
+
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="document.getElementById('overlay').classList.add('open')">＋</button>
+
+
+
+
+<!-- ══ MODAL REGISTRAR PAGO ══ -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💰 Registrar pago</div>
+    <div class="modal-sub">¿Quién pagó y cómo?</div>
+
+    <div class="field">
+      <label class="field-label">Paciente</label>
+      <input class="field-input" placeholder="Buscar paciente..." type="text">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Sesión</label>
+      <input class="field-input" value="18/02/2025 · 9:00 hs" type="text">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Monto</label>
+      <input class="field-input" placeholder="$45.000" type="number">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Medio de pago</label>
+      <div class="method-grid">
+        <div class="method-btn active" onclick="selectMethod(this)">
+          <span class="method-icon">🏦</span>Transferencia
+        </div>
+        <div class="method-btn" onclick="selectMethod(this)">
+          <span class="method-icon">💵</span>Efectivo
+        </div>
+        <div class="method-btn" onclick="selectMethod(this)">
+          <span class="method-icon">💙</span>Mercado Pago
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-guardar" onclick="document.getElementById('overlay').classList.remove('open')">✓ Guardar pago</button>
+    <button class="btn-cancelar" onclick="document.getElementById('overlay').classList.remove('open')">Cancelar</button>
+  </div>
+</div>
+
+<script>
+function setTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const idx = name === 'resumen' ? 0 : 1;
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+function selectMethod(el) {
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+
+
+</body>
+
+
+
+
+
+<style>
+.app-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  height: 64px;
+  background: #fff;
+  border-top: 1.5px solid #E8E4DD;
+  display: flex;
+  align-items: center;
+  z-index: 2147483647;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
+}
+.app-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: #8A8FA8;
+  font-family: sans-serif;
+  padding: 4px 0;
+}
+.app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
+.app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
+.app-nav a.on .nl { color: #2D6A4F; }
+.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(45,106,79,0.5)); }
+</style>
+<nav class="app-nav">
+  <a href="index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-pagos.html" class="on"><span class="ni">💰</span><span class="nl">Pagos</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-pericias.html"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
+</nav>
+
+</html>
