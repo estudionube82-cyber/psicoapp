@@ -8,912 +8,179 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --bg: #F4F1ED;
-  --surface: #FFFFFF;
-  --primary: #2D6A4F;
-  --primary-light: #E8F5EE;
+  --bg: #F4F1ED; --surface: #FFFFFF;
+  --primary: #2D6A4F; --primary-light: #E8F5EE;
   --accent: #F4A261;
-  --text: #1A1A2E;
-  --text-muted: #8A8FA8;
-  --border: #E8E4DD;
-  --wp-green: #25D366;
-  --wp-dark: #075E54;
-  --wp-light: #DCF8C6;
-  --wp-bubble: #FFFFFF;
-  --wp-bg: #ECE5DD;
+  --text: #1A1A2E; --text-muted: #8A8FA8; --border: #E8E4DD;
+  --wp-green: #25D366; --wp-dark: #075E54; --wp-light: #DCF8C6;
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
   --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
   --radius: 14px;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); max-width:430px; margin:0 auto; min-height:100vh; padding-bottom:80px; }
 
-body { padding-bottom: 76px !important;
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  max-width: 430px;
-  margin: 0 auto;
-  min-height: 100vh;
-}
+.header { background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50; box-shadow:var(--shadow-sm); }
+.header-top { display:flex; align-items:center; padding:14px 18px 10px; gap:10px; }
+.logo { font-family:'Playfair Display',serif; font-size:20px; color:var(--primary); }
+.logo span { color:var(--accent); }
+.header-title { flex:1; text-align:center; font-size:16px; font-weight:800; }
 
-/* HEADER */
-.header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  box-shadow: var(--shadow-sm);
-}
-.header-top {
-  display: flex;
-  align-items: center;
-  padding: 14px 18px 10px;
-  gap: 10px;
-}
-.logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 20px;
-  color: var(--primary);
-}
-.logo span { color: var(--accent); }
-.header-title {
-  flex: 1;
-  text-align: center;
-  font-size: 15px;
-  font-weight: 700;
-}
-.icon-btn-sm {
-  width: 34px; height: 34px;
-  border-radius: 10px;
-  background: var(--bg);
-  border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px;
-}
+.tabs { display:flex; border-bottom:1px solid var(--border); }
+.tab { flex:1; padding:12px 8px; text-align:center; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; }
+.tab.active { color:var(--wp-dark); border-bottom-color:var(--wp-green); }
 
-/* TABS */
-.tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-}
-.tab {
-  flex: 1;
-  padding: 12px 8px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-}
-.tab.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
+.tab-view { display:none; }
+.tab-view.active { display:block; animation:fadeUp 0.2s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
-/* ── TAB 1: MENSAJES CONFIG ── */
-.config-view { display: none; padding: 16px; }
-.config-view.active { display: block; }
+.search-bar { padding:12px 16px; }
+.search-input { width:100%; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:10px 16px 10px 38px; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; color:var(--text); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A8FA8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:12px center; }
+.search-input:focus { border-color:var(--wp-green); }
 
-.section-card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow-sm);
-}
-.section-header {
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.section-icon {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-.si-wp { background: #E8F8EE; }
-.si-clock { background: #FFF3E0; }
-.si-bell { background: #EDE9FE; }
-.section-title { font-size: 15px; font-weight: 700; }
-.section-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.pac-list { padding:0 16px; display:flex; flex-direction:column; gap:8px; }
+.pac-card { background:var(--surface); border-radius:14px; padding:13px 14px; display:flex; align-items:center; gap:12px; box-shadow:var(--shadow-sm); }
+.pac-avatar { width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; color:white; flex-shrink:0; }
+.pac-info { flex:1; min-width:0; }
+.pac-nombre { font-size:14px; font-weight:700; }
+.pac-tel { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.pac-sin-tel { font-size:11px; color:#E65100; font-weight:600; margin-top:2px; }
+.turno-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; background:var(--primary-light); color:var(--primary); margin-top:3px; display:inline-block; }
+.btn-wp { background:var(--wp-green); color:white; border:none; border-radius:11px; padding:8px 14px; font-size:20px; font-family:'DM Sans',sans-serif; cursor:pointer; flex-shrink:0; transition:opacity 0.15s; }
+.btn-wp:hover { opacity:0.85; }
+.btn-wp:disabled { background:var(--border); color:var(--text-muted); cursor:not-allowed; }
 
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.setting-row:last-child { border-bottom: none; }
-.setting-left { flex: 1; }
-.setting-label { font-size: 14px; font-weight: 500; }
-.setting-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.plantillas-list { padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
+.plantilla-card { background:var(--surface); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow-sm); }
+.plantilla-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.plantilla-icon { width:36px; height:36px; border-radius:11px; background:#E8F8EE; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.plantilla-titulo { font-size:14px; font-weight:700; }
+.plantilla-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.plantilla-preview { background:var(--wp-light); border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.6; color:#1a1a1a; border-left:4px solid var(--wp-green); margin-bottom:12px; white-space:pre-wrap; font-family:'DM Sans',sans-serif; }
+.btn-usar { width:100%; background:var(--wp-green); color:white; border:none; border-radius:11px; padding:11px; font-size:14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
 
-.toggle {
-  width: 44px; height: 26px;
-  border-radius: 13px;
-  background: var(--primary);
-  position: relative;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.2s;
-}
-.toggle::after {
-  content: '';
-  position: absolute;
-  right: 3px; top: 3px;
-  width: 20px; height: 20px;
-  background: white;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  transition: all 0.2s;
-}
-.toggle.off { background: var(--border); }
-.toggle.off::after { right: auto; left: 3px; }
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:60; display:none; align-items:flex-end; justify-content:center; }
+.overlay.open { display:flex; }
+.modal { background:var(--surface); border-radius:28px 28px 0 0; padding:20px 20px 40px; width:100%; max-width:430px; max-height:80vh; overflow-y:auto; animation:slideUp 0.25s ease; }
+@keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+.modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 16px; }
+.modal-title { font-size:18px; font-weight:800; margin-bottom:4px; }
+.modal-sub { font-size:13px; color:var(--text-muted); margin-bottom:16px; }
+.modal-pac-item { display:flex; align-items:center; gap:12px; padding:12px 14px; background:var(--bg); border-radius:12px; cursor:pointer; transition:background 0.15s; margin-bottom:8px; }
+.modal-pac-item:hover { background:var(--primary-light); }
 
-.select-pill {
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 7px 12px;
-  font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
-  color: var(--text);
-  background: var(--bg);
-  cursor: pointer;
-  font-weight: 600;
-}
+.empty-sec { text-align:center; padding:40px 20px; color:var(--text-muted); }
+.empty-icon { font-size:40px; margin-bottom:8px; }
 
-/* Message preview */
-.msg-preview-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 14px 16px 8px;
-}
-.wp-preview {
-  background: var(--wp-bg);
-  margin: 0 16px 16px;
-  border-radius: 12px;
-  padding: 14px 12px;
-  position: relative;
-  overflow: hidden;
-}
-.wp-preview::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-.wp-bubble {
-  background: var(--wp-bubble);
-  border-radius: 4px 12px 12px 12px;
-  padding: 10px 14px;
-  max-width: 88%;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-  position: relative;
-  z-index: 1;
-}
-.wp-bubble.sent {
-  background: var(--wp-light);
-  border-radius: 12px 4px 12px 12px;
-  margin-left: auto;
-}
-.wp-sender {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--wp-dark);
-  margin-bottom: 6px;
-}
-.wp-text {
-  font-size: 13px;
-  line-height: 1.55;
-  color: #1a1a1a;
-  white-space: pre-line;
-}
-.wp-time {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-align: right;
-  margin-top: 5px;
-}
-.wp-check { color: #53bdeb; }
-
-.msg-type-tabs {
-  display: flex;
-  gap: 8px;
-  padding: 0 16px 12px;
-}
-.msg-type-btn {
-  flex: 1;
-  padding: 8px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
-  background: var(--bg);
-  font-size: 12px;
-  font-weight: 700;
-  font-family: 'DM Sans', sans-serif;
-  color: var(--text-muted);
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
-}
-.msg-type-btn.active {
-  background: var(--wp-dark);
-  color: white;
-  border-color: var(--wp-dark);
-}
-
-/* Edit message */
-.edit-section {
-  margin: 0 16px 16px;
-}
-.edit-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 6px;
-}
-.edit-textarea {
-  width: 100%;
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 14px;
-  font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
-  color: var(--text);
-  background: var(--surface);
-  resize: none;
-  line-height: 1.6;
-  min-height: 120px;
-  outline: none;
-}
-.edit-textarea:focus { border-color: var(--primary); }
-.var-chips {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-.var-chip {
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: 20px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  font-family: 'DM Sans', sans-serif;
-}
-
-/* ── TAB 2: HISTORIAL ── */
-.history-view { display: none; }
-.history-view.active { display: block; }
-
-.history-filter {
-  display: flex;
-  gap: 8px;
-  padding: 12px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.filter-chip {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-  cursor: pointer;
-  border: 1.5px solid var(--border);
-  background: var(--bg);
-  color: var(--text-muted);
-  font-family: 'DM Sans', sans-serif;
-  transition: all 0.2s;
-}
-.filter-chip.active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-
-.history-list { padding: 12px 16px 80px; }
-.history-item {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.history-item:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
-.hi-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.hi-avatar {
-  width: 38px; height: 38px;
-  border-radius: 12px;
-  background: var(--primary-light);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-.hi-name { font-size: 15px; font-weight: 700; flex: 1; }
-.hi-time { font-size: 11px; color: var(--text-muted); }
-.hi-msg {
-  background: var(--bg);
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text);
-  border-left: 3px solid var(--wp-green);
-  white-space: pre-line;
-}
-.hi-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-}
-.hi-status {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 700;
-}
-.status-sent { color: var(--wp-dark); }
-.status-delivered { color: #53bdeb; }
-.status-failed { color: #E53935; }
-.hi-type {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 20px;
-}
-.type-confirm { background: var(--primary-light); color: var(--primary); }
-.type-reminder { background: #FFF3E0; color: #E65100; }
-
-/* Stats bar */
-.stats-bar {
-  display: flex;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
-  gap: 0;
-}
-.stat-item {
-  flex: 1;
-  text-align: center;
-  border-right: 1px solid var(--border);
-}
-.stat-item:last-child { border-right: none; }
-.stat-num { font-size: 20px; font-weight: 800; color: var(--primary); }
-.stat-label { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
-
-/* BOTTOM NAV */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 430px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  display: flex;
-  padding: 10px 0 6px;
-  z-index: 40;
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
-}
-.bnav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  cursor: pointer;
-}
-.bnav-icon { font-size: 20px; }
-.bnav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
-.bnav-label.on { color: var(--primary); }
-
-/* Animations */
-.config-view, .history-view { animation: fadeIn 0.2s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Send test btn */
-.send-test-btn {
-  width: 100%;
-  background: var(--wp-green);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px;
-  font-size: 15px;
-  font-weight: 700;
-  font-family: 'DM Sans', sans-serif;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 4px;
-}
-.send-test-btn:hover { opacity: 0.9; }
-
-/* ── UNIFIED NAV ── */
-.unified-bnav {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  max-width: 430px !important;
-  margin: 0 auto !important;
-  background: #FFFFFF !important;
-  border-top: 1px solid #E8E4DD !important;
-  display: flex !important;
-  padding: 8px 0 14px !important;
-  z-index: 999999 !important;
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.10) !important;
-}
-.unav-item {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  gap: 3px !important;
-  text-decoration: none !important;
-  color: inherit !important;
-  padding: 2px 0 !important;
-}
-.unav-icon { font-size: 20px; line-height: 1; }
-.unav-label { font-size: 10px; font-weight: 600; color: #8A8FA8; }
-.unav-item.unav-active .unav-label { color: #2D6A4F !important; }
-
+.app-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; height:64px; background:#fff; border-top:1.5px solid #E8E4DD; display:flex; align-items:center; z-index:2147483647; box-shadow:0 -2px 12px rgba(0,0,0,0.09); }
+.app-nav a { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; text-decoration:none; color:#8A8FA8; padding:4px 0; }
+.app-nav a .ni { font-size:22px; line-height:1; display:block; }
+.app-nav a .nl { font-size:10px; font-weight:700; display:block; }
+.app-nav a.on .nl { color:#2D6A4F; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="header-top">
     <div class="logo">Psico<span>app</span></div>
-    <div class="header-title">Comunicación WhatsApp</div>
-    <button class="icon-btn-sm">🔔</button>
+    <div class="header-title">WhatsApp</div>
+    <div style="width:34px"></div>
   </div>
   <div class="tabs">
-    <div class="tab active" onclick="setTab('config')">⚙️ Configuración</div>
-    <div class="tab" onclick="setTab('history')">📋 Historial de envíos</div>
+    <div class="tab active" id="tab-enviar" onclick="setTab('enviar')">💬 Pacientes</div>
+    <div class="tab" id="tab-plantillas" onclick="setTab('plantillas')">📋 Plantillas</div>
   </div>
 </div>
 
-<!-- ══════════════ TAB 1: CONFIGURACIÓN ══════════════ -->
-<div class="config-view active" id="tabConfig">
-
-  <!-- Activación general -->
-  <div style="height:16px"></div>
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-icon si-wp">💬</div>
-      <div>
-        <div class="section-title">WhatsApp Business</div>
-        <div class="section-sub">Envíos automáticos desde Psicoapp</div>
-      </div>
-    </div>
-    <div class="setting-row">
-      <div class="setting-left">
-        <div class="setting-label">Activar envíos automáticos</div>
-        <div class="setting-desc">Confirmaciones y recordatorios</div>
-      </div>
-      <div class="toggle" onclick="this.classList.toggle('off')"></div>
-    </div>
-    <div class="setting-row">
-      <div class="setting-left">
-        <div class="setting-label">Teléfono del profesional</div>
-        <div class="setting-desc">Adónde avisa el paciente si no puede</div>
-      </div>
-      <div style="font-size:13px;font-weight:700;color:var(--primary)">2346 699176</div>
-    </div>
+<!-- TAB PACIENTES -->
+<div class="tab-view active" id="view-enviar">
+  <div class="search-bar">
+    <input class="search-input" id="searchInput" placeholder="Buscar paciente..." oninput="filtrarPacientes()">
   </div>
+  <div class="pac-list" id="pacList">
+    <div class="empty-sec"><div class="empty-icon">⏳</div>Cargando...</div>
+  </div>
+</div>
 
-  <!-- Mensaje 1: Confirmación de turno -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-icon si-wp">📅</div>
-      <div>
-        <div class="section-title">Mensaje 1 — Confirmación de turno</div>
-        <div class="section-sub">Se envía al momento de agendar</div>
+<!-- TAB PLANTILLAS -->
+<div class="tab-view" id="view-plantillas">
+  <div class="plantillas-list">
+
+    <div class="plantilla-card">
+      <div class="plantilla-header">
+        <div class="plantilla-icon">📅</div>
+        <div><div class="plantilla-titulo">Confirmación de turno</div><div class="plantilla-sub">Al agendar una sesión</div></div>
       </div>
-    </div>
-    <div class="setting-row">
-      <div class="setting-left">
-        <div class="setting-label">Enviar al agendar</div>
-        <div class="setting-desc">El paciente recibe el "papelito digital"</div>
-      </div>
-      <div class="toggle" onclick="this.classList.toggle('off')"></div>
-    </div>
+      <div class="plantilla-preview" id="prev-confirmacion">📅 *Tu turno está confirmado*
 
-    <div class="msg-preview-label" style="padding-top:8px">Vista previa del mensaje</div>
-    <div class="wp-preview">
-      <div class="wp-bubble">
-        <div class="wp-sender">Psicoapp · Lic. Juan García</div>
-        <div class="wp-text">📅 <strong>Tu turno está confirmado</strong>
-
-Hola María, te confirmamos tu sesión con el <strong>Lic. Juan García</strong>.
-
-📆 Miércoles 19 de febrero
-🕘 9:00 hs
-📍 Rivadavia 450, Chivilcoy
-
-Ante cualquier inconveniente avisanos con anticipación al <strong>2346 699176</strong>.
-<em>Psicoapp</em></div>
-        <div class="wp-time">09:15 <span class="wp-check">✓✓</span></div>
-      </div>
-    </div>
-
-    <div class="edit-section">
-      <div class="edit-label">Personalizar mensaje</div>
-      <textarea class="edit-textarea">📅 *Tu turno está confirmado*
-
-Hola {nombre}, te confirmamos tu sesión con el *{profesional}*.
+Hola {nombre}, te confirmamos tu sesión con el *Dr. Juan José Pérez Aré*.
 
 📆 {fecha}
-🕘 {hora}
-📍 {direccion}
-
-Ante cualquier inconveniente avisanos al *{telefono}*.
-_Psicoapp_</textarea>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;margin-bottom:6px">Variables disponibles:</div>
-      <div class="var-chips">
-        <button class="var-chip">{nombre}</button>
-        <button class="var-chip">{profesional}</button>
-        <button class="var-chip">{fecha}</button>
-        <button class="var-chip">{hora}</button>
-        <button class="var-chip">{direccion}</button>
-        <button class="var-chip">{telefono}</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Mensaje 2: Recordatorio -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-icon si-bell">🔔</div>
-      <div>
-        <div class="section-title">Mensaje 2 — Recordatorio automático</div>
-        <div class="section-sub">Se envía antes del turno</div>
-      </div>
-    </div>
-    <div class="setting-row">
-      <div class="setting-left">
-        <div class="setting-label">Activar recordatorio</div>
-        <div class="setting-desc">Reduce inasistencias automáticamente</div>
-      </div>
-      <div class="toggle" onclick="this.classList.toggle('off')"></div>
-    </div>
-    <div class="setting-row">
-      <div class="setting-left">
-        <div class="setting-label">¿Cuándo enviarlo?</div>
-        <div class="setting-desc">Se guarda como preferencia fija</div>
-      </div>
-      <select class="select-pill">
-        <option>24 hs antes</option>
-        <option>Mismo día 8:00 AM</option>
-        <option>Ambos</option>
-      </select>
-    </div>
-
-    <!-- Toggle between reminder messages -->
-    <div class="msg-type-tabs">
-      <button class="msg-type-btn active" onclick="showMsg('24hs', this)">24hs antes</button>
-      <button class="msg-type-btn" onclick="showMsg('dia', this)">Mismo día</button>
-    </div>
-
-    <!-- 24hs preview -->
-    <div id="msg24hs">
-      <div class="msg-preview-label">Vista previa — 24hs antes</div>
-      <div class="wp-preview">
-        <div class="wp-bubble">
-          <div class="wp-sender">Psicoapp · Lic. Juan García</div>
-          <div class="wp-text">🔔 <strong>Recordatorio de turno</strong>
-
-Hola María, te recordamos que mañana tenés sesión con el <strong>Lic. Juan García</strong>.
-
-📆 Miércoles 19 de febrero
-🕘 9:00 hs
-
-¿No podés asistir? Avisá al <strong>2346 699176</strong>
-<em>Psicoapp</em></div>
-          <div class="wp-time">09:00 <span class="wp-check">✓✓</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mismo día preview -->
-    <div id="msgDia" style="display:none">
-      <div class="msg-preview-label">Vista previa — Mismo día 8:00 AM</div>
-      <div class="wp-preview">
-        <div class="wp-bubble">
-          <div class="wp-sender">Psicoapp · Lic. Juan García</div>
-          <div class="wp-text">🔔 <strong>Hoy tenés sesión</strong>
-
-Hola María, te recordamos que hoy tenés sesión con el <strong>Lic. Juan García</strong>.
-
-🕘 9:00 hs
+🕘 {hora} hs
 📍 Rivadavia 450, Chivilcoy
 
-¿No podés asistir? Avisá al <strong>2346 699176</strong>
-<em>Psicoapp</em></div>
-          <div class="wp-time">08:00 <span class="wp-check">✓✓</span></div>
-        </div>
-      </div>
+Ante cualquier inconveniente avisanos con anticipación.
+_Psicoapp_</div>
+      <button class="btn-usar" onclick="usarPlantilla('confirmacion')">💬 Usar plantilla</button>
     </div>
 
-    <div class="edit-section">
-      <button class="send-test-btn">
-        💬 Enviar mensaje de prueba a mi celular
-      </button>
-    </div>
-  </div>
-
-  <div style="height:80px"></div>
-</div>
-
-<!-- ══════════════ TAB 2: HISTORIAL ══════════════ -->
-<div class="history-view" id="tabHistory">
-
-  <!-- Stats -->
-  <div class="stats-bar">
-    <div class="stat-item">
-      <div class="stat-num">47</div>
-      <div class="stat-label">Enviados<br>este mes</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">45</div>
-      <div class="stat-label">Entregados<br>con éxito</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num" style="color:#E65100">2</div>
-      <div class="stat-label">Sin<br>entregar</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num" style="color:#388E3C">96%</div>
-      <div class="stat-label">Tasa de<br>éxito</div>
-    </div>
-  </div>
-
-  <!-- Filters -->
-  <div class="history-filter">
-    <button class="filter-chip active">Todos</button>
-    <button class="filter-chip">Confirmaciones</button>
-    <button class="filter-chip">Recordatorios</button>
-    <button class="filter-chip">Sin entregar</button>
-  </div>
-
-  <!-- List -->
-  <div class="history-list">
-
-    <div class="history-item">
-      <div class="hi-top">
-        <div class="hi-avatar">👤</div>
-        <div class="hi-name">María González</div>
-        <div class="hi-time">Hoy 08:00</div>
+    <div class="plantilla-card">
+      <div class="plantilla-header">
+        <div class="plantilla-icon">🔔</div>
+        <div><div class="plantilla-titulo">Recordatorio de turno</div><div class="plantilla-sub">El día anterior</div></div>
       </div>
-      <div class="hi-msg">🔔 Recordatorio de turno
+      <div class="plantilla-preview" id="prev-recordatorio">🔔 *Recordatorio de turno*
 
-Hola María, te recordamos que hoy tenés sesión con el Lic. Juan García.
-🕘 9:00 hs · ¿No podés asistir? Avisá al 2346 699176</div>
-      <div class="hi-footer">
-        <div class="hi-status status-delivered">✓✓ Entregado y leído</div>
-        <div class="hi-type type-reminder">Recordatorio</div>
-      </div>
+Hola {nombre}, te recordamos que mañana tenés sesión con el *Dr. Juan José Pérez Aré*.
+
+📆 {fecha}
+🕘 {hora} hs
+
+¿No podés asistir? Avisanos al *2346 699176*
+_Psicoapp_</div>
+      <button class="btn-usar" onclick="usarPlantilla('recordatorio')">💬 Usar plantilla</button>
     </div>
 
-    <div class="history-item">
-      <div class="hi-top">
-        <div class="hi-avatar">👤</div>
-        <div class="hi-name">Carlos Fernández</div>
-        <div class="hi-time">Ayer 09:00</div>
+    <div class="plantilla-card">
+      <div class="plantilla-header">
+        <div class="plantilla-icon">💰</div>
+        <div><div class="plantilla-titulo">Recordatorio de pago</div><div class="plantilla-sub">Saldo pendiente</div></div>
       </div>
-      <div class="hi-msg">🔔 Recordatorio de turno
+      <div class="plantilla-preview" id="prev-pago">💰 *Recordatorio de pago*
 
-Hola Carlos, te recordamos que mañana tenés sesión con el Lic. Juan García.
-🕘 10:00 hs · ¿No podés asistir? Avisá al 2346 699176</div>
-      <div class="hi-footer">
-        <div class="hi-status status-delivered">✓✓ Entregado y leído</div>
-        <div class="hi-type type-reminder">Recordatorio</div>
-      </div>
+Hola {nombre}, te recordamos que tenés un saldo pendiente con el *Dr. Juan José Pérez Aré*.
+
+Podés abonarlo en el próximo turno o por transferencia.
+_Psicoapp_</div>
+      <button class="btn-usar" onclick="usarPlantilla('pago')">💬 Usar plantilla</button>
     </div>
 
-    <div class="history-item">
-      <div class="hi-top">
-        <div class="hi-avatar">👤</div>
-        <div class="hi-name">Ana Rodríguez</div>
-        <div class="hi-time">Ayer 15:32</div>
+    <div class="plantilla-card">
+      <div class="plantilla-header">
+        <div class="plantilla-icon">✏️</div>
+        <div><div class="plantilla-titulo">Mensaje libre</div><div class="plantilla-sub">Escribí tu propio texto</div></div>
       </div>
-      <div class="hi-msg">📅 Tu turno está confirmado
-
-Hola Ana, te confirmamos tu sesión con el Lic. Juan García.
-📆 Miércoles 19 · 🕘 15:00 hs · 📍 Rivadavia 450</div>
-      <div class="hi-footer">
-        <div class="hi-status status-delivered">✓✓ Entregado y leído</div>
-        <div class="hi-type type-confirm">Confirmación</div>
-      </div>
-    </div>
-
-    <div class="history-item">
-      <div class="hi-top">
-        <div class="hi-avatar">👤</div>
-        <div class="hi-name">Diego Martínez</div>
-        <div class="hi-time">Lun 09:00</div>
-      </div>
-      <div class="hi-msg">🔔 Recordatorio de turno
-
-Hola Diego, te recordamos que mañana tenés sesión con el Lic. Juan García.
-🕘 18:00 hs · ¿No podés asistir? Avisá al 2346 699176</div>
-      <div class="hi-footer">
-        <div class="hi-status status-sent" style="color:#8A8FA8">✓ Entregado</div>
-        <div class="hi-type type-reminder">Recordatorio</div>
-      </div>
-    </div>
-
-    <div class="history-item" style="border:1.5px solid #FFCDD2">
-      <div class="hi-top">
-        <div class="hi-avatar">👤</div>
-        <div class="hi-name">Laura Pérez</div>
-        <div class="hi-time">Lun 09:00</div>
-      </div>
-      <div class="hi-msg" style="border-left-color:#E53935">🔔 Recordatorio de turno
-
-Hola Laura, te recordamos que mañana tenés sesión con el Lic. Juan García.
-🕘 19:00 hs · ¿No podés asistir? Avisá al 2346 699176</div>
-      <div class="hi-footer">
-        <div class="hi-status status-failed">✗ No entregado · Número inválido</div>
-        <div class="hi-type type-reminder">Recordatorio</div>
-      </div>
-    </div>
-
-    <div class="history-item">
-      <div class="hi-top">
-        <div class="hi-avatar">👤</div>
-        <div class="hi-name">Laura Pérez</div>
-        <div class="hi-time">Lun 15:00</div>
-      </div>
-      <div class="hi-msg">📅 Tu turno está confirmado
-
-Hola Laura, te confirmamos tu sesión con el Lic. Juan García.
-📆 Martes 18 · 🕘 19:00 hs · 📍 Rivadavia 450</div>
-      <div class="hi-footer">
-        <div class="hi-status status-failed">✗ No entregado · Número inválido</div>
-        <div class="hi-type type-confirm">Confirmación</div>
-      </div>
+      <textarea id="msg-libre" style="width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;font-family:'DM Sans',sans-serif;min-height:100px;resize:none;outline:none;background:var(--bg);margin-bottom:10px" placeholder="Escribí el mensaje acá..."></textarea>
+      <button class="btn-usar" onclick="usarPlantilla('libre')">💬 Enviar mensaje libre</button>
     </div>
 
   </div>
 </div>
 
+<!-- MODAL seleccionar paciente -->
+<div class="overlay" id="overlayPac">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💬 ¿A quién enviás?</div>
+    <div class="modal-sub">Seleccioná el paciente.</div>
+    <div id="modalPacList"></div>
+    <button onclick="cerrarModalPac()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Cancelar</button>
+  </div>
+</div>
 
-
-
-<script>
-const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
-const { createClient } = supabase;
-const sb = createClient(SUPA_URL, SUPA_KEY);
-
-// ── SESSION PROTECTION ──
-(async () => {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-})();
-
-function setTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.config-view, .history-view').forEach(v => v.classList.remove('active'));
-  if (tab === 'config') {
-    document.getElementById('tabConfig').classList.add('active');
-    document.querySelectorAll('.tab')[0].classList.add('active');
-  } else {
-    document.getElementById('tabHistory').classList.add('active');
-    document.querySelectorAll('.tab')[1].classList.add('active');
-  }
-}
-
-function showMsg(type, btn) {
-  document.querySelectorAll('.msg-type-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('msg24hs').style.display = type === '24hs' ? 'block' : 'none';
-  document.getElementById('msgDia').style.display = type === 'dia' ? 'block' : 'none';
-}
-
-document.querySelectorAll('.toggle').forEach(t => {
-  t.addEventListener('click', () => t.classList.toggle('off'));
-});
-document.querySelectorAll('.filter-chip').forEach(c => {
-  c.addEventListener('click', () => {
-    document.querySelectorAll('.filter-chip').forEach(x => x.classList.remove('active'));
-    c.classList.add('active');
-  });
-});
-document.querySelectorAll('.var-chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    const ta = chip.closest('.edit-section').querySelector('.edit-textarea');
-    const pos = ta.selectionStart;
-    const val = ta.value;
-    ta.value = val.slice(0, pos) + chip.textContent + val.slice(pos);
-  });
-});
-</script>
-
-
-<nav style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:64px;background:#fff;border-top:1.5px solid #E8E4DD;display:flex;align-items:center;z-index:2147483647;box-shadow:0 -2px 12px rgba(0,0,0,0.09)">
-  <a href="psicoapp-index.html" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0"><span style="font-size:22px;line-height:1">📊</span><span style="font-size:10px;font-weight:700">Inicio</span></a>
-  <a href="psicoapp-agenda.html" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0"><span style="font-size:22px;line-height:1">📅</span><span style="font-size:10px;font-weight:700">Agenda</span></a>
-  <a href="psicoapp-pacientes.html" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0"><span style="font-size:22px;line-height:1">👥</span><span style="font-size:10px;font-weight:700">Pacientes</span></a>
-  <a href="psicoapp-pagos.html" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0"><span style="font-size:22px;line-height:1">💰</span><span style="font-size:10px;font-weight:700">Pagos</span></a>
-  <a href="psicoapp-whatsapp.html" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0"><span style="font-size:22px;line-height:1">💬</span><span style="font-size:10px;font-weight:700;color:#2D6A4F">WhatsApp</span></a>
-  <a href="psicoapp-pericias.html" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0"><span style="font-size:22px;line-height:1">⚖️</span><span style="font-size:10px;font-weight:700">Pericias</span></a>
-</nav>
-</body>
-
-
-
-
-
-<style>
-.app-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 430px;
-  height: 64px;
-  background: #fff;
-  border-top: 1.5px solid #E8E4DD;
-  display: flex;
-  align-items: center;
-  z-index: 2147483647;
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
-}
-.app-nav a {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  text-decoration: none;
-  color: #8A8FA8;
-  font-family: sans-serif;
-  padding: 4px 0;
-}
-.app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
-.app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
-.app-nav a.on .nl { color: #2D6A4F; }
-.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(45,106,79,0.5)); }
-</style>
 <nav class="app-nav">
-  <a href="index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
   <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
   <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
   <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
@@ -921,4 +188,201 @@ document.querySelectorAll('.var-chip').forEach(chip => {
   <a href="psicoapp-pericias.html"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
 </nav>
 
+<script>
+const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+const COLORES = ['#2D6A4F','#1976D2','#7B5EA7','#E65100','#388E3C'];
+let todosPacientes = [];
+let pacientesFiltrados = [];
+let plantillaActual = '';
+let turnosProximos = {};
+let perfilProfesional = { titulo:'Lic.', nombre_completo:'', direccion:'', telefono_profesional:'' };
+
+(async () => {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  // cargar perfil primero para usar en plantillas
+  const { data: perfil } = await sb.from('profiles')
+    .select('titulo,nombre_completo,direccion,telefono_profesional')
+    .eq('id', session.user.id).maybeSingle();
+  if (perfil) perfilProfesional = perfil;
+  actualizarPlantillas();
+  await Promise.all([cargarPacientes(), cargarTurnosProximos()]);
+})();
+
+function actualizarPlantillas() {
+  const nombre = `${perfilProfesional.titulo || ''} ${perfilProfesional.nombre_completo || ''}`.trim() || 'el profesional';
+  const tel    = perfilProfesional.telefono_profesional || '[teléfono]';
+  const dir    = perfilProfesional.direccion || '[dirección]';
+
+  document.getElementById('prev-confirmacion').textContent =
+`📅 *Tu turno está confirmado*
+
+Hola {nombre}, te confirmamos tu sesión con el *${nombre}*.
+
+📆 {fecha}
+🕘 {hora} hs
+📍 ${dir}
+
+Ante cualquier inconveniente avisanos con anticipación.
+_Psicoapp_`;
+
+  document.getElementById('prev-recordatorio').textContent =
+`🔔 *Recordatorio de turno*
+
+Hola {nombre}, te recordamos que mañana tenés sesión con el *${nombre}*.
+
+📆 {fecha}
+🕘 {hora} hs
+
+¿No podés asistir? Avisanos al *${tel}*
+_Psicoapp_`;
+
+  document.getElementById('prev-pago').textContent =
+`💰 *Recordatorio de pago*
+
+Hola {nombre}, te recordamos que tenés un saldo pendiente con el *${nombre}*.
+
+Podés abonarlo en el próximo turno o por transferencia.
+_Psicoapp_`;
+}
+
+async function cargarPacientes() {
+  const { data } = await sb.from('pacientes').select('id,nombre,apellido,telefono').eq('activo',true).order('apellido');
+  todosPacientes = data || [];
+  pacientesFiltrados = [...todosPacientes];
+  renderPacientes();
+}
+
+async function cargarTurnosProximos() {
+  const hoy = fmtDate(new Date());
+  const en7 = fmtDate(new Date(Date.now() + 7*86400000));
+  const { data } = await sb.from('turnos').select('paciente_id,fecha,hora').gte('fecha',hoy).lte('fecha',en7).order('fecha').order('hora');
+  (data||[]).forEach(t => { if (!turnosProximos[t.paciente_id]) turnosProximos[t.paciente_id] = t; });
+  renderPacientes();
+}
+
+function renderPacientes() {
+  const list = document.getElementById('pacList');
+  if (!pacientesFiltrados.length) {
+    list.innerHTML = '<div class="empty-sec"><div class="empty-icon">👥</div>No se encontraron pacientes.</div>';
+    return;
+  }
+  list.innerHTML = pacientesFiltrados.map((p, i) => {
+    const inicial = (p.apellido||p.nombre||'?')[0].toUpperCase();
+    const color   = COLORES[i % COLORES.length];
+    const turno   = turnosProximos[p.id];
+    const tieneTel = !!p.telefono;
+    return `
+      <div class="pac-card">
+        <div class="pac-avatar" style="background:${color}">${inicial}</div>
+        <div class="pac-info">
+          <div class="pac-nombre">${p.apellido}, ${p.nombre}</div>
+          ${tieneTel ? `<div class="pac-tel">📱 ${p.telefono}</div>` : `<div class="pac-sin-tel">⚠️ Sin teléfono</div>`}
+          ${turno ? `<div class="turno-badge">📅 ${fmtFechaCorta(turno.fecha)} ${turno.hora?.slice(0,5)}</div>` : ''}
+        </div>
+        <button class="btn-wp" onclick="enviarDirecto('${p.id}')" ${!tieneTel?'disabled':''} title="${tieneTel?'Enviar WhatsApp':'Sin teléfono'}">💬</button>
+      </div>`;
+  }).join('');
+}
+
+function filtrarPacientes() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  pacientesFiltrados = todosPacientes.filter(p => `${p.nombre} ${p.apellido}`.toLowerCase().includes(q));
+  renderPacientes();
+}
+
+function enviarDirecto(pacId) {
+  const p = todosPacientes.find(x => x.id === pacId);
+  if (!p?.telefono) return;
+  const turno = turnosProximos[pacId];
+  const msg = turno
+    ? `Hola ${p.nombre}, te recuerdo tu turno el ${fmtFechaLinda(turno.fecha)} a las ${turno.hora?.slice(0,5)} hs.\n_Psicoapp_`
+    : `Hola ${p.nombre}, te contacto desde el consultorio del Dr. Juan José Pérez Aré.\n_Psicoapp_`;
+  abrirWA(p.telefono, msg);
+}
+
+function usarPlantilla(tipo) {
+  plantillaActual = tipo;
+  if (tipo === 'libre') {
+    const msg = document.getElementById('msg-libre').value.trim();
+    if (!msg) { alert('Escribí el mensaje primero.'); return; }
+  }
+  abrirModalPac();
+}
+
+function abrirModalPac() {
+  const list = document.getElementById('modalPacList');
+  const conTel = todosPacientes.filter(p => p.telefono);
+  if (!conTel.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px">Ningún paciente tiene teléfono registrado.</div>';
+  } else {
+    list.innerHTML = conTel.map((p, i) => {
+      const color = COLORES[i % COLORES.length];
+      const inicial = (p.apellido||p.nombre||'?')[0].toUpperCase();
+      return `<div class="modal-pac-item" onclick="seleccionarPaciente('${p.id}')">
+        <div style="width:36px;height:36px;border-radius:10px;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-weight:800;flex-shrink:0">${inicial}</div>
+        <div style="flex:1;font-size:14px;font-weight:700">${p.apellido}, ${p.nombre}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${p.telefono}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('overlayPac').classList.add('open');
+}
+
+function cerrarModalPac() { document.getElementById('overlayPac').classList.remove('open'); }
+
+function seleccionarPaciente(pacId) {
+  cerrarModalPac();
+  const p = todosPacientes.find(x => x.id === pacId);
+  if (!p) return;
+  const turno = turnosProximos[pacId];
+  let msg = '';
+
+  if (plantillaActual === 'confirmacion') {
+    msg = document.getElementById('prev-confirmacion').textContent
+      .replace('{nombre}', p.nombre)
+      .replace('{fecha}', turno ? fmtFechaLinda(turno.fecha) : '[fecha]')
+      .replace('{hora}',  turno ? turno.hora?.slice(0,5) : '[hora]');
+  } else if (plantillaActual === 'recordatorio') {
+    msg = document.getElementById('prev-recordatorio').textContent
+      .replace('{nombre}', p.nombre)
+      .replace('{fecha}', turno ? fmtFechaLinda(turno.fecha) : '[fecha]')
+      .replace('{hora}',  turno ? turno.hora?.slice(0,5) : '[hora]');
+  } else if (plantillaActual === 'pago') {
+    msg = document.getElementById('prev-pago').textContent.replace('{nombre}', p.nombre);
+  } else if (plantillaActual === 'libre') {
+    msg = document.getElementById('msg-libre').value.trim();
+  }
+
+  abrirWA(p.telefono, msg);
+}
+
+function abrirWA(telefono, mensaje) {
+  let tel = telefono.replace(/\D/g, '');
+  if (tel.startsWith('0')) tel = tel.slice(1);
+  if (!tel.startsWith('54')) tel = '54' + tel;
+  if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
+  window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
+}
+
+function setTab(t) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+  document.getElementById('view-' + t).classList.add('active');
+}
+
+document.getElementById('overlayPac').addEventListener('click', e => {
+  if (e.target.id === 'overlayPac') cerrarModalPac();
+});
+
+function fmtDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function fmtFechaLinda(f) { if(!f)return''; const[y,m,d]=f.split('-'); return `${d}/${m}/${y}`; }
+function fmtFechaCorta(f) { if(!f)return''; const[,m,d]=f.split('-'); return `${d}/${m}`; }
+</script>
+</body>
 </html>
