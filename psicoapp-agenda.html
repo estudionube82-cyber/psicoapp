@@ -779,7 +779,7 @@ async function crearTurno() {
   if (!fecha || !hora) { mostrarError('Fecha y hora son obligatorios.'); return; }
 
   const btn = document.getElementById('btnCrear');
-  btn.disabled = true; btn.textContent = 'Guardando...';
+  btn.disabled = true; btn.textContent = 'enviando...';
 
   const { data: { session } } = await sb.auth.getSession();
   let insertData = {
