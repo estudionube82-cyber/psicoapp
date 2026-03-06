@@ -806,10 +806,61 @@ async function crearTurno() {
   const { error } = await sb.from('turnos').insert(insertData);
   btn.disabled = false; btn.textContent = modoModal === 'turno' ? '✓ Agendar turno' : '✓ Guardar evento';
   if (error) { mostrarError('Error al guardar.'); return; }
+
+  // ── ENVÍO AUTOMÁTICO WHATSAPP al agendar turno ──
+  if (modoModal === 'turno' && insertData.paciente_id) {
+    enviarWAppConfirmacion(insertData.paciente_id, fecha, hora, session);
+  }
+
   cerrarModal();
   await cargarTurnos();
   buildDayStrip();
   renderDia();
+}
+
+async function enviarWAppConfirmacion(pacienteId, fecha, hora, session) {
+  try {
+    // obtener datos del paciente
+    const { data: pac } = await sb.from('pacientes').select('nombre,apellido,telefono').eq('id', pacienteId).maybeSingle();
+    if (!pac?.telefono) return;
+
+    // obtener perfil del profesional
+    const { data: perfil } = await sb.from('profiles').select('titulo,nombre_completo,direccion,telefono_profesional').eq('id', session.user.id).maybeSingle();
+    const nombreProf = `${perfil?.titulo || ''} ${perfil?.nombre_completo || ''}`.trim() || 'el profesional';
+    const dir   = perfil?.direccion || '';
+    const telProf = perfil?.telefono_profesional || '';
+
+    // armar mensaje
+    const [y,m,d] = fecha.split('-');
+    const fechaLinda = `${d}/${m}/${y}`;
+    const horaStr = hora.slice(0,5);
+
+    const mensaje =
+`📅 *Tu turno está confirmado*
+
+Hola ${pac.nombre}, te confirmamos tu sesión con el *${nombreProf}*.
+
+📆 ${fechaLinda}
+🕘 ${horaStr} hs${dir ? '\n📍 ' + dir : ''}
+
+Ante cualquier inconveniente avisanos con anticipación.${telProf ? '\n📱 ' + telProf : ''}
+_Psicoapp_`;
+
+    // normalizar teléfono
+    let tel = pac.telefono.replace(/\D/g,'');
+    if (tel.startsWith('0')) tel = tel.slice(1);
+    if (!tel.startsWith('54')) tel = '54' + tel;
+    if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
+    tel = '+' + tel;
+
+    await fetch('https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: tel, message: mensaje }),
+    });
+  } catch(e) {
+    console.log('WhatsApp no enviado:', e.message);
+  }
 }
 
 function mostrarError(msg) {
