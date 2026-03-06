@@ -177,6 +177,11 @@ body {
 .app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
 .app-nav a.on .nl { color: #2D6A4F; }
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2D6A4F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icon-192.png">
 </head>
 <body>
 
@@ -418,6 +423,11 @@ async function cargarPericias() {
 // helpers
 function fmtDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// Registrar Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 function formatPeso(n) {
   if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
