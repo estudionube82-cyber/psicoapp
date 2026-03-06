@@ -1,34 +1,29 @@
-const CACHE = 'psicoapp-v1';
-const ASSETS = [
-  '/psicoapp-index.html',
-  '/psicoapp-agenda.html',
-  '/psicoapp-pacientes.html',
-  '/psicoapp-pagos.html',
-  '/psicoapp-pericias.html',
-  '/psicoapp-whatsapp.html',
-  '/psicoapp-perfil.html',
-  '/login.html',
-  '/manifest.json',
-];
+const CACHE = 'psicoapp-v3';
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
+// Siempre red para HTML y Supabase, cache solo para assets estáticos
 self.addEventListener('fetch', e => {
-  // para requests a Supabase siempre ir a la red
-  if (e.request.url.includes('supabase.co')) return;
+  const url = e.request.url;
+  if (url.includes('.html') || url.includes('supabase.co') || url.includes('functions/v1')) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    caches.match(e.request).then(cached => cached || fetch(e.request).then(resp => {
+      const clone = resp.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return resp;
+    }))
   );
 });
