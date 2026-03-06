@@ -366,12 +366,53 @@ function seleccionarPaciente(pacId) {
   abrirWA(p.telefono, msg);
 }
 
-function abrirWA(telefono, mensaje) {
+async function abrirWA(telefono, mensaje) {
   let tel = telefono.replace(/\D/g, '');
   if (tel.startsWith('0')) tel = tel.slice(1);
   if (!tel.startsWith('54')) tel = '54' + tel;
   if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
-  window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
+  tel = '+' + tel;
+
+  // Intentar envío via Twilio
+  try {
+    mostrarToast('📤 Enviando...', false);
+    const { data:{ session } } = await sb.auth.getSession();
+    const resp = await fetch(
+      'https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ to: tel, message: mensaje }),
+      }
+    );
+    const data = await resp.json();
+    if (data.sid) {
+      mostrarToast('✅ Mensaje enviado por WhatsApp');
+    } else {
+      // fallback a wa.me si Twilio falla
+      mostrarToast('⚠️ Abriendo WhatsApp manual...');
+      setTimeout(() => window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(mensaje)}`, '_blank'), 1000);
+    }
+  } catch(e) {
+    // fallback
+    window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(mensaje)}`, '_blank');
+  }
+}
+
+function mostrarToast(msg, autoHide = true) {
+  let t = document.getElementById('toast-wp');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-wp';
+    t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:999;transition:opacity 0.3s';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  if (autoHide) setTimeout(() => { t.style.opacity = '0'; }, 2500);
 }
 
 function setTab(t) {
