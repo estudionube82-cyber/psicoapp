@@ -486,6 +486,7 @@ body {
   <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
   <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
   <a href="psicoapp-pericias.html"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
+  <a href="psicoapp-cuenta.html"><span class="ni">👤</span><span class="nl">Cuenta</span></a>
 </nav>
 
 <script>
@@ -779,7 +780,7 @@ async function crearTurno() {
   if (!fecha || !hora) { mostrarError('Fecha y hora son obligatorios.'); return; }
 
   const btn = document.getElementById('btnCrear');
-  btn.disabled = true; btn.textContent = 'enviando...';
+  btn.disabled = true; btn.textContent = 'Guardando...';
 
   const { data: { session } } = await sb.auth.getSession();
   let insertData = {

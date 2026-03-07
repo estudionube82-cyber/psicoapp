@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Psicoapp — Mi Cuenta</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #F4F1ED;
+  --surface: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-light: #E8F5EE;
+  --primary-mid: #B7DFC8;
+  --accent: #F4A261;
+  --accent-light: #FEF0E6;
+  --text: #1A1A2E;
+  --text-muted: #8A8FA8;
+  --border: #E8E4DD;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+  --radius: 14px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 90px;
+}
+
+/* HEADER */
+.header {
+  background: var(--primary);
+  padding: 20px 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.header::after {
+  content: 'Ψ';
+  position: absolute;
+  right: -10px; top: -20px;
+  font-size: 120px;
+  color: rgba(255,255,255,0.06);
+  font-family: 'Playfair Display', serif;
+  pointer-events: none;
+}
+.header-top {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.logo { font-family: 'Playfair Display', serif; font-size: 20px; color: white; }
+.logo span { color: var(--accent); }
+
+.user-card {
+  background: rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 14px;
+}
+.avatar {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; color: white; flex-shrink: 0;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 16px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-email { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+.plan-badge {
+  background: var(--accent);
+  color: white; font-size: 11px; font-weight: 800;
+  padding: 4px 10px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.plan-badge.free { background: rgba(255,255,255,0.25); }
+.plan-badge.pro { background: var(--accent); }
+.plan-badge.max { background: linear-gradient(135deg, #F4A261, #E76F51); }
+
+/* TRIAL BANNER */
+.trial-banner {
+  margin: 16px 16px 0;
+  background: linear-gradient(135deg, var(--accent-light), #FDE8D0);
+  border: 1.5px solid #F4A261;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.trial-icon { font-size: 28px; flex-shrink: 0; }
+.trial-text { flex: 1; }
+.trial-title { font-size: 14px; font-weight: 700; color: #C05621; }
+.trial-sub { font-size: 12px; color: #9C4221; margin-top: 2px; }
+.trial-days {
+  font-size: 22px; font-weight: 800; color: var(--accent);
+  text-align: center; line-height: 1;
+}
+.trial-days span { font-size: 10px; font-weight: 600; display: block; color: #C05621; }
+
+/* SECTION */
+.section { padding: 20px 16px 0; }
+.section-title {
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+}
+
+/* PLANES */
+.planes { display: flex; flex-direction: column; gap: 12px; }
+
+.plan-card {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 18px;
+  border: 2px solid var(--border);
+  position: relative;
+  transition: all 0.2s;
+}
+.plan-card.current {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(45,106,79,0.08);
+}
+.plan-card.recommended {
+  border-color: var(--accent);
+}
+
+.plan-tag {
+  position: absolute; top: -10px; left: 16px;
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+  padding: 3px 10px; border-radius: 20px;
+}
+.tag-current { background: var(--primary); color: white; }
+.tag-recommended { background: var(--accent); color: white; }
+
+.plan-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+.plan-name { font-size: 18px; font-weight: 800; }
+.plan-name .emoji { margin-right: 6px; }
+.plan-price { text-align: right; }
+.plan-amount { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1; }
+.plan-amount.free-price { color: var(--text-muted); font-size: 18px; }
+.plan-period { font-size: 11px; color: var(--text-muted); }
+
+.plan-features { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+.feat {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 500;
+}
+.feat .check { font-size: 14px; }
+.feat.disabled { color: var(--text-muted); }
+.feat.disabled .check { filter: grayscale(1); opacity: 0.4; }
+
+.plan-btn {
+  width: 100%; padding: 12px; border-radius: 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; border: none; transition: all 0.2s;
+}
+.btn-current {
+  background: var(--primary-light); color: var(--primary);
+  cursor: default;
+}
+.btn-upgrade {
+  background: var(--primary); color: white;
+}
+.btn-upgrade:active { transform: scale(0.98); }
+.btn-accent {
+  background: linear-gradient(135deg, #F4A261, #E76F51); color: white;
+}
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat-card {
+  background: var(--surface); border-radius: 14px;
+  padding: 14px; border: 1px solid var(--border);
+}
+.stat-icon { font-size: 22px; margin-bottom: 6px; }
+.stat-value { font-size: 22px; font-weight: 800; color: var(--primary); }
+.stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+
+/* INFO ROWS */
+.info-card {
+  background: var(--surface); border-radius: 14px;
+  border: 1px solid var(--border); overflow: hidden;
+}
+.info-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+}
+.info-row:last-child { border-bottom: none; }
+.info-left { display: flex; align-items: center; gap: 12px; }
+.info-icon { font-size: 18px; width: 32px; text-align: center; }
+.info-label { font-size: 14px; font-weight: 600; }
+.info-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.info-right { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.info-arrow { color: var(--text-muted); font-size: 16px; }
+
+/* LOGOUT */
+.btn-logout {
+  width: 100%; padding: 14px; border-radius: 14px;
+  background: #fdf0ef; color: #B94A48;
+  border: 1.5px solid #f0c8c7;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; margin-top: 8px;
+}
+
+/* MODAL */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 60; display: none; align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 28px 28px 0 0;
+  padding: 20px 20px 40px; width: 100%; max-width: 430px;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+.modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+.modal-plan-preview {
+  background: var(--primary-light); border-radius: 14px; padding: 16px;
+  margin-bottom: 20px;
+}
+.modal-plan-name { font-size: 16px; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
+.modal-features { display: flex; flex-direction: column; gap: 6px; }
+.modal-feat { font-size: 13px; font-weight: 500; display: flex; gap: 8px; }
+.btn-mp {
+  width: 100%; padding: 16px; border-radius: 14px;
+  background: #009ee3; color: white;
+  border: none; font-family: 'DM Sans', sans-serif;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-cancel {
+  width: 100%; background: none; border: none; padding: 14px;
+  font-size: 14px; color: var(--text-muted); font-family: 'DM Sans', sans-serif; cursor: pointer;
+}
+.coming-soon {
+  background: var(--bg); border: 1.5px dashed var(--border);
+  border-radius: 14px; padding: 20px; text-align: center; margin-top: 8px;
+}
+.coming-soon-icon { font-size: 32px; margin-bottom: 8px; }
+.coming-soon-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.coming-soon-sub { font-size: 13px; color: var(--text-muted); }
+
+/* NAV */
+.app-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; height: 64px;
+  background: #fff; border-top: 1.5px solid #E8E4DD;
+  display: flex; align-items: center;
+  z-index: 50; box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
+}
+.app-nav a {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 2px; text-decoration: none; color: #8A8FA8; padding: 4px 0;
+}
+.app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
+.app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
+.app-nav a.on .nl { color: #2D6A4F; }
+</style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2D6A4F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="/icon-192.png">
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">Psico<span>app</span></div>
+    <a href="psicoapp-perfil.html" style="background:rgba(255,255,255,0.15);border:none;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:700;color:white;text-decoration:none">✏️ Perfil</a>
+  </div>
+  <div class="user-card">
+    <div class="avatar" id="avatarInicial">?</div>
+    <div class="user-info">
+      <div class="user-name" id="userName">Cargando...</div>
+      <div class="user-email" id="userEmail"></div>
+    </div>
+    <div class="plan-badge free" id="planBadge">Free</div>
+  </div>
+</div>
+
+<!-- TRIAL BANNER -->
+<div class="trial-banner" id="trialBanner">
+  <div class="trial-icon">⏳</div>
+  <div class="trial-text">
+    <div class="trial-title">Período de prueba</div>
+    <div class="trial-sub">Explorá todas las funciones sin límites</div>
+  </div>
+  <div class="trial-days" id="trialDays">15<span>días</span></div>
+</div>
+
+<!-- STATS -->
+<div class="section">
+  <div class="section-title">Tu actividad</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-value" id="statPacientes">—</div>
+      <div class="stat-label">Pacientes activos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-value" id="statTurnos">—</div>
+      <div class="stat-label">Turnos este mes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💬</div>
+      <div class="stat-value" id="statWA">—</div>
+      <div class="stat-label">WhatsApp enviados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚖️</div>
+      <div class="stat-value" id="statPericias">—</div>
+      <div class="stat-label">Pericias activas</div>
+    </div>
+  </div>
+</div>
+
+<!-- PLANES -->
+<div class="section">
+  <div class="section-title">Planes</div>
+  <div class="planes">
+
+    <!-- FREE TRIAL -->
+    <div class="plan-card current" id="cardFree">
+      <div class="plan-tag tag-current">Plan actual</div>
+      <div class="plan-header">
+        <div>
+          <div class="plan-name"><span class="emoji">🆓</span>Free Trial</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">15 días de prueba</div>
+        </div>
+        <div class="plan-price">
+          <div class="plan-amount free-price">$0</div>
+          <div class="plan-period">gratis</div>
+        </div>
+      </div>
+      <div class="plan-features">
+        <div class="feat">✅ <span>Agenda completa</span></div>
+        <div class="feat">✅ <span>Gestión de pacientes</span></div>
+        <div class="feat">✅ <span>WhatsApp automático</span></div>
+        <div class="feat">✅ <span>Pagos y pericias</span></div>
+        <div class="feat">✅ <span>Todas las funciones por 15 días</span></div>
+      </div>
+      <button class="plan-btn btn-current">✓ Plan actual</button>
+    </div>
+
+    <!-- PRO -->
+    <div class="plan-card" id="cardPro">
+      <div class="plan-header">
+        <div>
+          <div class="plan-name"><span class="emoji">⭐</span>Pro</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Para profesionales activos</div>
+        </div>
+        <div class="plan-price">
+          <div class="plan-amount">$10.000</div>
+          <div class="plan-period">ARS / mes</div>
+        </div>
+      </div>
+      <div class="plan-features">
+        <div class="feat">✅ <span>Todo lo del Free Trial</span></div>
+        <div class="feat">✅ <span>Pacientes ilimitados</span></div>
+        <div class="feat">✅ <span>Recordatorios automáticos</span></div>
+        <div class="feat">✅ <span>Historial de pagos completo</span></div>
+        <div class="feat">✅ <span>Hasta 10 pericias activas</span></div>
+        <div class="feat disabled">🔒 <span>Estadísticas avanzadas</span></div>
+        <div class="feat disabled">🔒 <span>Bot de procuración de pericias</span></div>
+      </div>
+      <button class="plan-btn btn-upgrade" onclick="abrirModal('pro')">Suscribirme a Pro →</button>
+    </div>
+
+    <!-- MAX -->
+    <div class="plan-card recommended" id="cardMax">
+      <div class="plan-tag tag-recommended">⚡ Más completo</div>
+      <div class="plan-header">
+        <div>
+          <div class="plan-name"><span class="emoji">🚀</span>Max</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Para estudios y clínicas</div>
+        </div>
+        <div class="plan-price">
+          <div class="plan-amount" style="color:#E76F51">$15.000</div>
+          <div class="plan-period">ARS / mes</div>
+        </div>
+      </div>
+      <div class="plan-features">
+        <div class="feat">✅ <span>Todo lo del Pro</span></div>
+        <div class="feat">✅ <span>Pericias ilimitadas</span></div>
+        <div class="feat">✅ <span>Estadísticas avanzadas</span></div>
+        <div class="feat">✅ <span>Bot de procuración de pericias</span></div>
+        <div class="feat">✅ <span>Soporte prioritario</span></div>
+        <div class="feat">✅ <span>Múltiples profesionales (próx.)</span></div>
+      </div>
+      <button class="plan-btn btn-accent" onclick="abrirModal('max')">Suscribirme a Max →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- CUENTA -->
+<div class="section" style="margin-top:8px">
+  <div class="section-title">Mi cuenta</div>
+  <div class="info-card">
+    <div class="info-row" onclick="window.location.href='psicoapp-perfil.html'" style="cursor:pointer">
+      <div class="info-left">
+        <div class="info-icon">👤</div>
+        <div>
+          <div class="info-label">Datos del perfil</div>
+          <div class="info-sub">Nombre, título, dirección</div>
+        </div>
+      </div>
+      <div class="info-arrow">›</div>
+    </div>
+    <div class="info-row">
+      <div class="info-left">
+        <div class="info-icon">🔔</div>
+        <div>
+          <div class="info-label">Notificaciones</div>
+          <div class="info-sub">Recordatorios automáticos activos</div>
+        </div>
+      </div>
+      <div class="info-right">✅ On</div>
+    </div>
+    <div class="info-row">
+      <div class="info-left">
+        <div class="info-icon">📱</div>
+        <div>
+          <div class="info-label">WhatsApp</div>
+          <div class="info-sub">Sandbox Twilio activo</div>
+        </div>
+      </div>
+      <div class="info-right" style="color:var(--primary)">✅ Activo</div>
+    </div>
+    <div class="info-row">
+      <div class="info-left">
+        <div class="info-icon">🔒</div>
+        <div>
+          <div class="info-label">Seguridad</div>
+          <div class="info-sub">Cambiar contraseña</div>
+        </div>
+      </div>
+      <div class="info-arrow">›</div>
+    </div>
+  </div>
+  <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+</div>
+
+<div style="height:16px"></div>
+
+<!-- MODAL SUSCRIPCIÓN -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Suscribirse a Pro</div>
+    <div class="modal-sub">Activá tu suscripción mensual y accedé a todas las funciones sin límites.</div>
+    <div class="modal-plan-preview" id="modalPreview"></div>
+    <div class="coming-soon">
+      <div class="coming-soon-icon">🚧</div>
+      <div class="coming-soon-title">Pago con Mercado Pago</div>
+      <div class="coming-soon-sub">La integración con Mercado Pago estará disponible muy pronto. Por ahora podés contactarnos directamente para activar tu plan.</div>
+    </div>
+    <div style="margin-top:16px">
+      <a href="https://wa.me/5492346699176?text=Hola%2C%20quiero%20activar%20el%20plan%20de%20PsicoApp" 
+         target="_blank"
+         style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:14px;background:#25D366;color:white;font-size:16px;font-weight:700;text-decoration:none;margin-bottom:8px">
+        💬 Contactar por WhatsApp
+      </a>
+    </div>
+    <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+  </div>
+</div>
+
+<nav class="app-nav">
+  <a href="psicoapp-index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-cuenta.html" class="on"><span class="ni">👤</span><span class="nl">Cuenta</span></a>
+</nav>
+
+<script>
+const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+
+  const user = session.user;
+  document.getElementById('userEmail').textContent = user.email;
+
+  // Perfil
+  const { data: perfil } = await sb.from('profiles')
+    .select('titulo,nombre_completo,created_at')
+    .eq('id', user.id).maybeSingle();
+
+  const nombre = perfil?.nombre_completo || user.email.split('@')[0];
+  document.getElementById('userName').textContent =
+    `${perfil?.titulo || ''} ${nombre}`.trim();
+  document.getElementById('avatarInicial').textContent =
+    nombre.charAt(0).toUpperCase();
+
+  // Días de trial
+  if (perfil?.created_at) {
+    const creado = new Date(perfil.created_at);
+    const hoy = new Date();
+    const diasTranscurridos = Math.floor((hoy - creado) / (1000 * 60 * 60 * 24));
+    const diasRestantes = Math.max(0, 15 - diasTranscurridos);
+    document.getElementById('trialDays').innerHTML = `${diasRestantes}<span>días</span>`;
+    if (diasRestantes === 0) {
+      document.getElementById('trialBanner').style.background = '#FEE2E2';
+      document.getElementById('trialBanner').style.borderColor = '#FCA5A5';
+    }
+  }
+
+  // Stats
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const [{ count: cPac }, { count: cTurnos }, { count: cPericias }] = await Promise.all([
+    sb.from('pacientes').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('activo', true),
+    sb.from('turnos').select('*', { count: 'exact', head: true }).eq('user_id', user.id).gte('fecha', mesActual + '-01'),
+    sb.from('pericias').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+  ]);
+  document.getElementById('statPacientes').textContent = cPac || 0;
+  document.getElementById('statTurnos').textContent = cTurnos || 0;
+  document.getElementById('statPericias').textContent = cPericias || 0;
+  document.getElementById('statWA').textContent = cTurnos || 0; // aprox
+})();
+
+const planesInfo = {
+  pro: {
+    title: 'Suscribirse a Pro ⭐',
+    nombre: '⭐ Plan Pro — $10.000 ARS/mes',
+    features: ['✅ Pacientes ilimitados', '✅ Recordatorios automáticos', '✅ Historial de pagos completo', '✅ Hasta 10 pericias activas']
+  },
+  max: {
+    title: 'Suscribirse a Max 🚀',
+    nombre: '🚀 Plan Max — $15.000 ARS/mes',
+    features: ['✅ Todo el plan Pro', '✅ Pericias ilimitadas', '✅ Estadísticas avanzadas', '✅ Bot de procuración de pericias', '✅ Soporte prioritario']
+  }
+};
+
+function abrirModal(plan) {
+  const info = planesInfo[plan];
+  document.getElementById('modalTitle').textContent = info.title;
+  document.getElementById('modalPreview').innerHTML = `
+    <div class="modal-plan-name">${info.nombre}</div>
+    <div class="modal-features">
+      ${info.features.map(f => `<div class="modal-feat">${f}</div>`).join('')}
+    </div>`;
+  document.getElementById('overlay').classList.add('open');
+}
+function cerrarModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target.id === 'overlay') cerrarModal();
+});
+
+async function cerrarSesion() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+</script>
+</body>
+</html>
