@@ -37,7 +37,7 @@ body {
 
 /* HEADER */
 .header {
-  background: linear-gradient(145deg, #1B4332 0%, #2D6A4F 60%, #40916C 100%);
+  background: linear-gradient(135deg, #2D6A4F 0%, #3A7D5F 40%, #F4A261 100%);
   padding: 20px 20px 28px;
   position: relative;
   overflow: hidden;
@@ -53,8 +53,10 @@ body {
   background: rgba(255,255,255,0.04);
 }
 .header-row { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
-.logo { font-family: 'Playfair Display', serif; font-size: 22px; color: white; }
-.logo span { color: var(--accent); }
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
+.logo-txt { font-family: 'Playfair Display', serif; font-size: 20px; color: white; }
+.logo-txt span { color: var(--accent); }
 .header-icons { display: flex; gap: 8px; }
 .icon-btn {
   width: 36px; height: 36px; border-radius: 11px;
@@ -188,7 +190,10 @@ body {
 <!-- HEADER -->
 <div class="header">
   <div class="header-row">
-    <div class="logo">Psico<span>app</span></div>
+    <div class="logo">
+      <img src="/logo-psicoapp.png" alt="PsicoApp">
+      <span class="logo-txt">Psico<span>App</span></span>
+    </div>
     <div class="header-icons">
       <button class="icon-btn" onclick="window.location.href='psicoapp-perfil.html'" title="Mi perfil">👤</button>
     </div>
