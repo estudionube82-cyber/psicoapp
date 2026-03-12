@@ -241,7 +241,6 @@ body {
   animation: slideUp 0.25s ease;
 }
 @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
-@keyframes spin { to { transform: rotate(360deg); } }
 .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
 .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
 .modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
@@ -459,12 +458,7 @@ body {
       <input class="field-input" id="f-titulo" placeholder="Ej: Reunión, Supervisión..." type="text">
     </div>
     <div id="seccion-paciente" class="field">
-      <div class="field-label" style="display:flex;align-items:center;justify-content:space-between">
-        <span>Paciente <span class="req-star">*</span></span>
-        <button type="button" onclick="abrirNuevoPacienteRapido()" style="background:var(--primary-light);color:var(--primary);border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px">
-          ➕ Nuevo paciente
-        </button>
-      </div>
+      <div class="field-label">Paciente <span class="req-star">*</span></div>
       <select class="field-input" id="f-paciente">
         <option value="">— Seleccioná un paciente —</option>
       </select>
@@ -525,37 +519,6 @@ body {
       <button class="btn-det btn-det-del" onclick="eliminarTurno()">🗑</button>
     </div>
     <button onclick="cerrarDetalle()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Cerrar</button>
-  </div>
-</div>
-
-<!-- MINI MODAL: NUEVO PACIENTE RÁPIDO -->
-<div class="overlay" id="overlayNuevoPac" style="z-index:80">
-  <div class="modal" style="padding-bottom:32px" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <div class="modal-title" style="font-size:18px">👤 Nuevo paciente</div>
-      <button onclick="cerrarNuevoPacienteRapido()" style="background:var(--bg);border:none;border-radius:8px;padding:6px 10px;font-size:13px;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif">✕ Cancelar</button>
-    </div>
-    <div class="modal-sub" style="margin-bottom:16px">Agregalo rápido y volvé a agendar el turno.</div>
-    <div id="msgErrorNuevoPac" class="msg-error"></div>
-    <div class="two-col">
-      <div class="field">
-        <div class="field-label">Nombre <span class="req-star">*</span></div>
-        <input class="field-input" id="np-nombre" type="text" placeholder="Ej: Juan" autocomplete="off">
-      </div>
-      <div class="field">
-        <div class="field-label">Apellido <span class="req-star">*</span></div>
-        <input class="field-input" id="np-apellido" type="text" placeholder="Ej: García" autocomplete="off">
-      </div>
-    </div>
-    <div class="field">
-      <div class="field-label">Teléfono / WhatsApp</div>
-      <input class="field-input" id="np-telefono" type="tel" placeholder="Ej: 11 1234-5678" autocomplete="off">
-    </div>
-    <button class="btn-crear" id="btnGuardarNuevoPac" onclick="guardarNuevoPacienteRapido()" style="background:linear-gradient(135deg,var(--primary),var(--primary-light,#40916C))">
-      <span id="spinNuevoPac" style="display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite"></span>
-      <span id="lblGuardarNuevoPac">✓ Guardar y seleccionar</span>
-    </button>
   </div>
 </div>
 
@@ -1059,78 +1022,7 @@ async function eliminarTurno() {
   renderDia();
 }
 
-// ── NUEVO PACIENTE RÁPIDO ──
-function abrirNuevoPacienteRapido() {
-  document.getElementById('np-nombre').value = '';
-  document.getElementById('np-apellido').value = '';
-  document.getElementById('np-telefono').value = '';
-  document.getElementById('msgErrorNuevoPac').style.display = 'none';
-  document.getElementById('overlayNuevoPac').classList.add('open');
-  setTimeout(() => document.getElementById('np-nombre').focus(), 100);
-}
-
-function cerrarNuevoPacienteRapido() {
-  document.getElementById('overlayNuevoPac').classList.remove('open');
-}
-
-async function guardarNuevoPacienteRapido() {
-  const nombre   = document.getElementById('np-nombre').value.trim();
-  const apellido = document.getElementById('np-apellido').value.trim();
-  const telefono = document.getElementById('np-telefono').value.trim();
-  const msgEl    = document.getElementById('msgErrorNuevoPac');
-
-  if (!nombre || !apellido) {
-    msgEl.textContent = 'Nombre y apellido son obligatorios.';
-    msgEl.style.display = 'block';
-    return;
-  }
-
-  const btn = document.getElementById('btnGuardarNuevoPac');
-  const lbl = document.getElementById('lblGuardarNuevoPac');
-  const spin = document.getElementById('spinNuevoPac');
-  btn.disabled = true;
-  lbl.textContent = '';
-  spin.style.display = 'inline-block';
-  msgEl.style.display = 'none';
-
-  const { data: { session } } = await sb.auth.getSession();
-  const { data, error } = await sb
-    .from('pacientes')
-    .insert({ nombre, apellido, telefono: telefono || null, activo: true, user_id: session.user.id })
-    .select('id,nombre,apellido')
-    .single();
-
-  btn.disabled = false;
-  lbl.textContent = '✓ Guardar y seleccionar';
-  spin.style.display = 'none';
-
-  if (error) {
-    msgEl.textContent = 'Error al guardar: ' + error.message;
-    msgEl.style.display = 'block';
-    return;
-  }
-
-  // Agregar al array global y al select
-  todosPacientes.push(data);
-  todosPacientes.sort((a, b) => a.apellido.localeCompare(b.apellido));
-
-  const sel = document.getElementById('f-paciente');
-  // Reconstruir opciones
-  sel.innerHTML = '<option value="">— Seleccioná un paciente —</option>';
-  todosPacientes.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = `${p.apellido}, ${p.nombre}`;
-    sel.appendChild(opt);
-  });
-
-  // Seleccionar el recién creado
-  sel.value = data.id;
-
-  cerrarNuevoPacienteRapido();
-}
-
-
+// ── SETTINGS ──
 function openSettings()  { document.getElementById('drawerOverlay').classList.add('open'); }
 function closeSettings() { document.getElementById('drawerOverlay').classList.remove('open'); }
 
