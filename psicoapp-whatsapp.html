@@ -3,80 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Psicoapp — WhatsApp</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<title>PsicoApp — WhatsApp</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --bg: #F4F1ED; --surface: #FFFFFF;
-  --primary: #2D6A4F; --primary-light: #E8F5EE;
-  --accent: #F4A261;
-  --text: #1A1A2E; --text-muted: #8A8FA8; --border: #E8E4DD;
-  --wp-green: #25D366; --wp-dark: #075E54; --wp-light: #DCF8C6;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
-  --radius: 14px;
+  --bg:#F4F1ED; --surface:#FFFFFF; --primary:#2D6A4F; --primary-light:#E8F5EE;
+  --accent:#F4A261; --text:#1A1A2E; --muted:#8A8FA8; --border:#E8E4DD;
+  --wp:#25D366; --wp-dark:#075E54; --wp-light:#DCF8C6;
+  --sh:0 2px 8px rgba(0,0,0,0.06); --sh-md:0 4px 20px rgba(0,0,0,0.10); --r:14px;
 }
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); max-width:430px; margin:0 auto; min-height:100vh; padding-bottom:80px; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;}
 
-.header { background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50; box-shadow:var(--shadow-sm); }
-.header-top { display:flex; align-items:center; padding:14px 18px 10px; gap:10px; }
-.logo { font-family:'Playfair Display',serif; font-size:20px; color:var(--primary); }
-.logo span { color:var(--accent); }
-.header-title { flex:1; text-align:center; font-size:16px; font-weight:800; }
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--sh);}
+.header-top{display:flex;align-items:center;padding:14px 18px 10px;gap:10px;}
+.header-logo{display:flex;align-items:center;gap:8px;}
+.header-logo img{width:30px;height:30px;object-fit:contain;}
+.header-logo-txt{font-size:18px;font-weight:800;color:var(--primary);}
+.header-logo-txt span{color:var(--accent);}
+.header-title{flex:1;text-align:center;font-size:16px;font-weight:800;}
 
-.tabs { display:flex; border-bottom:1px solid var(--border); }
-.tab { flex:1; padding:12px 8px; text-align:center; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; }
-.tab.active { color:var(--wp-dark); border-bottom-color:var(--wp-green); }
+/* TABS - 3 ahora */
+.tabs{display:flex;border-bottom:1px solid var(--border);}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;white-space:nowrap;}
+.tab.active{color:var(--wp-dark);border-bottom-color:var(--wp);}
 
-.tab-view { display:none; }
-.tab-view.active { display:block; animation:fadeUp 0.2s ease; }
-@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.tab-view{display:none;}
+.tab-view.active{display:block;animation:fadeUp 0.2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-.search-bar { padding:12px 16px; }
-.search-input { width:100%; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:10px 16px 10px 38px; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; color:var(--text); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A8FA8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:12px center; }
-.search-input:focus { border-color:var(--wp-green); }
+/* SEARCH */
+.search-bar{padding:12px 16px;}
+.search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px 10px 38px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;color:var(--text);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A8FA8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;}
+.search-input:focus{border-color:var(--wp);}
 
-.pac-list { padding:0 16px; display:flex; flex-direction:column; gap:8px; }
-.pac-card { background:var(--surface); border-radius:14px; padding:13px 14px; display:flex; align-items:center; gap:12px; box-shadow:var(--shadow-sm); }
-.pac-avatar { width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; color:white; flex-shrink:0; }
-.pac-info { flex:1; min-width:0; }
-.pac-nombre { font-size:14px; font-weight:700; }
-.pac-tel { font-size:12px; color:var(--text-muted); margin-top:2px; }
-.pac-sin-tel { font-size:11px; color:#E65100; font-weight:600; margin-top:2px; }
-.turno-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; background:var(--primary-light); color:var(--primary); margin-top:3px; display:inline-block; }
-.btn-wp { background:var(--wp-green); color:white; border:none; border-radius:11px; padding:8px 14px; font-size:20px; font-family:'DM Sans',sans-serif; cursor:pointer; flex-shrink:0; transition:opacity 0.15s; }
-.btn-wp:hover { opacity:0.85; }
-.btn-wp:disabled { background:var(--border); color:var(--text-muted); cursor:not-allowed; }
+/* PACIENTES */
+.pac-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.pac-card{background:var(--surface);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);}
+.pac-avatar{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:white;flex-shrink:0;}
+.pac-info{flex:1;min-width:0;}
+.pac-nombre{font-size:14px;font-weight:700;}
+.pac-tel{font-size:12px;color:var(--muted);margin-top:2px;}
+.pac-sin-tel{font-size:11px;color:#E65100;font-weight:600;margin-top:2px;}
+.next-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary);margin-top:3px;display:inline-block;}
+.btn-wp{background:var(--wp);color:white;border:none;border-radius:11px;padding:8px 12px;font-size:19px;cursor:pointer;flex-shrink:0;transition:opacity 0.15s;}
+.btn-wp:hover{opacity:0.85;}
+.btn-wp:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;}
 
-.plantillas-list { padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
-.plantilla-card { background:var(--surface); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow-sm); }
-.plantilla-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-.plantilla-icon { width:36px; height:36px; border-radius:11px; background:#E8F8EE; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-.plantilla-titulo { font-size:14px; font-weight:700; }
-.plantilla-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
-.plantilla-preview { background:var(--wp-light); border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.6; color:#1a1a1a; border-left:4px solid var(--wp-green); margin-bottom:12px; white-space:pre-wrap; font-family:'DM Sans',sans-serif; }
-.btn-usar { width:100%; background:var(--wp-green); color:white; border:none; border-radius:11px; padding:11px; font-size:14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+/* PLANTILLAS */
+.plantillas-list{padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+.plantilla-card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--sh);}
+.plantilla-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.plantilla-icon{width:36px;height:36px;border-radius:11px;background:#E8F8EE;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.plantilla-titulo{font-size:14px;font-weight:700;}
+.plantilla-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.plantilla-preview{background:var(--wp-light);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;color:#1a1a1a;border-left:4px solid var(--wp);margin-bottom:12px;white-space:pre-wrap;font-family:'DM Sans',sans-serif;}
+.btn-usar{width:100%;background:var(--wp);color:white;border:none;border-radius:11px;padding:11px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 
-.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:60; display:none; align-items:flex-end; justify-content:center; }
-.overlay.open { display:flex; }
-.modal { background:var(--surface); border-radius:28px 28px 0 0; padding:20px 20px 40px; width:100%; max-width:430px; max-height:80vh; overflow-y:auto; animation:slideUp 0.25s ease; }
-@keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
-.modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 16px; }
-.modal-title { font-size:18px; font-weight:800; margin-bottom:4px; }
-.modal-sub { font-size:13px; color:var(--text-muted); margin-bottom:16px; }
-.modal-pac-item { display:flex; align-items:center; gap:12px; padding:12px 14px; background:var(--bg); border-radius:12px; cursor:pointer; transition:background 0.15s; margin-bottom:8px; }
-.modal-pac-item:hover { background:var(--primary-light); }
+/* HISTORIAL */
+.historial-header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;}
+.hist-title{font-size:15px;font-weight:800;}
+.hist-filtros{display:flex;gap:6px;padding:0 16px 10px;overflow-x:auto;}
+.hist-filtro{flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all 0.15s;}
+.hist-filtro.active{background:var(--wp-dark);color:white;border-color:var(--wp-dark);}
+.hist-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.hist-card{background:var(--surface);border-radius:14px;padding:13px 14px;box-shadow:var(--sh);}
+.hist-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.hist-avatar{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:white;flex-shrink:0;}
+.hist-nombre{font-size:14px;font-weight:700;flex:1;}
+.hist-hora{font-size:11px;color:var(--muted);}
+.hist-msg{font-size:12px;color:var(--muted);line-height:1.4;background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:6px;white-space:pre-wrap;}
+.hist-footer{display:flex;align-items:center;justify-content:space-between;}
+.hist-tipo{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.tipo-confirmacion{background:#E8F5EE;color:#2D6A4F;}
+.tipo-recordatorio{background:#FEF3C7;color:#92400E;}
+.tipo-pago{background:#EDE9FE;color:#5B21B6;}
+.tipo-libre{background:#E3F2FD;color:#1976D2;}
+.tipo-automatico{background:#FEF0E6;color:#E8873A;}
+.hist-estado{font-size:11px;font-weight:700;}
+.estado-ok{color:#25D366;}
+.estado-err{color:#E53935;}
+.estado-pending{color:var(--muted);}
+.btn-reenviar{font-size:11px;color:var(--wp-dark);font-weight:700;background:none;border:none;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;}
 
-.empty-sec { text-align:center; padding:40px 20px; color:var(--text-muted); }
-.empty-icon { font-size:40px; margin-bottom:8px; }
+/* AUTOMATIZACIÓN */
+.auto-section{padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+.auto-card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--sh);}
+.auto-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.auto-titulo{font-size:14px;font-weight:800;}
+.auto-sub{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.4;}
+/* Toggle */
+.toggle-wrap{display:flex;align-items:center;gap:10px;}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:24px;cursor:pointer;transition:0.3s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:0.3s;}
+.toggle input:checked+.toggle-slider{background:var(--wp);}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px);}
+.toggle-label{font-size:13px;font-weight:600;color:var(--text);}
+.auto-info{background:#E8F8EE;border-radius:10px;padding:10px 12px;font-size:12px;color:#2D6A4F;margin-top:10px;line-height:1.5;}
+.auto-info strong{font-weight:800;}
+.sandbox-warn{background:#FEF3C7;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400E;line-height:1.5;}
+.sandbox-warn strong{font-weight:800;display:block;margin-bottom:2px;}
+.btn-probar{width:100%;background:var(--wp-dark);color:white;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-probar:active{opacity:0.85;}
+.turnos-mañana{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.tm-row{background:var(--bg);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;}
+.tm-pac{font-size:13px;font-weight:700;}
+.tm-hora{font-size:12px;color:var(--muted);}
+.tm-tel{font-size:11px;color:var(--wp-dark);font-weight:600;}
 
-.app-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; height:64px; background:#fff; border-top:1.5px solid #E8E4DD; display:flex; align-items:center; z-index:2147483647; box-shadow:0 -2px 12px rgba(0,0,0,0.09); }
-.app-nav a { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; text-decoration:none; color:#8A8FA8; padding:4px 0; }
-.app-nav a .ni { font-size:22px; line-height:1; display:block; }
-.app-nav a .nl { font-size:10px; font-weight:700; display:block; }
-.app-nav a.on .nl { color:#2D6A4F; }
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:none;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:28px 28px 0 0;padding:20px 20px 40px;width:100%;max-width:430px;max-height:80vh;overflow-y:auto;animation:slideUp 0.25s ease;}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
+.modal-pac-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border-radius:12px;cursor:pointer;transition:background 0.15s;margin-bottom:8px;}
+.modal-pac-item:hover{background:var(--primary-light);}
+
+.empty-sec{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-icon{font-size:40px;margin-bottom:8px;}
 
 /* NAV + DRAWER */
 .app-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:64px;background:#fff;border-top:1.5px solid #E8E4DD;display:flex;align-items:center;z-index:2147483647;box-shadow:0 -2px 12px rgba(0,0,0,0.09);}
@@ -100,30 +151,33 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 .drawer-item .di{font-size:20px;width:28px;text-align:center;}
 .drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
 .drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
-
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2D6A4F">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
 </head>
 <body>
 
 <div class="header">
   <div class="header-top">
-    <div class="logo">Psico<span>app</span></div>
+    <div class="header-logo">
+      <img src="/logo-psicoapp.png" alt="PsicoApp">
+      <div class="header-logo-txt">Psico<span>App</span></div>
+    </div>
     <div class="header-title">WhatsApp</div>
-    <div style="width:34px"></div>
+    <div style="width:60px"></div>
   </div>
   <div class="tabs">
-    <div class="tab active" id="tab-enviar" onclick="setTab('enviar')">💬 Pacientes</div>
+    <div class="tab active" id="tab-pacientes" onclick="setTab('pacientes')">💬 Pacientes</div>
     <div class="tab" id="tab-plantillas" onclick="setTab('plantillas')">📋 Plantillas</div>
+    <div class="tab" id="tab-historial" onclick="setTab('historial');cargarHistorial()">🕐 Historial</div>
+    <div class="tab" id="tab-auto" onclick="setTab('auto');cargarTurnosMañana()">⚡ Auto</div>
   </div>
 </div>
 
-<!-- TAB PACIENTES -->
-<div class="tab-view active" id="view-enviar">
+<!-- ─── TAB PACIENTES ─── -->
+<div class="tab-view active" id="view-pacientes">
   <div class="search-bar">
     <input class="search-input" id="searchInput" placeholder="Buscar paciente..." oninput="filtrarPacientes()">
   </div>
@@ -132,7 +186,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
   </div>
 </div>
 
-<!-- TAB PLANTILLAS -->
+<!-- ─── TAB PLANTILLAS ─── -->
 <div class="tab-view" id="view-plantillas">
   <div class="plantillas-list">
 
@@ -141,17 +195,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
         <div class="plantilla-icon">📅</div>
         <div><div class="plantilla-titulo">Confirmación de turno</div><div class="plantilla-sub">Al agendar una sesión</div></div>
       </div>
-      <div class="plantilla-preview" id="prev-confirmacion">📅 *Tu turno está confirmado*
-
-Hola {nombre}, te confirmamos tu sesión con el *Dr. Juan José Pérez Aré*.
-
-📆 {fecha}
-🕘 {hora} hs
-📍 Rivadavia 450, Chivilcoy
-
-Ante cualquier inconveniente avisanos con anticipación.
-_Psicoapp_</div>
-      <button class="btn-usar" onclick="usarPlantilla('confirmacion')">💬 Usar plantilla</button>
+      <div class="plantilla-preview" id="prev-confirmacion"></div>
+      <button class="btn-usar" onclick="usarPlantilla('confirmacion')">💬 Enviar a paciente</button>
     </div>
 
     <div class="plantilla-card">
@@ -159,16 +204,8 @@ _Psicoapp_</div>
         <div class="plantilla-icon">🔔</div>
         <div><div class="plantilla-titulo">Recordatorio de turno</div><div class="plantilla-sub">El día anterior</div></div>
       </div>
-      <div class="plantilla-preview" id="prev-recordatorio">🔔 *Recordatorio de turno*
-
-Hola {nombre}, te recordamos que mañana tenés sesión con el *Dr. Juan José Pérez Aré*.
-
-📆 {fecha}
-🕘 {hora} hs
-
-¿No podés asistir? Avisanos al *2346 699176*
-_Psicoapp_</div>
-      <button class="btn-usar" onclick="usarPlantilla('recordatorio')">💬 Usar plantilla</button>
+      <div class="plantilla-preview" id="prev-recordatorio"></div>
+      <button class="btn-usar" onclick="usarPlantilla('recordatorio')">💬 Enviar a paciente</button>
     </div>
 
     <div class="plantilla-card">
@@ -176,22 +213,84 @@ _Psicoapp_</div>
         <div class="plantilla-icon">💰</div>
         <div><div class="plantilla-titulo">Recordatorio de pago</div><div class="plantilla-sub">Saldo pendiente</div></div>
       </div>
-      <div class="plantilla-preview" id="prev-pago">💰 *Recordatorio de pago*
-
-Hola {nombre}, te recordamos que tenés un saldo pendiente con el *Dr. Juan José Pérez Aré*.
-
-Podés abonarlo en el próximo turno o por transferencia.
-_Psicoapp_</div>
-      <button class="btn-usar" onclick="usarPlantilla('pago')">💬 Usar plantilla</button>
+      <div class="plantilla-preview" id="prev-pago"></div>
+      <button class="btn-usar" onclick="usarPlantilla('pago')">💬 Enviar a paciente</button>
     </div>
 
     <div class="plantilla-card">
       <div class="plantilla-header">
         <div class="plantilla-icon">✏️</div>
-        <div><div class="plantilla-titulo">Mensaje libre</div><div class="plantilla-sub">Escribí tu propio texto</div></div>
+        <div><div class="plantilla-titulo">Mensaje libre</div><div class="plantilla-sub">Escribí lo que necesitás</div></div>
       </div>
-      <textarea id="msg-libre" style="width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;font-family:'DM Sans',sans-serif;min-height:100px;resize:none;outline:none;background:var(--bg);margin-bottom:10px" placeholder="Escribí el mensaje acá..."></textarea>
-      <button class="btn-usar" onclick="usarPlantilla('libre')">💬 Enviar mensaje libre</button>
+      <textarea id="msg-libre" style="width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:13px;font-family:'DM Sans',sans-serif;resize:none;min-height:80px;background:var(--bg);outline:none;margin-bottom:12px" placeholder="Escribí tu mensaje aquí..."></textarea>
+      <button class="btn-usar" onclick="usarPlantilla('libre')">💬 Enviar a paciente</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── TAB HISTORIAL ─── -->
+<div class="tab-view" id="view-historial">
+  <div class="historial-header">
+    <div class="hist-title">Mensajes enviados</div>
+    <span id="hist-count" style="font-size:12px;color:var(--muted);font-weight:600"></span>
+  </div>
+  <div class="hist-filtros">
+    <div class="hist-filtro active" onclick="filtrarHistorial('todos',this)">Todos</div>
+    <div class="hist-filtro" onclick="filtrarHistorial('recordatorio',this)">Recordatorios</div>
+    <div class="hist-filtro" onclick="filtrarHistorial('confirmacion',this)">Confirmaciones</div>
+    <div class="hist-filtro" onclick="filtrarHistorial('automatico',this)">Automáticos</div>
+  </div>
+  <div class="hist-list" id="histList">
+    <div class="empty-sec"><div class="empty-icon">⏳</div>Cargando historial...</div>
+  </div>
+</div>
+
+<!-- ─── TAB AUTOMATIZACIÓN ─── -->
+<div class="tab-view" id="view-auto">
+  <div class="auto-section">
+
+    <div class="sandbox-warn">
+      <strong>⚠️ Modo sandbox activo</strong>
+      Para recibir mensajes, cada paciente debe enviar <strong>"join breathe-try"</strong> al <strong>+1 415 523 8886</strong> una sola vez.
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-header">
+        <div class="auto-titulo">🔔 Recordatorio 24hs antes</div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-recordatorio" onchange="guardarConfig('recordatorio_auto', this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="auto-sub">PsicoApp envía automáticamente un WhatsApp a cada paciente el día anterior a su turno.</div>
+      <div class="auto-info">
+        <strong>¿Cómo funciona?</strong><br>
+        Cada día a las <strong>9:00 hs</strong> el sistema busca los turnos del día siguiente y envía el recordatorio a todos los pacientes que tienen teléfono registrado.
+      </div>
+      <button class="btn-probar" onclick="enviarRecordatoriosManual()">
+        ▶ Probar ahora — enviar recordatorios de mañana
+      </button>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-header">
+        <div class="auto-titulo">📅 Confirmación al agendar</div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-confirmacion" onchange="guardarConfig('confirmacion_auto', this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="auto-sub">Al crear un turno nuevo, se envía automáticamente un WhatsApp de confirmación al paciente.</div>
+      <div class="auto-info">Se activa desde la Agenda al guardar un nuevo turno.</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-titulo" style="margin-bottom:8px">📋 Turnos de mañana</div>
+      <div class="auto-sub">Estos pacientes recibirán el recordatorio automático.</div>
+      <div id="turnosMañanaList">
+        <div style="text-align:center;color:var(--muted);padding:16px;font-size:13px">Cargando...</div>
+      </div>
     </div>
 
   </div>
@@ -202,12 +301,11 @@ _Psicoapp_</div>
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">💬 ¿A quién enviás?</div>
-    <div class="modal-sub">Seleccioná el paciente.</div>
+    <div class="modal-sub">Seleccioná el paciente para enviar el mensaje.</div>
     <div id="modalPacList"></div>
-    <button onclick="cerrarModalPac()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Cancelar</button>
+    <button onclick="cerrarModalPac()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Cancelar</button>
   </div>
 </div>
-
 
 <!-- OVERLAY + DRAWER -->
 <div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
@@ -220,43 +318,20 @@ _Psicoapp_</div>
     </div>
   </div>
   <div class="drawer-section-title">Principal</div>
-  <a href="psicoapp-index.html" class="drawer-item" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
-  <a href="psicoapp-agenda.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
-  <a href="psicoapp-pacientes.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
-  <a href="psicoapp-whatsapp.html" class="drawer-item active" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
-  <a href="psicoapp-cuenta.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
+  <a href="psicoapp-index.html"     class="drawer-item"        onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
+  <a href="psicoapp-agenda.html"    class="drawer-item"        onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
+  <a href="psicoapp-pacientes.html" class="drawer-item"        onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
+  <a href="psicoapp-whatsapp.html"  class="drawer-item active" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
+  <a href="psicoapp-cuenta.html"    class="drawer-item"        onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
   <div class="drawer-section-title">Más módulos</div>
-  <a href="psicoapp-pagos.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
-  <a href="psicoapp-pericias.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
-  <a href="psicoapp-perfil.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
-
-  <div class="drawer-footer">
-    
-  </div>
-</div>
-
-<div class="side-drawer" id="sideDrawer">
-  <div class="drawer-header">
-    <img src="/logo-psicoapp.png" alt="PsicoApp">
-    <div>
-      <div class="drawer-logo-txt">Psico<span>App</span></div>
-      <div class="drawer-tagline">Gestión para psicólogos</div>
-    </div>
-  </div>
-  <div class="drawer-section-title">Principal</div>
-  <a href="psicoapp-index.html" class="drawer-item" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
-  <a href="psicoapp-agenda.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
-  <a href="psicoapp-pacientes.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
-  <a href="psicoapp-whatsapp.html" class="drawer-item active" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
-  <a href="psicoapp-cuenta.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
-  <div class="drawer-section-title">Más módulos</div>
-  <a href="psicoapp-pagos.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
-  <a href="psicoapp-pericias.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
-  <a href="psicoapp-perfil.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
+  <a href="psicoapp-pagos.html"     class="drawer-item"        onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
+  <a href="psicoapp-pericias.html"  class="drawer-item"        onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
+  <a href="psicoapp-perfil.html"    class="drawer-item"        onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
   <div class="drawer-footer">
     <button class="drawer-logout" onclick="doLogout()">🚪 Cerrar sesión</button>
   </div>
 </div>
+
 <nav class="app-nav">
   <a href="psicoapp-index.html"><span class="ni">🏠</span><span class="nl">Inicio</span></a>
   <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
@@ -266,94 +341,83 @@ _Psicoapp_</div>
   <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
 </nav>
 
-
-<script>
-function toggleDrawer() {
-  document.getElementById('sideDrawer').classList.toggle('open');
-  document.getElementById('menuOverlay').classList.toggle('open');
-}
-function closeDrawer() {
-  document.getElementById('sideDrawer').classList.remove('open');
-  document.getElementById('menuOverlay').classList.remove('open');
-}
-async function doLogout() {
-  const {createClient} = supabase;
-  const sb = createClient('https://terlbqrcampdqtxjbihg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8');
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
-</script>
-
-
 <script>
 const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
 const { createClient } = supabase;
 const sb = createClient(SUPA_URL, SUPA_KEY);
 
-const COLORES = ['#2D6A4F','#1976D2','#7B5EA7','#E65100','#388E3C'];
-let todosPacientes = [];
-let pacientesFiltrados = [];
+const COLORES = ['#2D6A4F','#1976D2','#7B5EA7','#E65100','#388E3C','#C62828'];
+let todosPacientes = [], pacientesFiltrados = [];
 let plantillaActual = '';
 let turnosProximos = {};
-let perfilProfesional = { titulo:'Lic.', nombre_completo:'', direccion:'', telefono_profesional:'' };
+let historialTodos = [];
+let filtroHistorial = 'todos';
+let perfilPro = { titulo:'', nombre_completo:'', direccion:'', telefono_profesional:'' };
+
+function toggleDrawer(){document.getElementById('sideDrawer').classList.toggle('open');document.getElementById('menuOverlay').classList.toggle('open');}
+function closeDrawer(){document.getElementById('sideDrawer').classList.remove('open');document.getElementById('menuOverlay').classList.remove('open');}
+async function doLogout(){await sb.auth.signOut();window.location.href='login.html';}
 
 (async () => {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return; }
-  // cargar perfil primero para usar en plantillas
+
   const { data: perfil } = await sb.from('profiles')
-    .select('titulo,nombre_completo,direccion,telefono_profesional')
+    .select('titulo,nombre_completo,direccion,telefono_profesional,recordatorio_auto,confirmacion_auto')
     .eq('id', session.user.id).maybeSingle();
-  if (perfil) perfilProfesional = perfil;
+  if (perfil) {
+    perfilPro = perfil;
+    if (perfil.recordatorio_auto) document.getElementById('toggle-recordatorio').checked = true;
+    if (perfil.confirmacion_auto) document.getElementById('toggle-confirmacion').checked = true;
+  }
   actualizarPlantillas();
   await Promise.all([cargarPacientes(), cargarTurnosProximos()]);
 })();
 
+// ── PLANTILLAS ──────────────────────────────────────────────────────────────
 function actualizarPlantillas() {
-  const nombre = `${perfilProfesional.titulo || ''} ${perfilProfesional.nombre_completo || ''}`.trim() || 'el profesional';
-  const tel    = perfilProfesional.telefono_profesional || '[teléfono]';
-  const dir    = perfilProfesional.direccion || '[dirección]';
+  const prof = `${perfilPro.titulo||''} ${perfilPro.nombre_completo||''}`.trim() || 'el profesional';
+  const tel  = perfilPro.telefono_profesional || '[teléfono]';
+  const dir  = perfilPro.direccion || '[dirección consultorio]';
 
   document.getElementById('prev-confirmacion').textContent =
-`📅 *Tu turno está confirmado*
+`📅 *Turno confirmado*
 
-Hola {nombre}, te confirmamos tu sesión con el *${nombre}*.
+Hola {nombre}, confirmamos tu sesión con *${prof}*.
 
-📆 {fecha}
-🕘 {hora} hs
+📆 {fecha} a las {hora} hs
 📍 ${dir}
 
-Ante cualquier inconveniente avisanos con anticipación.
-_Psicoapp_`;
+Ante cualquier inconveniente avisanos con anticipación al ${tel}.
+_PsicoApp_`;
 
   document.getElementById('prev-recordatorio').textContent =
 `🔔 *Recordatorio de turno*
 
-Hola {nombre}, te recordamos que mañana tenés sesión con el *${nombre}*.
+Hola {nombre}, mañana tenés sesión con *${prof}*.
 
-📆 {fecha}
-🕘 {hora} hs
+📆 {fecha} a las {hora} hs
 
 ¿No podés asistir? Avisanos al *${tel}*
-_Psicoapp_`;
+_PsicoApp_`;
 
   document.getElementById('prev-pago').textContent =
-`💰 *Recordatorio de pago*
+`💰 *Saldo pendiente*
 
-Hola {nombre}, te recordamos que tenés un saldo pendiente con el *${nombre}*.
+Hola {nombre}, te recordamos que tenés un saldo pendiente con *${prof}*.
 
-Podés abonarlo en el próximo turno o por transferencia.
-_Psicoapp_`;
+Podés abonarlo en el próximo turno o consultarnos por transferencia.
+_PsicoApp_`;
 }
 
+// ── PACIENTES ───────────────────────────────────────────────────────────────
 async function cargarPacientes() {
   const { data } = await sb.from('pacientes').select('id,nombre,apellido,telefono').eq('activo',true).order('apellido');
   todosPacientes = data || [];
   pacientesFiltrados = [...todosPacientes];
   renderPacientes();
 }
-
 async function cargarTurnosProximos() {
   const hoy = fmtDate(new Date());
   const en7 = fmtDate(new Date(Date.now() + 7*86400000));
@@ -361,84 +425,77 @@ async function cargarTurnosProximos() {
   (data||[]).forEach(t => { if (!turnosProximos[t.paciente_id]) turnosProximos[t.paciente_id] = t; });
   renderPacientes();
 }
-
 function renderPacientes() {
   const list = document.getElementById('pacList');
   if (!pacientesFiltrados.length) {
-    list.innerHTML = '<div class="empty-sec"><div class="empty-icon">👥</div>No se encontraron pacientes.</div>';
-    return;
+    list.innerHTML = '<div class="empty-sec"><div class="empty-icon">👥</div>No hay pacientes.</div>'; return;
   }
-  list.innerHTML = pacientesFiltrados.map((p, i) => {
-    const inicial = (p.apellido||p.nombre||'?')[0].toUpperCase();
-    const color   = COLORES[i % COLORES.length];
-    const turno   = turnosProximos[p.id];
-    const tieneTel = !!p.telefono;
-    return `
-      <div class="pac-card">
-        <div class="pac-avatar" style="background:${color}">${inicial}</div>
-        <div class="pac-info">
-          <div class="pac-nombre">${p.apellido}, ${p.nombre}</div>
-          ${tieneTel ? `<div class="pac-tel">📱 ${p.telefono}</div>` : `<div class="pac-sin-tel">⚠️ Sin teléfono</div>`}
-          ${turno ? `<div class="turno-badge">📅 ${fmtFechaCorta(turno.fecha)} ${turno.hora?.slice(0,5)}</div>` : ''}
-        </div>
-        <button class="btn-wp" onclick="enviarDirecto('${p.id}')" ${!tieneTel?'disabled':''} title="${tieneTel?'Enviar WhatsApp':'Sin teléfono'}">💬</button>
-      </div>`;
+  list.innerHTML = pacientesFiltrados.map((p,i) => {
+    const ini   = (p.apellido||p.nombre||'?')[0].toUpperCase();
+    const color = COLORES[i % COLORES.length];
+    const turno = turnosProximos[p.id];
+    const tel   = !!p.telefono;
+    return `<div class="pac-card">
+      <div class="pac-avatar" style="background:${color}">${ini}</div>
+      <div class="pac-info">
+        <div class="pac-nombre">${p.apellido}, ${p.nombre}</div>
+        ${tel ? `<div class="pac-tel">📱 ${p.telefono}</div>` : `<div class="pac-sin-tel">⚠️ Sin teléfono</div>`}
+        ${turno ? `<div class="next-badge">📅 ${fmtFechaCorta(turno.fecha)} ${turno.hora?.slice(0,5)}</div>` : ''}
+      </div>
+      <button class="btn-wp" onclick="enviarDirecto('${p.id}')" ${!tel?'disabled':''}>💬</button>
+    </div>`;
   }).join('');
 }
-
 function filtrarPacientes() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   pacientesFiltrados = todosPacientes.filter(p => `${p.nombre} ${p.apellido}`.toLowerCase().includes(q));
   renderPacientes();
 }
-
 function enviarDirecto(pacId) {
   const p = todosPacientes.find(x => x.id === pacId);
   if (!p?.telefono) return;
   const turno = turnosProximos[pacId];
+  const prof  = `${perfilPro.titulo||''} ${perfilPro.nombre_completo||''}`.trim() || 'el profesional';
   const msg = turno
-    ? `Hola ${p.nombre}, te recuerdo tu turno el ${fmtFechaLinda(turno.fecha)} a las ${turno.hora?.slice(0,5)} hs.\n_Psicoapp_`
-    : `Hola ${p.nombre}, te contacto desde el consultorio del Dr. Juan José Pérez Aré.\n_Psicoapp_`;
-  abrirWA(p.telefono, msg);
+    ? `🔔 *Recordatorio de turno*\n\nHola ${p.nombre}, te recordamos tu turno el ${fmtFechaLinda(turno.fecha)} a las ${turno.hora?.slice(0,5)} hs con *${prof}*.\n\n¿No podés asistir? Avisanos al ${perfilPro.telefono_profesional||'[teléfono]'}\n_PsicoApp_`
+    : `Hola ${p.nombre}, te contacta el consultorio de *${prof}*.\n_PsicoApp_`;
+  abrirWA(p, msg, 'libre');
 }
 
+// ── PLANTILLAS MODAL ────────────────────────────────────────────────────────
 function usarPlantilla(tipo) {
   plantillaActual = tipo;
   if (tipo === 'libre') {
     const msg = document.getElementById('msg-libre').value.trim();
-    if (!msg) { alert('Escribí el mensaje primero.'); return; }
+    if (!msg) { mostrarToast('✏️ Escribí el mensaje primero'); return; }
   }
   abrirModalPac();
 }
-
 function abrirModalPac() {
   const list = document.getElementById('modalPacList');
   const conTel = todosPacientes.filter(p => p.telefono);
   if (!conTel.length) {
-    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px">Ningún paciente tiene teléfono registrado.</div>';
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px">Ningún paciente tiene teléfono.</div>';
   } else {
-    list.innerHTML = conTel.map((p, i) => {
+    list.innerHTML = conTel.map((p,i) => {
       const color = COLORES[i % COLORES.length];
-      const inicial = (p.apellido||p.nombre||'?')[0].toUpperCase();
+      const ini   = (p.apellido||p.nombre||'?')[0].toUpperCase();
       return `<div class="modal-pac-item" onclick="seleccionarPaciente('${p.id}')">
-        <div style="width:36px;height:36px;border-radius:10px;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-weight:800;flex-shrink:0">${inicial}</div>
+        <div style="width:36px;height:36px;border-radius:10px;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-weight:800;flex-shrink:0">${ini}</div>
         <div style="flex:1;font-size:14px;font-weight:700">${p.apellido}, ${p.nombre}</div>
-        <div style="font-size:12px;color:var(--text-muted)">${p.telefono}</div>
+        <div style="font-size:12px;color:var(--muted)">${p.telefono}</div>
       </div>`;
     }).join('');
   }
   document.getElementById('overlayPac').classList.add('open');
 }
-
 function cerrarModalPac() { document.getElementById('overlayPac').classList.remove('open'); }
-
 function seleccionarPaciente(pacId) {
   cerrarModalPac();
   const p = todosPacientes.find(x => x.id === pacId);
   if (!p) return;
   const turno = turnosProximos[pacId];
   let msg = '';
-
   if (plantillaActual === 'confirmacion') {
     msg = document.getElementById('prev-confirmacion').textContent
       .replace('{nombre}', p.nombre)
@@ -454,73 +511,195 @@ function seleccionarPaciente(pacId) {
   } else if (plantillaActual === 'libre') {
     msg = document.getElementById('msg-libre').value.trim();
   }
-
-  abrirWA(p.telefono, msg);
+  abrirWA(p, msg, plantillaActual);
 }
 
-async function abrirWA(telefono, mensaje) {
-  let tel = telefono.replace(/\D/g, '');
+// ── ENVÍO WHATSAPP ──────────────────────────────────────────────────────────
+async function abrirWA(paciente, mensaje, tipo) {
+  let tel = (paciente.telefono||'').replace(/\D/g, '');
   if (tel.startsWith('0')) tel = tel.slice(1);
   if (!tel.startsWith('54')) tel = '54' + tel;
   if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
   tel = '+' + tel;
 
-  // Intentar envío via Twilio
   try {
     mostrarToast('📤 Enviando...', false);
     const { data:{ session } } = await sb.auth.getSession();
-    const resp = await fetch(
-      'https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ to: tel, message: mensaje }),
-      }
-    );
-    const data = await resp.json();
-    if (data.sid) {
-      mostrarToast('✅ Mensaje enviado por WhatsApp');
+    const resp = await fetch(`${SUPA_URL}/functions/v1/enviar-whatsapp`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${session.access_token}` },
+      body: JSON.stringify({ to: tel, message: mensaje }),
+    });
+    const res = await resp.json();
+
+    if (res.sid) {
+      mostrarToast('✅ Mensaje enviado');
+      // Guardar en historial
+      await registrarEnHistorial(paciente, mensaje, tipo, 'enviado', res.sid);
     } else {
-      // fallback a wa.me si Twilio falla
-      mostrarToast('⚠️ Abriendo WhatsApp manual...');
-      setTimeout(() => window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(mensaje)}`, '_blank'), 1000);
+      mostrarToast('⚠️ Abriendo WhatsApp...');
+      await registrarEnHistorial(paciente, mensaje, tipo, 'manual', null);
+      setTimeout(() => window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(mensaje)}`, '_blank'), 800);
     }
   } catch(e) {
-    // fallback
+    await registrarEnHistorial(paciente, mensaje, tipo, 'manual', null);
     window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(mensaje)}`, '_blank');
   }
 }
 
-function mostrarToast(msg, autoHide = true) {
-  let t = document.getElementById('toast-wp');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'toast-wp';
-    t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:999;transition:opacity 0.3s';
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  t.style.opacity = '1';
-  if (autoHide) setTimeout(() => { t.style.opacity = '0'; }, 2500);
+async function registrarEnHistorial(paciente, mensaje, tipo, estado, sid) {
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    await sb.from('notificaciones_wa').insert({
+      user_id:     session.user.id,
+      paciente_id: paciente.id,
+      mensaje,
+      tipo:        tipo || 'libre',
+      estado,
+      twilio_sid:  sid,
+      enviado_at:  new Date().toISOString(),
+    });
+  } catch(e) { /* no bloquear */ }
 }
 
+// ── HISTORIAL ───────────────────────────────────────────────────────────────
+async function cargarHistorial() {
+  document.getElementById('histList').innerHTML = '<div class="empty-sec"><div class="empty-icon">⏳</div>Cargando...</div>';
+  const { data } = await sb.from('notificaciones_wa')
+    .select('*, pacientes(nombre,apellido)')
+    .order('enviado_at', { ascending: false })
+    .limit(100);
+  historialTodos = data || [];
+  document.getElementById('hist-count').textContent = `${historialTodos.length} mensajes`;
+  renderHistorial();
+}
+function filtrarHistorial(filtro, el) {
+  filtroHistorial = filtro;
+  document.querySelectorAll('.hist-filtro').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  renderHistorial();
+}
+function renderHistorial() {
+  const list = document.getElementById('histList');
+  const items = filtroHistorial === 'todos'
+    ? historialTodos
+    : historialTodos.filter(h => h.tipo === filtroHistorial);
+  if (!items.length) {
+    list.innerHTML = '<div class="empty-sec"><div class="empty-icon">📭</div>No hay mensajes aún.</div>'; return;
+  }
+  list.innerHTML = items.map((h,i) => {
+    const pac   = h.pacientes;
+    const nombre = pac ? `${pac.apellido}, ${pac.nombre}` : 'Paciente';
+    const ini   = nombre[0].toUpperCase();
+    const color = COLORES[i % COLORES.length];
+    const fecha = h.enviado_at ? new Date(h.enviado_at).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    const estado = h.estado === 'enviado' ? '<span class="hist-estado estado-ok">✓ Enviado</span>'
+                 : h.estado === 'manual'  ? '<span class="hist-estado estado-pending">↗ Manual</span>'
+                 : h.estado === 'error'   ? '<span class="hist-estado estado-err">✗ Error</span>'
+                 : '<span class="hist-estado estado-pending">— Pendiente</span>';
+    const tipoClass = `tipo-${h.tipo||'libre'}`;
+    const tipoLabel = {confirmacion:'Confirmación',recordatorio:'Recordatorio',pago:'Pago',libre:'Libre',automatico:'Automático'}[h.tipo]||h.tipo;
+    const msgPreview = (h.mensaje||'').length > 120 ? h.mensaje.slice(0,120)+'…' : h.mensaje;
+    return `<div class="hist-card">
+      <div class="hist-top">
+        <div class="hist-avatar" style="background:${color}">${ini}</div>
+        <div class="hist-nombre">${nombre}</div>
+        <div class="hist-hora">${fecha}</div>
+      </div>
+      <div class="hist-msg">${msgPreview}</div>
+      <div class="hist-footer">
+        <span class="hist-tipo ${tipoClass}">${tipoLabel}</span>
+        ${estado}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── AUTOMATIZACIÓN ──────────────────────────────────────────────────────────
+async function cargarTurnosMañana() {
+  const mañana = fmtDate(new Date(Date.now() + 86400000));
+  const { data } = await sb.from('turnos')
+    .select('hora, pacientes(nombre,apellido,telefono)')
+    .eq('fecha', mañana)
+    .neq('estado','cancelado')
+    .order('hora');
+
+  const list = document.getElementById('turnosMañanaList');
+  const turnos = (data||[]).filter(t => t.pacientes);
+  if (!turnos.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:16px;font-size:13px">Sin turnos mañana.</div>'; return;
+  }
+  list.innerHTML = `<div class="turnos-mañana">` + turnos.map(t => {
+    const tel = t.pacientes?.telefono;
+    return `<div class="tm-row">
+      <div>
+        <div class="tm-pac">${t.pacientes?.apellido}, ${t.pacientes?.nombre}</div>
+        ${tel ? `<div class="tm-tel">📱 ${tel}</div>` : '<div style="font-size:11px;color:#E65100">Sin teléfono</div>'}
+      </div>
+      <div class="tm-hora">${(t.hora||'').slice(0,5)} hs</div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+async function enviarRecordatoriosManual() {
+  const mañana = fmtDate(new Date(Date.now() + 86400000));
+  const { data } = await sb.from('turnos')
+    .select('hora, paciente_id, pacientes(nombre,apellido,telefono)')
+    .eq('fecha', mañana)
+    .neq('estado','cancelado')
+    .order('hora');
+
+  const turnos = (data||[]).filter(t => t.pacientes?.telefono);
+  if (!turnos.length) { mostrarToast('Sin turnos con teléfono para mañana'); return; }
+
+  mostrarToast(`📤 Enviando ${turnos.length} recordatorio(s)...`, false);
+  let ok = 0, err = 0;
+  const prof = `${perfilPro.titulo||''} ${perfilPro.nombre_completo||''}`.trim() || 'el profesional';
+
+  for (const t of turnos) {
+    const p   = t.pacientes;
+    const msg = document.getElementById('prev-recordatorio').textContent
+      .replace('{nombre}', p.nombre)
+      .replace('{fecha}',  fmtFechaLinda(mañana))
+      .replace('{hora}',   (t.hora||'').slice(0,5));
+    try {
+      await abrirWA({...p, id: t.paciente_id}, msg, 'automatico');
+      ok++;
+    } catch(e) { err++; }
+    await new Promise(r => setTimeout(r, 500)); // pausa entre envíos
+  }
+  mostrarToast(`✅ ${ok} enviados${err ? ` · ${err} errores` : ''}`);
+}
+
+async function guardarConfig(campo, valor) {
+  const { data:{ session } } = await sb.auth.getSession();
+  await sb.from('profiles').upsert({ id: session.user.id, [campo]: valor, updated_at: new Date().toISOString() });
+  mostrarToast(valor ? '✅ Automatización activada' : 'Automatización desactivada');
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 function setTab(t) {
   document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + t).classList.add('active');
   document.getElementById('view-' + t).classList.add('active');
 }
-
-document.getElementById('overlayPac').addEventListener('click', e => {
-  if (e.target.id === 'overlayPac') cerrarModalPac();
-});
-
+function mostrarToast(msg, autoHide=true) {
+  let t = document.getElementById('toast-wp');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-wp';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;transition:opacity 0.3s;max-width:320px;text-align:center;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1'; t.style.display = 'block';
+  if (autoHide) setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.style.display='none',300); }, 3000);
+}
 function fmtDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function fmtFechaLinda(f) { if(!f)return''; const[y,m,d]=f.split('-'); return `${d}/${m}/${y}`; }
 function fmtFechaCorta(f) { if(!f)return''; const[,m,d]=f.split('-'); return `${d}/${m}`; }
+
+document.getElementById('overlayPac').addEventListener('click', e => { if(e.target.id==='overlayPac') cerrarModalPac(); });
 </script>
 </body>
 </html>

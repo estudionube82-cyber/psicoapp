@@ -520,18 +520,32 @@ body {
     <div class="modal-title" id="modalTitle">Suscribirse a Pro</div>
     <div class="modal-sub">Activá tu suscripción mensual y accedé a todas las funciones sin límites.</div>
     <div class="modal-plan-preview" id="modalPreview"></div>
-    <div class="coming-soon">
-      <div class="coming-soon-icon">🚧</div>
-      <div class="coming-soon-title">Pago con Mercado Pago</div>
-      <div class="coming-soon-sub">La integración con Mercado Pago estará disponible muy pronto. Por ahora podés contactarnos directamente para activar tu plan.</div>
+    <!-- Precio destacado -->
+    <div id="modalPrecioWrap" style="text-align:center;margin-bottom:16px">
+      <div id="modalPrecio" style="font-size:32px;font-weight:800;color:var(--primary)">$9.000</div>
+      <div style="font-size:13px;color:var(--text-muted)">ARS / mes · renovación mensual</div>
     </div>
-    <div style="margin-top:16px">
-      <a href="https://wa.me/5492346699176?text=Hola%2C%20quiero%20activar%20el%20plan%20de%20PsicoApp" 
+
+    <!-- Botón Mercado Pago -->
+    <button class="btn-mp" id="btnMP" onclick="irAMercadoPago()">
+      <svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="24" fill="white"/><path d="M8 24C8 15.163 15.163 8 24 8s16 7.163 16 16" stroke="#009ee3" stroke-width="3.5" stroke-linecap="round"/><path d="M16 24c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#00b1ea" stroke-width="3.5" stroke-linecap="round"/><circle cx="24" cy="24" r="3" fill="#009ee3"/></svg>
+      Pagar con Mercado Pago
+    </button>
+
+    <div style="text-align:center;font-size:11px;color:var(--text-muted);margin:10px 0 14px;display:flex;align-items:center;justify-content:center;gap:6px">
+      🔒 Pago seguro · Tarjeta, débito o saldo MP
+    </div>
+
+    <!-- Alternativa WhatsApp -->
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:10px">¿Preferís coordinar por WhatsApp?</div>
+      <a id="linkWA" href="https://wa.me/5492346699176?text=Hola%2C%20quiero%20activar%20el%20plan%20Pro%20de%20PsicoApp" 
          target="_blank"
-         style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:14px;background:#25D366;color:white;font-size:16px;font-weight:700;text-decoration:none;margin-bottom:8px">
-        💬 Contactar por WhatsApp
+         style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:12px;background:#E8F8EE;color:#2D6A4F;font-size:14px;font-weight:700;text-decoration:none">
+        💬 Escribirnos por WhatsApp
       </a>
     </div>
+
     <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
   </div>
 </div>
@@ -654,7 +668,25 @@ const planesInfo = {
   }
 };
 
+// ─── LINKS DE MERCADO PAGO ──────────────────────────────────────────────────
+// Cómo generar estos links (2 min):
+// 1. mercadopago.com.ar → Tu negocio → Cobrar → Crear link de pago
+// 2. Pro: título "PsicoApp Plan Pro", precio $9000, sin límite de usos
+// 3. Max: título "PsicoApp Plan Max", precio $15000, sin límite de usos
+// 4. Copiá el link (formato: https://mpago.la/XXXXXX) y pegalo acá
+const MP_LINKS = {
+  pro: 'https://mpago.la/REEMPLAZAR_PRO',   // ← tu link Pro
+  max: 'https://mpago.la/REEMPLAZAR_MAX',   // ← tu link Max
+};
+const PRECIOS  = { pro: '$9.000', max: '$15.000' };
+const WA_MSGS  = {
+  pro: 'Hola%2C%20quiero%20activar%20el%20plan%20*Pro*%20de%20PsicoApp%20(%249.000%2Fmes)',
+  max: 'Hola%2C%20quiero%20activar%20el%20plan%20*Max*%20de%20PsicoApp%20(%2415.000%2Fmes)',
+};
+let planSeleccionado = 'pro';
+
 function abrirModal(plan) {
+  planSeleccionado = plan;
   const info = planesInfo[plan];
   document.getElementById('modalTitle').textContent = info.title;
   document.getElementById('modalPreview').innerHTML = `
@@ -662,8 +694,35 @@ function abrirModal(plan) {
     <div class="modal-features">
       ${info.features.map(f => `<div class="modal-feat">${f}</div>`).join('')}
     </div>`;
+  document.getElementById('modalPrecio').textContent = PRECIOS[plan] || '$9.000';
+  document.getElementById('linkWA').href =
+    `https://wa.me/5492346699176?text=${WA_MSGS[plan]}`;
   document.getElementById('overlay').classList.add('open');
 }
+
+function irAMercadoPago() {
+  const link = MP_LINKS[planSeleccionado];
+  if (!link || link.includes('REEMPLAZAR')) {
+    window.open(`https://wa.me/5492346699176?text=${WA_MSGS[planSeleccionado]}`, '_blank');
+    mostrarToast('📲 Redirigiendo a WhatsApp para activar tu plan');
+    return;
+  }
+  mostrarToast('🔄 Abriendo Mercado Pago...', false);
+  window.open(link, '_blank');
+}
+
+function mostrarToast(msg, autoHide = true) {
+  let t = document.getElementById('toast-cuenta');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-cuenta';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;transition:opacity 0.3s;max-width:320px;text-align:center';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1'; t.style.display = 'block';
+  if (autoHide) setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.style.display='none',300); }, 3000);
+}
+
 function cerrarModal() {
   document.getElementById('overlay').classList.remove('open');
 }
