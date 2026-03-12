@@ -184,15 +184,84 @@ _Psicoapp_</div>
   </div>
 </div>
 
+
+<!-- OVERLAY + DRAWER -->
+<div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
+<div class="side-drawer" id="sideDrawer">
+  <div class="drawer-header">
+    <img src="/logo-psicoapp.png" alt="PsicoApp">
+    <div>
+      <div class="drawer-logo-txt">Psico<span>App</span></div>
+      <div class="drawer-tagline">Gestión para psicólogos</div>
+    </div>
+  </div>
+  <div class="drawer-section-title">Principal</div>
+  <a href="psicoapp-index.html" class="drawer-item" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
+  <a href="psicoapp-agenda.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
+  <a href="psicoapp-pacientes.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
+  <a href="psicoapp-whatsapp.html" class="drawer-item active" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
+  <a href="psicoapp-cuenta.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
+  <div class="drawer-section-title">Más módulos</div>
+  <a href="psicoapp-pagos.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
+  <a href="psicoapp-pericias.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
+  <a href="psicoapp-perfil.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
+
+  <div class="drawer-footer">
+    
+  </div>
+</div>
+
+<!-- OVERLAY + DRAWER -->
+<div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
+<div class="side-drawer" id="sideDrawer">
+  <div class="drawer-header">
+    <img src="/logo-psicoapp.png" alt="PsicoApp">
+    <div>
+      <div class="drawer-logo-txt">Psico<span>App</span></div>
+      <div class="drawer-tagline">Gestión para psicólogos</div>
+    </div>
+  </div>
+  <div class="drawer-section-title">Principal</div>
+  <a href="psicoapp-index.html" class="drawer-item" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
+  <a href="psicoapp-agenda.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
+  <a href="psicoapp-pacientes.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
+  <a href="psicoapp-whatsapp.html" class="drawer-item active" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
+  <a href="psicoapp-cuenta.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
+  <div class="drawer-section-title">Más módulos</div>
+  <a href="psicoapp-pagos.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
+  <a href="psicoapp-pericias.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
+  <a href="psicoapp-perfil.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
+  <div class="drawer-footer">
+    <button class="drawer-logout" onclick="doLogout()">🚪 Cerrar sesión</button>
+  </div>
+</div>
 <nav class="app-nav">
-  <a href="psicoapp-index.html"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-index.html"><span class="ni">🏠</span><span class="nl">Inicio</span></a>
   <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
   <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
-  <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
   <a href="psicoapp-whatsapp.html" class="on"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
-  <a href="psicoapp-pericias.html"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
   <a href="psicoapp-cuenta.html"><span class="ni">👤</span><span class="nl">Cuenta</span></a>
+  <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
 </nav>
+
+
+<script>
+function toggleDrawer() {
+  document.getElementById('sideDrawer').classList.toggle('open');
+  document.getElementById('menuOverlay').classList.toggle('open');
+}
+function closeDrawer() {
+  document.getElementById('sideDrawer').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('open');
+}
+async function doLogout() {
+  const {createClient} = supabase;
+  const sb = createClient('https://terlbqrcampdqtxjbihg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8');
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+</script>
+
 
 <script>
 const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
