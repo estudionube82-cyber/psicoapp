@@ -137,6 +137,15 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
     </div>
   </div>
 
+  <div class="form-card">
+    <div class="form-card-title">💰 Honorarios</div>
+    <div class="field">
+      <div class="field-label">Valor de sesión por defecto</div>
+      <input class="field-input" id="f-valor-sesion" type="number" min="0" step="500" placeholder="Ej: 15000">
+      <div class="field-hint">Se completa automáticamente al registrar un pago o al marcar una sesión como realizada.</div>
+    </div>
+  </div>
+
   <button class="btn-guardar" id="btnGuardar" onclick="guardarPerfil()">✓ Guardar cambios</button>
 
   <div style="height:14px"></div>
@@ -249,7 +258,7 @@ async function cargarPerfil() {
   // intentar leer de profiles
   const { data } = await sb
     .from('profiles')
-    .select('titulo, nombre_completo, especialidad, direccion, telefono_profesional')
+    .select('titulo, nombre_completo, especialidad, direccion, telefono_profesional, valor_sesion')
     .eq('id', userId)
     .maybeSingle();
 
@@ -264,6 +273,7 @@ async function cargarPerfil() {
   document.getElementById('f-especialidad').value= especialidad;
   document.getElementById('f-direccion').value   = direccion;
   document.getElementById('f-telefono').value    = telefono;
+  document.getElementById('f-valor-sesion').value = data?.valor_sesion || '';
 
   actualizarPreview();
 
@@ -290,6 +300,7 @@ async function guardarPerfil() {
     especialidad:         document.getElementById('f-especialidad').value.trim(),
     direccion:            document.getElementById('f-direccion').value.trim(),
     telefono_profesional: document.getElementById('f-telefono').value.trim(),
+    valor_sesion:         parseFloat(document.getElementById('f-valor-sesion').value) || null,
     updated_at:           new Date().toISOString(),
   });
 

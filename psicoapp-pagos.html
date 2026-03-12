@@ -61,11 +61,13 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 .pc-transferencia::before { background:#1976D2; }
 .pc-debito::before { background:#7B5EA7; }
 .pc-credito::before { background:var(--accent); }
+.pc-pendiente::before { background:#F59E0B; }
 .pago-icon { width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
 .pi-efectivo { background:var(--primary-light); }
 .pi-transferencia { background:#E3F2FD; }
 .pi-debito { background:#EDE9FE; }
 .pi-credito { background:var(--accent-light); }
+.pi-pendiente { background:#FEF3C7; }
 .pago-info { flex:1; min-width:0; }
 .pago-nombre { font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .pago-meta { font-size:11px; color:var(--text-muted); margin-top:2px; }
@@ -271,6 +273,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
         <option value="transferencia">🏦 Transferencia</option>
         <option value="debito">💳 Débito</option>
         <option value="credito">💳 Crédito</option>
+        <option value="pendiente">⏳ Pendiente</option>
       </select>
     </div>
     <div class="field">
@@ -357,8 +360,8 @@ const { createClient } = supabase;
 const sb = createClient(SUPA_URL, SUPA_KEY);
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const METODO_ICON = { efectivo:'💵', transferencia:'🏦', debito:'💳 D', credito:'💳 C' };
-const METODO_CLS  = { efectivo:'pc-efectivo pi-efectivo', transferencia:'pc-transferencia pi-transferencia', debito:'pc-debito pi-debito', credito:'pc-credito pi-credito' };
+const METODO_ICON = { efectivo:'💵', transferencia:'🏦', debito:'💳 D', credito:'💳 C', pendiente:'⏳' };
+const METODO_CLS  = { efectivo:'pc-efectivo pi-efectivo', transferencia:'pc-transferencia pi-transferencia', debito:'pc-debito pi-debito', credito:'pc-credito pi-credito', pendiente:'pc-pendiente pi-pendiente' };
 
 let mesActual = new Date().getMonth();
 let anioActual = new Date().getFullYear();
@@ -473,7 +476,7 @@ function navMes(dir) {
 }
 
 // ── MODAL NUEVO PAGO ──
-function abrirModal() {
+async function abrirModal() {
   document.getElementById('f-fecha').value = fmtDate(new Date());
   document.getElementById('f-monto').value = '';
   document.getElementById('f-paciente').value = '';
@@ -481,6 +484,16 @@ function abrirModal() {
   document.getElementById('f-metodo').value = 'efectivo';
   document.getElementById('msgError').style.display = 'none';
   document.getElementById('overlay').classList.add('open');
+
+  // cargar valor_sesion del perfil como default
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    const { data: perfil } = await sb.from('profiles')
+      .select('valor_sesion').eq('id', session.user.id).maybeSingle();
+    if (perfil?.valor_sesion) {
+      document.getElementById('f-monto').value = perfil.valor_sesion;
+    }
+  } catch(e) {}
 }
 function cerrarModal() { document.getElementById('overlay').classList.remove('open'); }
 
@@ -553,7 +566,7 @@ async function eliminarPago() {
 function fmtDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function fmtFechaLinda(f) { if(!f)return''; const [y,m,d]=f.split('-'); return `${d}/${m}/${y}`; }
 function formatPeso(n) { if(!n)return'$0'; if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M'; if(n>=1000)return'$'+Math.round(n/1000)+'k'; return '$'+n; }
-function metodoLabel(m) { return {efectivo:'Efectivo',transferencia:'Transferencia',debito:'Débito',credito:'Crédito'}[m]||m; }
+function metodoLabel(m) { return {efectivo:'Efectivo',transferencia:'Transferencia',debito:'Débito',credito:'Crédito',pendiente:'Pendiente'}[m]||m; }
 function filaD(icon,label,val) { return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:16px">${icon}</span><div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">${label}</div><div style="font-size:14px;font-weight:600;margin-top:2px">${val}</div></div></div>`; }
 </script>
 </body>
