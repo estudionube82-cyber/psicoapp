@@ -27,6 +27,38 @@
       padding-bottom: 80px;
     }
 
+    /* ── RESPONSIVE WRAPPER ── */
+    .page-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 600px) {
+      .header { padding: 18px 32px; }
+      .header-brand { font-size: 22px; }
+      .hero-card { margin: 20px 20px 0; padding: 36px 32px; }
+      .hero-titulo { font-size: 28px; }
+      .hero-frase { font-size: 16px; }
+      .stats-grid { padding: 20px 20px 0; gap: 16px; }
+      .stat-card { padding: 22px; }
+      .stat-valor { font-size: 36px; }
+      .stat-icon { font-size: 30px; }
+      .stat-label { font-size: 14px; }
+      .section { padding: 20px 20px 0; }
+      .section-titulo { font-size: 17px; }
+      .turno-card { padding: 18px 20px; margin-bottom: 12px; }
+      .turno-hora { font-size: 17px; }
+      .turno-paciente { font-size: 17px; }
+      .accesos-grid { gap: 14px; }
+      .acceso-btn { padding: 20px 10px; }
+      .acceso-icon { font-size: 32px; }
+      .acceso-label { font-size: 13px; }
+      .impacto-card { padding: 24px; }
+      .impacto-num { font-size: 32px; }
+      .barras-fila { height: 80px; }
+      .nav-bottom { max-width: 720px; left: 50%; transform: translateX(-50%); border-radius: 16px 16px 0 0; }
+    }
+
     /* ── HEADER ── */
     .header {
       background: var(--blanco);
@@ -449,10 +481,12 @@
   </div>
 </header>
 
+<div class="page-wrap">
+
 <!-- HERO -->
 <div class="hero-card">
   <div class="hero-fecha" id="hero-fecha">—</div>
-  <div class="hero-titulo" id="hero-titulo">Bienvenido/a</div>
+  <div class="hero-titulo" id="hero-titulo">Cargando…</div>
   <div class="hero-frase" id="hero-frase">"Cada sesión es un paso hacia el cambio."</div>
 </div>
 
@@ -547,6 +581,8 @@
     </div>
   </div>
 </div>
+
+</div><!-- /page-wrap -->
 
 <!-- NAV BOTTOM -->
 <nav class="nav-bottom">

@@ -28,6 +28,40 @@
       padding-bottom: 80px;
     }
 
+    /* ── RESPONSIVE ── */
+    .page-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 600px) {
+      .header { padding: 18px 32px; }
+      .header-title { font-size: 22px; }
+      .btn-agregar { padding: 10px 22px; font-size: 15px; }
+      .semana-nav { padding: 14px 32px; }
+      .semana-label { font-size: 16px; }
+      .semana-nav button { font-size: 26px; }
+      .dias-scroll { padding: 12px 20px; gap: 0; justify-content: space-around; }
+      .dia-chip { min-width: 70px; padding: 10px 8px; border-radius: 16px; }
+      .dia-nombre { font-size: 13px; }
+      .dia-num { font-size: 26px; }
+      .contenido { padding: 24px 24px; }
+      .dia-titulo { font-size: 16px; margin-bottom: 16px; }
+      .turno-card { padding: 18px 20px; margin-bottom: 12px; }
+      .turno-hora { font-size: 20px; }
+      .turno-dur { font-size: 13px; }
+      .turno-hora-wrap { min-width: 64px; }
+      .turno-paciente { font-size: 17px; }
+      .turno-tipo { font-size: 14px; }
+      .badge-estado { font-size: 13px; padding: 5px 14px; }
+      .fab { bottom: 100px; right: 32px; width: 62px; height: 62px; font-size: 32px; }
+      .nav-bottom { max-width: 720px; left: 50%; transform: translateX(-50%); border-radius: 16px 16px 0 0; }
+      .modal { max-width: 520px; margin: 0 auto; border-radius: 20px; }
+      .modal-overlay { align-items: center; padding: 20px; }
+      .mini-modal { max-width: 440px; margin: 0 auto; border-radius: 20px; }
+      .mini-modal-overlay { align-items: center; padding: 20px; }
+    }
+
     /* ── HEADER ── */
     .header {
       background: var(--blanco);
@@ -87,7 +121,7 @@
       background: var(--blanco);
       padding: 10px 16px;
       display: flex;
-      gap: 8px;
+      gap: 6px;
       overflow-x: auto;
       border-bottom: 1px solid #eef0f3;
       -webkit-overflow-scrolling: touch;
@@ -97,9 +131,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-width: 46px;
-      padding: 8px 4px;
-      border-radius: 12px;
+      flex: 1;
+      min-width: 44px;
+      padding: 10px 6px;
+      border-radius: 14px;
       cursor: pointer;
       border: none;
       background: none;
@@ -487,6 +522,8 @@
   </button>
 </header>
 
+<div class="page-wrap">
+
 <!-- SEMANA NAV -->
 <div class="semana-nav">
   <button onclick="cambiarSemana(-1)">‹</button>
@@ -503,6 +540,8 @@
 <div class="contenido" id="contenido">
   <div class="loading">Cargando turnos…</div>
 </div>
+
+</div><!-- /page-wrap -->
 
 <!-- FAB -->
 <button class="fab" onclick="abrirModalNuevo()">+</button>
