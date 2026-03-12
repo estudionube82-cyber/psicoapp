@@ -128,6 +128,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
   </div>
 
   <div class="form-card">
+    <div class="form-card-title">Honorarios</div>
+    <div class="field">
+      <div class="field-label">Valor por sesión (ARS)</div>
+      <input class="field-input" id="f-valor-sesion" type="number" placeholder="Ej: 15000" min="0" step="500">
+      <div class="field-hint">Se usa para registrar el pago automáticamente al marcar una sesión como realizada.</div>
+    </div>
+  </div>
+
+  <div class="form-card">
     <div class="form-card-title">Contacto</div>
     <div class="field">
       <div class="field-label">Teléfono / WhatsApp</div>
@@ -201,7 +210,7 @@ async function doLogout(){await sb.auth.signOut();window.location.href='login.ht
 
 async function cargarPerfil(){
   const{data}=await sb.from('profiles')
-    .select('titulo,nombre_completo,especialidad,direccion,telefono_profesional')
+    .select('titulo,nombre_completo,especialidad,direccion,telefono_profesional,valor_sesion')
     .eq('id',userId).maybeSingle();
   const titulo=data?.titulo||'Lic.';
   const nombre=data?.nombre_completo||'';
@@ -210,6 +219,7 @@ async function cargarPerfil(){
   document.getElementById('f-especialidad').value=data?.especialidad||'';
   document.getElementById('f-direccion').value=data?.direccion||'';
   document.getElementById('f-telefono').value=data?.telefono_profesional||'';
+  document.getElementById('f-valor-sesion').value=data?.valor_sesion||'';
   actualizarPreview();
   const iniciales=nombre.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
   document.getElementById('avatarIniciales').textContent=iniciales||'?';
