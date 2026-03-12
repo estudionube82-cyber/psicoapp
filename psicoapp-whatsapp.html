@@ -77,6 +77,30 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 .app-nav a .ni { font-size:22px; line-height:1; display:block; }
 .app-nav a .nl { font-size:10px; font-weight:700; display:block; }
 .app-nav a.on .nl { color:#2D6A4F; }
+
+/* NAV + DRAWER */
+.app-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:64px;background:#fff;border-top:1.5px solid #E8E4DD;display:flex;align-items:center;z-index:2147483647;box-shadow:0 -2px 12px rgba(0,0,0,0.09);}
+.app-nav a,.app-nav button.nav-menu-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0;background:none;border:none;cursor:pointer;}
+.app-nav a .ni,.app-nav button.nav-menu-btn .ni{font-size:22px;line-height:1;display:block;}
+.app-nav a .nl,.app-nav button.nav-menu-btn .nl{font-size:10px;font-weight:700;display:block;}
+.app-nav a.on .nl{color:#2D6A4F;}
+.menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;backdrop-filter:blur(2px);}
+.menu-overlay.open{display:block;}
+.side-drawer{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:9999;box-shadow:4px 0 24px rgba(0,0,0,0.15);transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
+.side-drawer.open{left:0;}
+.drawer-header{background:linear-gradient(135deg,#2D6A4F 0%,#3A7D5F 50%,#F4A261 100%);padding:48px 20px 24px;display:flex;align-items:center;gap:12px;}
+.drawer-header img{width:48px;height:48px;object-fit:contain;}
+.drawer-logo-txt{font-size:22px;font-weight:800;color:white;}
+.drawer-logo-txt span{color:#FFD580;}
+.drawer-tagline{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;}
+.drawer-section-title{font-size:10px;font-weight:800;color:#8A8FA8;letter-spacing:1.5px;text-transform:uppercase;padding:16px 20px 6px;}
+.drawer-item{display:flex;align-items:center;gap:14px;padding:13px 20px;text-decoration:none;color:#1A1A2E;font-size:15px;font-weight:600;transition:background 0.15s;border-left:3px solid transparent;}
+.drawer-item:hover{background:#F4F1ED;}
+.drawer-item.active{background:#E8F5EE;color:#2D6A4F;border-left-color:#2D6A4F;}
+.drawer-item .di{font-size:20px;width:28px;text-align:center;}
+.drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
+.drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
+
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2D6A4F">
@@ -211,8 +235,6 @@ _Psicoapp_</div>
   </div>
 </div>
 
-<!-- OVERLAY + DRAWER -->
-<div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
 <div class="side-drawer" id="sideDrawer">
   <div class="drawer-header">
     <img src="/logo-psicoapp.png" alt="PsicoApp">

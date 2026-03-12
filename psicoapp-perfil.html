@@ -3,72 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Psicoapp — Mi perfil</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<title>PsicoApp — Mi perfil</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --bg: #F4F1ED; --surface: #FFFFFF;
-  --primary: #2D6A4F; --primary-light: #E8F5EE;
-  --accent: #F4A261;
-  --text: #1A1A2E; --text-muted: #8A8FA8; --border: #E8E4DD;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
-  --radius: 16px;
+  --bg:#F4F1ED; --surface:#FFFFFF; --primary:#2D6A4F; --primary-light:#E8F5EE;
+  --accent:#F4A261; --text:#1A1A2E; --muted:#8A8FA8; --border:#E8E4DD;
+  --sh:0 2px 8px rgba(0,0,0,0.06); --r:16px;
 }
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); max-width:430px; margin:0 auto; min-height:100vh; padding-bottom:80px; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;}
 
-.header { background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50; box-shadow:var(--shadow-sm); }
-.header-top { display:flex; align-items:center; padding:14px 18px; gap:10px; }
-.logo { font-family:'Playfair Display',serif; font-size:20px; color:var(--primary); }
-.logo span { color:var(--accent); }
-.header-title { flex:1; text-align:center; font-size:16px; font-weight:800; }
-.back-btn { width:34px; height:34px; border-radius:10px; background:var(--bg); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; }
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--sh);}
+.header-top{display:flex;align-items:center;padding:14px 18px;gap:10px;}
+.header-title{flex:1;text-align:center;font-size:16px;font-weight:800;}
+.back-btn{width:34px;height:34px;border-radius:10px;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;}
 
 /* AVATAR */
-.avatar-section { display:flex; flex-direction:column; align-items:center; padding:28px 20px 20px; }
-.avatar { width:80px; height:80px; border-radius:24px; background:linear-gradient(135deg,#1B4332,#2D6A4F); display:flex; align-items:center; justify-content:center; font-size:32px; color:white; font-weight:800; margin-bottom:10px; }
-.avatar-nombre { font-size:18px; font-weight:800; }
-.avatar-email { font-size:13px; color:var(--text-muted); margin-top:2px; }
+.avatar-section{display:flex;flex-direction:column;align-items:center;padding:28px 20px 20px;}
+.avatar{width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#1B4332,#2D6A4F);display:flex;align-items:center;justify-content:center;font-size:32px;color:white;font-weight:800;margin-bottom:10px;}
+.avatar-nombre{font-size:18px;font-weight:800;}
+.avatar-email{font-size:13px;color:var(--muted);margin-top:2px;}
 
 /* FORM */
-.form-section { padding:0 16px; }
-.form-card { background:var(--surface); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-sm); margin-bottom:14px; }
-.form-card-title { font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; }
-.field { margin-bottom:14px; }
-.field:last-child { margin-bottom:0; }
-.field-label { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
-.field-input { width:100%; border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; font-size:15px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--bg); outline:none; }
-.field-input:focus { border-color:var(--primary); background:white; }
-.field-hint { font-size:11px; color:var(--text-muted); margin-top:5px; }
-
-/* PREVIEW */
-.preview-box { background:var(--primary-light); border-radius:12px; padding:12px 14px; margin-top:12px; }
-.preview-label { font-size:10px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
-.preview-text { font-size:14px; font-weight:700; color:var(--primary); }
+.form-section{padding:0 16px;}
+.form-card{background:var(--surface);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:14px;}
+.form-card-title{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+.field-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.field-input{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);outline:none;}
+.field-input:focus{border-color:var(--primary);background:white;}
+.field-hint{font-size:11px;color:var(--muted);margin-top:5px;}
+.preview-box{background:var(--primary-light);border-radius:12px;padding:12px 14px;margin-top:12px;}
+.preview-label{font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.preview-text{font-size:14px;font-weight:700;color:var(--primary);}
 
 /* BTN */
-.btn-guardar { width:100%; background:var(--primary); color:white; border:none; border-radius:14px; padding:16px; font-size:16px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; }
-.btn-guardar:disabled { opacity:0.6; cursor:not-allowed; }
-
-/* LOGOUT */
-.btn-logout { width:100%; background:none; border:1.5px solid #E53935; color:#E53935; border-radius:14px; padding:14px; font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; }
+.btn-guardar{width:100%;background:var(--primary);color:white;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.btn-guardar:disabled{opacity:0.6;cursor:not-allowed;}
+.btn-logout{width:100%;background:none;border:1.5px solid #E53935;color:#E53935;border-radius:14px;padding:14px;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;}
 
 /* TOAST */
-.toast { position:fixed; top:80px; left:50%; transform:translateX(-50%); background:#1A1A2E; color:white; padding:12px 22px; border-radius:12px; font-size:14px; font-weight:600; z-index:999; display:none; animation:fadeUp 0.3s ease; }
-.toast.show { display:block; }
-@keyframes fadeUp { from{opacity:0;transform:translate(-50%,8px)} to{opacity:1;transform:translate(-50%,0)} }
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:9990;display:none;}
+.toast.show{display:block;animation:fadeUp 0.3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 
-/* NAV */
-.app-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; height:64px; background:#fff; border-top:1.5px solid #E8E4DD; display:flex; align-items:center; z-index:2147483647; box-shadow:0 -2px 12px rgba(0,0,0,0.09); }
-.app-nav a { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; text-decoration:none; color:#8A8FA8; padding:4px 0; }
-.app-nav a .ni { font-size:22px; line-height:1; display:block; }
-.app-nav a .nl { font-size:10px; font-weight:700; display:block; }
+/* NAV + DRAWER */
+.app-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:64px;background:#fff;border-top:1.5px solid #E8E4DD;display:flex;align-items:center;z-index:2147483647;box-shadow:0 -2px 12px rgba(0,0,0,0.09);}
+.app-nav a,.app-nav button.nav-menu-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0;background:none;border:none;cursor:pointer;}
+.app-nav a .ni,.app-nav button.nav-menu-btn .ni{font-size:22px;line-height:1;display:block;}
+.app-nav a .nl,.app-nav button.nav-menu-btn .nl{font-size:10px;font-weight:700;display:block;}
+.app-nav a.on .nl{color:#2D6A4F;}
+.menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;backdrop-filter:blur(2px);}
+.menu-overlay.open{display:block;}
+.side-drawer{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:9999;box-shadow:4px 0 24px rgba(0,0,0,0.15);transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
+.side-drawer.open{left:0;}
+.drawer-header{background:linear-gradient(135deg,#2D6A4F 0%,#3A7D5F 50%,#F4A261 100%);padding:48px 20px 24px;display:flex;align-items:center;gap:12px;}
+.drawer-header img{width:48px;height:48px;object-fit:contain;}
+.drawer-logo-txt{font-size:22px;font-weight:800;color:white;}
+.drawer-logo-txt span{color:#FFD580;}
+.drawer-tagline{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;}
+.drawer-section-title{font-size:10px;font-weight:800;color:#8A8FA8;letter-spacing:1.5px;text-transform:uppercase;padding:16px 20px 6px;}
+.drawer-item{display:flex;align-items:center;gap:14px;padding:13px 20px;text-decoration:none;color:#1A1A2E;font-size:15px;font-weight:600;transition:background 0.15s;border-left:3px solid transparent;}
+.drawer-item:hover{background:#F4F1ED;}
+.drawer-item.active{background:#E8F5EE;color:#2D6A4F;border-left-color:#2D6A4F;}
+.drawer-item .di{font-size:20px;width:28px;text-align:center;}
+.drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
+.drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2D6A4F">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
 </head>
 <body>
@@ -81,19 +89,15 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
   </div>
 </div>
 
-<!-- AVATAR -->
 <div class="avatar-section">
   <div class="avatar" id="avatarIniciales">?</div>
   <div class="avatar-nombre" id="avatarNombre">Cargando...</div>
   <div class="avatar-email" id="avatarEmail"></div>
 </div>
 
-<!-- FORM -->
 <div class="form-section">
-
   <div class="form-card">
     <div class="form-card-title">Datos profesionales</div>
-
     <div class="field">
       <div class="field-label">Título</div>
       <select class="field-input" id="f-titulo">
@@ -105,22 +109,18 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
         <option value="">Sin título</option>
       </select>
     </div>
-
     <div class="field">
       <div class="field-label">Nombre completo</div>
       <input class="field-input" id="f-nombre" type="text" placeholder="Tu nombre y apellido" oninput="actualizarPreview()">
     </div>
-
     <div class="field">
       <div class="field-label">Especialidad</div>
       <input class="field-input" id="f-especialidad" type="text" placeholder="Ej: Psicólogo Clínico, Perito Psicólogo...">
     </div>
-
     <div class="field">
       <div class="field-label">Dirección del consultorio</div>
       <input class="field-input" id="f-direccion" type="text" placeholder="Ej: Rivadavia 450, Chivilcoy">
     </div>
-
     <div class="preview-box">
       <div class="preview-label">Así vas a aparecer en los mensajes</div>
       <div class="preview-text" id="previewNombre">—</div>
@@ -129,7 +129,6 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 
   <div class="form-card">
     <div class="form-card-title">Contacto</div>
-
     <div class="field">
       <div class="field-label">Teléfono / WhatsApp</div>
       <input class="field-input" id="f-telefono" type="tel" placeholder="Ej: 2346 699176">
@@ -138,20 +137,16 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
   </div>
 
   <button class="btn-guardar" id="btnGuardar" onclick="guardarPerfil()">✓ Guardar cambios</button>
-
   <div style="height:14px"></div>
-
   <div class="form-card">
     <div class="form-card-title">Cuenta</div>
     <button class="btn-logout" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
   </div>
-
 </div>
 
 <div class="toast" id="toast">✓ Perfil guardado</div>
 
-
-<!-- OVERLAY + DRAWER -->
+<!-- OVERLAY + DRAWER (una sola vez) -->
 <div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
 <div class="side-drawer" id="sideDrawer">
   <div class="drawer-header">
@@ -162,45 +157,20 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
     </div>
   </div>
   <div class="drawer-section-title">Principal</div>
-  <a href="psicoapp-index.html" class="drawer-item" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
-  <a href="psicoapp-agenda.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
+  <a href="psicoapp-index.html"     class="drawer-item" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
+  <a href="psicoapp-agenda.html"    class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
   <a href="psicoapp-pacientes.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
-  <a href="psicoapp-whatsapp.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
-  <a href="psicoapp-cuenta.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
+  <a href="psicoapp-whatsapp.html"  class="drawer-item" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
+  <a href="psicoapp-cuenta.html"    class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
   <div class="drawer-section-title">Más módulos</div>
-  <a href="psicoapp-pagos.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
-  <a href="psicoapp-pericias.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
-  <a href="psicoapp-perfil.html" class="drawer-item active" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
-
-  <div class="drawer-footer">
-    
-  </div>
-</div>
-
-<!-- OVERLAY + DRAWER -->
-<div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
-<div class="side-drawer" id="sideDrawer">
-  <div class="drawer-header">
-    <img src="/logo-psicoapp.png" alt="PsicoApp">
-    <div>
-      <div class="drawer-logo-txt">Psico<span>App</span></div>
-      <div class="drawer-tagline">Gestión para psicólogos</div>
-    </div>
-  </div>
-  <div class="drawer-section-title">Principal</div>
-  <a href="psicoapp-index.html" class="drawer-item" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
-  <a href="psicoapp-agenda.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
-  <a href="psicoapp-pacientes.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
-  <a href="psicoapp-whatsapp.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
-  <a href="psicoapp-cuenta.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
-  <div class="drawer-section-title">Más módulos</div>
-  <a href="psicoapp-pagos.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
-  <a href="psicoapp-pericias.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
-  <a href="psicoapp-perfil.html" class="drawer-item active" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
+  <a href="psicoapp-pagos.html"     class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
+  <a href="psicoapp-pericias.html"  class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
+  <a href="psicoapp-perfil.html"    class="drawer-item active" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
   <div class="drawer-footer">
     <button class="drawer-logout" onclick="doLogout()">🚪 Cerrar sesión</button>
   </div>
 </div>
+
 <nav class="app-nav">
   <a href="psicoapp-index.html"><span class="ni">🏠</span><span class="nl">Inicio</span></a>
   <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
@@ -210,119 +180,83 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
   <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
 </nav>
 
-
-<script>
-function toggleDrawer() {
-  document.getElementById('sideDrawer').classList.toggle('open');
-  document.getElementById('menuOverlay').classList.toggle('open');
-}
-function closeDrawer() {
-  document.getElementById('sideDrawer').classList.remove('open');
-  document.getElementById('menuOverlay').classList.remove('open');
-}
-async function doLogout() {
-  const {createClient} = supabase;
-  const sb = createClient('https://terlbqrcampdqtxjbihg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8');
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
-</script>
-
-
 <script>
 const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
 const { createClient } = supabase;
 const sb = createClient(SUPA_URL, SUPA_KEY);
-
 let userId = null;
 
-(async () => {
-  const { data:{ session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-  userId = session.user.id;
-  document.getElementById('avatarEmail').textContent = session.user.email;
+function toggleDrawer(){document.getElementById('sideDrawer').classList.toggle('open');document.getElementById('menuOverlay').classList.toggle('open');}
+function closeDrawer(){document.getElementById('sideDrawer').classList.remove('open');document.getElementById('menuOverlay').classList.remove('open');}
+async function doLogout(){await sb.auth.signOut();window.location.href='login.html';}
+
+(async()=>{
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+  userId=session.user.id;
+  document.getElementById('avatarEmail').textContent=session.user.email;
   await cargarPerfil();
 })();
 
-async function cargarPerfil() {
-  // intentar leer de profiles
-  const { data } = await sb
-    .from('profiles')
-    .select('titulo, nombre_completo, especialidad, direccion, telefono_profesional')
-    .eq('id', userId)
-    .maybeSingle();
-
-  const titulo      = data?.titulo || 'Lic.';
-  const nombre      = data?.nombre_completo || '';
-  const especialidad= data?.especialidad || '';
-  const direccion   = data?.direccion || '';
-  const telefono    = data?.telefono_profesional || '';
-
-  document.getElementById('f-titulo').value      = titulo;
-  document.getElementById('f-nombre').value      = nombre;
-  document.getElementById('f-especialidad').value= especialidad;
-  document.getElementById('f-direccion').value   = direccion;
-  document.getElementById('f-telefono').value    = telefono;
-
+async function cargarPerfil(){
+  const{data}=await sb.from('profiles')
+    .select('titulo,nombre_completo,especialidad,direccion,telefono_profesional')
+    .eq('id',userId).maybeSingle();
+  const titulo=data?.titulo||'Lic.';
+  const nombre=data?.nombre_completo||'';
+  document.getElementById('f-titulo').value=titulo;
+  document.getElementById('f-nombre').value=nombre;
+  document.getElementById('f-especialidad').value=data?.especialidad||'';
+  document.getElementById('f-direccion').value=data?.direccion||'';
+  document.getElementById('f-telefono').value=data?.telefono_profesional||'';
   actualizarPreview();
-
-  const nombreCompleto = nombre || 'Sin nombre';
-  const iniciales = nombreCompleto.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-  document.getElementById('avatarIniciales').textContent = iniciales || '?';
-  document.getElementById('avatarNombre').textContent = `${titulo} ${nombreCompleto}`.trim();
+  const iniciales=nombre.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  document.getElementById('avatarIniciales').textContent=iniciales||'?';
+  document.getElementById('avatarNombre').textContent=`${titulo} ${nombre}`.trim();
 }
 
-function actualizarPreview() {
-  const titulo = document.getElementById('f-titulo').value;
-  const nombre = document.getElementById('f-nombre').value.trim();
-  document.getElementById('previewNombre').textContent = `${titulo} ${nombre}`.trim() || '—';
+function actualizarPreview(){
+  const t=document.getElementById('f-titulo').value;
+  const n=document.getElementById('f-nombre').value.trim();
+  document.getElementById('previewNombre').textContent=`${t} ${n}`.trim()||'—';
 }
 
-async function guardarPerfil() {
-  const btn = document.getElementById('btnGuardar');
-  btn.disabled = true; btn.textContent = 'Guardando...';
-
-  const { error } = await sb.from('profiles').upsert({
-    id:                   userId,
-    titulo:               document.getElementById('f-titulo').value,
-    nombre_completo:      document.getElementById('f-nombre').value.trim(),
-    especialidad:         document.getElementById('f-especialidad').value.trim(),
-    direccion:            document.getElementById('f-direccion').value.trim(),
-    telefono_profesional: document.getElementById('f-telefono').value.trim(),
-    updated_at:           new Date().toISOString(),
+async function guardarPerfil(){
+  const btn=document.getElementById('btnGuardar');
+  btn.disabled=true;btn.textContent='Guardando...';
+  const{error}=await sb.from('profiles').upsert({
+    id:userId,
+    titulo:document.getElementById('f-titulo').value,
+    nombre_completo:document.getElementById('f-nombre').value.trim(),
+    especialidad:document.getElementById('f-especialidad').value.trim(),
+    direccion:document.getElementById('f-direccion').value.trim(),
+    telefono_profesional:document.getElementById('f-telefono').value.trim(),
+    updated_at:new Date().toISOString(),
   });
-
-  btn.disabled = false; btn.textContent = '✓ Guardar cambios';
-
-  if (error) {
-    alert('Error al guardar: ' + error.message);
-    return;
-  }
-
-  // actualizar avatar
-  const titulo = document.getElementById('f-titulo').value;
-  const nombre = document.getElementById('f-nombre').value.trim();
-  const iniciales = nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-  document.getElementById('avatarIniciales').textContent = iniciales || '?';
-  document.getElementById('avatarNombre').textContent = `${titulo} ${nombre}`.trim();
-
+  btn.disabled=false;btn.textContent='✓ Guardar cambios';
+  if(error){alert('Error: '+error.message);return;}
+  const t=document.getElementById('f-titulo').value;
+  const n=document.getElementById('f-nombre').value.trim();
+  const ini=n.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  document.getElementById('avatarIniciales').textContent=ini||'?';
+  document.getElementById('avatarNombre').textContent=`${t} ${n}`.trim();
   mostrarToast('✓ Perfil guardado');
 }
 
-async function cerrarSesion() {
-  if (!confirm('¿Cerrar sesión?')) return;
+async function cerrarSesion(){
+  if(!confirm('¿Cerrar sesión?'))return;
   await sb.auth.signOut();
-  window.location.href = 'login.html';
+  window.location.href='login.html';
 }
 
-function mostrarToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+function mostrarToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-document.getElementById('f-titulo').addEventListener('change', actualizarPreview);
+document.getElementById('f-titulo').addEventListener('change',actualizarPreview);
 </script>
 </body>
 </html>
