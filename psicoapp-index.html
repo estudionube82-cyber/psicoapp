@@ -4,235 +4,156 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>PsicoApp — Inicio</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --green:  #2D6A4F;
-  --green2: #3A7D5F;
-  --orange: #F4A261;
-  --orange2:#E8873A;
-  --blue:   #1976D2;
-  --purple: #6B5FA0;
-  --bg:     #F0F4F2;
-  --surface:#FFFFFF;
-  --text:   #1A1A2E;
-  --muted:  #7A8595;
-  --border: #E2E8E4;
-  --r:      16px;
-  --sh:     0 2px 12px rgba(0,0,0,0.07);
-  --sh-md:  0 6px 24px rgba(0,0,0,0.11);
+  --bg: #F4F1ED;
+  --surface: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-light: #E8F5EE;
+  --primary-mid: #52B788;
+  --accent: #F4A261;
+  --accent-dark: #E76F51;
+  --accent-light: #FEF0E6;
+  --text: #1A1A2E;
+  --text-muted: #8A8FA8;
+  --border: #E8E4DD;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 24px rgba(0,0,0,0.10);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.14);
+  --radius: 18px;
 }
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  max-width: 430px;
-  margin: 0 auto;
-  min-height: 100vh;
-  padding-bottom: 80px;
-  -webkit-font-smoothing: antialiased;
-}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:88px}
 
-/* HEADER */
-.header {
-  background: linear-gradient(145deg, #2D6A4F 0%, #3E7A5E 45%, #C8835A 80%, #F4A261 100%);
-  padding: 52px 20px 28px;
-  position: relative;
-  overflow: hidden;
-}
-.header-leaf {
-  position: absolute; right: -10px; top: 10px;
-  font-size: 90px; opacity: 0.15;
-  transform: rotate(-15deg);
-  pointer-events: none; user-select: none;
-  filter: blur(1px);
-}
-.header-top {
-  display: flex; align-items: center; justify-content: space-between;
-  position: relative; z-index: 2; margin-bottom: 14px;
-}
-.logo-wrap { display: flex; align-items: center; gap: 10px; }
-.logo-wrap img {
-  width: 42px; height: 42px; object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
-}
-.logo-name { font-size: 21px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
-.logo-name span { color: #FFD580; }
-.avatar-btn {
-  width: 42px; height: 42px; border-radius: 50%;
-  background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; cursor: pointer; overflow: hidden;
-}
-.avatar-btn img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-.greeting-area { position: relative; z-index: 2; }
-.greeting-saludo {
-  font-size: 24px; font-weight: 800; color: #fff;
-  line-height: 1.2; letter-spacing: -0.4px;
-}
-.greeting-saludo strong { color: #FFD580; }
-.greeting-fecha { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 4px; font-weight: 500; }
-.pill-motiv {
-  margin-top: 14px; position: relative; z-index: 2;
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 30px; padding: 8px 16px;
-  font-size: 13px; color: #fff; font-weight: 500; max-width: 100%;
-}
-.pill-motiv-icon { font-size: 16px; flex-shrink: 0; }
+/* HERO */
+.hero{background:linear-gradient(150deg,#1a4a35 0%,#2D6A4F 30%,#4a8c65 55%,#d4703a 80%,#F4A261 100%);padding:52px 20px 80px;position:relative;overflow:hidden}
+.hero-blob1{position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(244,162,97,0.25) 0%,transparent 70%)}
+.hero-blob2{position:absolute;bottom:-40px;left:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%)}
+.hero-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2;margin-bottom:20px}
+.logo{display:flex;align-items:center;gap:9px}
+.logo img{width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3))}
+.logo-txt{font-family:'Playfair Display',serif;font-size:19px;color:white;letter-spacing:-.01em}
+.logo-txt span{color:#FFD58A}
+.hero-avatar{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;backdrop-filter:blur(4px)}
+.hero-greeting{position:relative;z-index:2}
+.hero-greeting-sub{font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:3px}
+.hero-name{font-size:22px;font-weight:800;color:white;line-height:1.15;margin-bottom:6px}
+.hero-date{font-size:12px;color:rgba(255,255,255,0.55);font-weight:500}
+.hero-frase{position:relative;z-index:2;margin-top:18px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:12px 16px;backdrop-filter:blur(8px)}
+.hero-frase-txt{font-family:'Playfair Display',serif;font-style:italic;font-size:13px;color:rgba(255,255,255,0.9);line-height:1.5}
+.hero-frase-autor{font-size:10px;color:rgba(255,255,255,0.5);font-weight:600;margin-top:5px;letter-spacing:.5px}
 
-/* SECTION */
-.section { padding: 0 16px; }
-.section-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 12px;
-}
-.section-title { font-size: 17px; font-weight: 800; color: var(--text); }
-.badge-equil {
-  display: flex; align-items: center; gap: 5px;
-  background: #E8F5EE; border-radius: 20px;
-  padding: 5px 12px; font-size: 12px; font-weight: 700; color: var(--green);
-}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px;margin-top:-48px;position:relative;z-index:10}
+.stat-card{background:var(--surface);border-radius:var(--radius);padding:14px 15px;box-shadow:var(--shadow-lg);cursor:pointer;transition:transform .15s;animation:fadeUp .35s ease both}
+.stat-card:active{transform:scale(0.97)}
+.stat-card:nth-child(1){animation-delay:.05s}
+.stat-card:nth-child(2){animation-delay:.10s}
+.stat-card:nth-child(3){animation-delay:.15s}
+.stat-card:nth-child(4){animation-delay:.20s}
+.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.stat-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.si-green{background:var(--primary-light)}
+.si-blue{background:#E3F2FD}
+.si-orange{background:var(--accent-light)}
+.si-purple{background:#EDE9FE}
+.stat-badge{font-size:9px;font-weight:800;padding:3px 7px;border-radius:20px;background:var(--bg);color:var(--text-muted)}
+.stat-badge.green{background:var(--primary-light);color:var(--primary)}
+.stat-badge.orange{background:var(--accent-light);color:var(--accent-dark)}
+.stat-num{font-size:28px;font-weight:800;line-height:1;color:var(--text)}
+.stat-num.blue{color:#1976D2}
+.stat-num.orange{color:var(--accent-dark);font-size:18px}
+.stat-num.purple{color:#7B5EA7}
+.stat-label{font-size:11px;color:var(--text-muted);font-weight:600;margin-top:3px}
 
-/* STATS GRID */
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.stat-card {
-  background: var(--surface); border-radius: var(--r);
-  padding: 14px 16px; box-shadow: var(--sh);
-  cursor: pointer; transition: transform 0.15s;
-  text-decoration: none; color: inherit; display: block;
-}
-.stat-card:active { transform: scale(0.97); }
-.stat-card-icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; margin-bottom: 8px;
-}
-.icon-green  { background: #E8F5EE; }
-.icon-blue   { background: #E3F2FD; }
-.icon-orange { background: #FEF0E6; }
-.icon-purple { background: #EDE9FE; }
-.stat-lbl { font-size: 11px; color: var(--muted); font-weight: 600; }
-.stat-num {
-  font-size: 28px; font-weight: 800; line-height: 1; margin: 3px 0 2px;
-}
-.num-green  { color: var(--green); }
-.num-blue   { color: var(--blue); }
-.num-orange { color: var(--orange2); }
-.num-purple { color: var(--purple); }
-.stat-link  { font-size: 11px; color: var(--green); font-weight: 700; }
-.stat-trend { font-size: 11px; color: var(--orange2); font-weight: 700; }
+/* SECTIONS */
+.section{padding:16px 14px 0}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-title{font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.section-link{font-size:12px;color:var(--primary);font-weight:700;text-decoration:none}
 
 /* IMPACTO */
-.impact-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-.impact-card {
-  background: var(--surface); border-radius: 14px;
-  padding: 12px 8px; box-shadow: var(--sh); text-align: center;
-}
-.impact-icon { font-size: 20px; margin-bottom: 5px; display: block; }
-.impact-num  { font-size: 22px; font-weight: 800; display: block; margin-bottom: 3px; }
-.impact-lbl  { font-size: 10px; color: var(--muted); font-weight: 600; line-height: 1.2; display: block; }
-.in-orange { color: var(--orange2); }
-.in-blue   { color: var(--blue); }
-.in-purple { color: var(--purple); }
-.new-dot   { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--orange2); margin-left:3px; vertical-align:middle; }
+.impacto-card{background:var(--surface);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm);display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.impacto-item{display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 4px;border-right:1px solid var(--border)}
+.impacto-item:last-child{border-right:none}
+.impacto-num{font-size:24px;font-weight:800;color:var(--primary);line-height:1}
+.impacto-num.orange{color:var(--accent-dark)}
+.impacto-label{font-size:10px;color:var(--text-muted);font-weight:600;margin-top:4px;line-height:1.3}
 
-/* BOTÓN AGENDAR */
-.btn-agendar {
-  background: var(--orange); color: #fff; border: none; border-radius: 24px;
-  padding: 9px 16px; font-size: 13px; font-weight: 800; cursor: pointer;
-  display: flex; align-items: center; gap: 5px; white-space: nowrap;
-  transition: background 0.15s; font-family: inherit;
-}
-.btn-agendar:active { background: var(--orange2); }
+/* BARRAS */
+.week-bars{background:var(--surface);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow-sm);margin-top:10px}
+.week-bars-title{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:12px}
+.bars-row{display:flex;align-items:flex-end;gap:6px;height:56px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
+.bar-fill{width:100%;border-radius:6px 6px 0 0;background:var(--primary-light);min-height:4px;transition:height .6s ease}
+.bar-fill.today{background:linear-gradient(180deg,var(--accent) 0%,var(--primary) 100%)}
+.bar-day{font-size:9px;font-weight:700;color:var(--text-muted)}
+.bar-day.today{color:var(--primary)}
+.bar-num{font-size:9px;font-weight:800;color:var(--text-muted);min-height:12px}
 
 /* TURNOS */
-.turnos-wrap { border-radius: 14px; overflow: hidden; box-shadow: var(--sh); }
-.turno-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 13px 14px; background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  cursor: pointer; transition: background 0.12s;
-  text-decoration: none; color: inherit;
-}
-.turno-row:last-child { border-bottom: none; }
-.turno-row:active     { background: #F4F8F6; }
-.turno-hora { font-size: 15px; font-weight: 800; min-width: 46px; text-align: right; }
-.hora-green  { color: var(--green); }
-.hora-blue   { color: var(--blue); }
-.hora-purple { color: var(--purple); }
-.hora-orange { color: var(--orange2); }
-.turno-avatar {
-  width: 40px; height: 40px; border-radius: 50%; background: var(--bg);
-  flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px;
-}
-.turno-info  { flex: 1; min-width: 0; }
-.turno-nombre { font-size: 14px; font-weight: 700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.turno-tipo   { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 1px; }
-.turno-arrow  { color: var(--muted); font-size: 18px; flex-shrink: 0; }
-.empty-card   { background:var(--surface); border-radius:var(--r); padding:28px; text-align:center; color:var(--muted); font-size:14px; box-shadow:var(--sh); }
-.empty-card a { color:var(--green); font-weight:700; text-decoration:none; }
+.turnos-list{display:flex;flex-direction:column;gap:8px}
+.turno-card{background:var(--surface);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .15s;position:relative;overflow:hidden}
+.turno-card:active{transform:scale(0.98)}
+.turno-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
+.tc-pac::before{background:var(--primary)}
+.tc-jud::before{background:#7B5EA7}
+.tc-past{opacity:.45}
+.tc-now{box-shadow:0 0 0 2px var(--primary),var(--shadow-md)}
+.turno-time{font-size:13px;font-weight:800;color:var(--text-muted);min-width:44px;text-align:center;line-height:1.2}
+.turno-time.now{color:#E53935}
+.turno-info{flex:1;min-width:0}
+.turno-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.turno-meta{font-size:11px;color:var(--text-muted);margin-top:1px}
+.turno-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;flex-shrink:0}
+.tb-ok{background:#D1FAE5;color:#065F46}
+.tb-wait{background:#FEF3C7;color:#92400E}
+.tb-done{background:var(--bg);color:var(--text-muted)}
+.tb-jud{background:#EDE9FE;color:#5B21B6}
+.now-line-container{display:flex;align-items:center;gap:8px;padding:4px 0}
+.now-dot-red{width:8px;height:8px;border-radius:50%;background:#E53935;flex-shrink:0}
+.now-line-red{flex:1;height:1.5px;background:#E53935}
+.now-label-red{font-size:10px;font-weight:800;color:#E53935;flex-shrink:0}
+.empty-card{background:var(--surface);border-radius:var(--radius);padding:28px;text-align:center;box-shadow:var(--shadow-sm)}
+.empty-card-icon{font-size:32px;margin-bottom:8px}
+.empty-card-txt{font-size:13px;color:var(--text-muted);line-height:1.6}
+.empty-card-link{color:var(--primary);font-weight:700;text-decoration:none}
 
-/* NAV + DRAWER */
-.app-nav {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 430px; height: 64px;
-  background: #fff; border-top: 1.5px solid #E8E4DD;
-  display: flex; align-items: center;
-  z-index: 2147483647; box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
-}
-.app-nav a, .app-nav button.nav-menu-btn {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 2px; text-decoration: none;
-  color: #8A8FA8; padding: 4px 0; background: none; border: none; cursor: pointer;
-}
-.app-nav a .ni, .app-nav button.nav-menu-btn .ni { font-size: 22px; line-height: 1; display: block; }
-.app-nav a .nl, .app-nav button.nav-menu-btn .nl { font-size: 10px; font-weight: 700; display: block; }
-.app-nav a.on .nl { color: #2D6A4F; }
-.menu-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9998; backdrop-filter:blur(2px); }
-.menu-overlay.open { display:block; }
-.side-drawer {
-  position:fixed; top:0; left:-280px; width:280px; height:100vh;
-  background:#fff; z-index:9999; box-shadow:4px 0 24px rgba(0,0,0,0.15);
-  transition:left 0.3s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:column; overflow-y:auto;
-}
-.side-drawer.open { left:0; }
-.drawer-header {
-  background: linear-gradient(135deg, #2D6A4F 0%, #3A7D5F 50%, #F4A261 100%);
-  padding: 48px 20px 24px; display:flex; align-items:center; gap:12px;
-}
-.drawer-header img { width:48px; height:48px; object-fit:contain; }
-.drawer-logo-txt { font-size:22px; font-weight:800; color:white; }
-.drawer-logo-txt span { color:#FFD580; }
-.drawer-tagline { font-size:11px; color:rgba(255,255,255,0.7); margin-top:2px; }
-.drawer-section-title {
-  font-size:10px; font-weight:800; color:#8A8FA8;
-  letter-spacing:1.5px; text-transform:uppercase; padding:16px 20px 6px;
-}
-.drawer-item {
-  display:flex; align-items:center; gap:14px; padding:13px 20px;
-  text-decoration:none; color:#1A1A2E; font-size:15px; font-weight:600;
-  transition:background 0.15s; border-left:3px solid transparent;
-}
-.drawer-item:hover { background:#F4F1ED; }
-.drawer-item.active { background:#E8F5EE; color:#2D6A4F; border-left-color:#2D6A4F; }
-.drawer-item .di { font-size:20px; width:28px; text-align:center; }
-.drawer-footer { margin-top:auto; padding:16px 20px; border-top:1px solid #E8E4DD; }
-.drawer-logout {
-  display:flex; align-items:center; gap:10px; color:#E53935; font-size:14px;
-  font-weight:600; cursor:pointer; padding:8px 0; background:none; border:none; width:100%; font-family:inherit;
-}
+/* ACCESOS */
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qa{background:var(--surface);border-radius:14px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:inherit;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .15s}
+.qa:active{transform:scale(0.96)}
+.qa-icon{font-size:22px}
+.qa-label{font-size:10px;font-weight:700;color:var(--text-muted);text-align:center;line-height:1.2}
 
-/* ANIMACIONES */
-@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-.anim   { animation: fadeUp 0.35s ease both; }
-.anim-1 { animation-delay: 0.05s; }
-.anim-2 { animation-delay: 0.12s; }
-.anim-3 { animation-delay: 0.20s; }
+/* SKELETON */
+.skel{background:linear-gradient(90deg,#eee 25%,#f5f5f5 50%,#eee 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* NAV */
+.app-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:64px;background:#fff;border-top:1.5px solid #E8E4DD;display:flex;align-items:center;z-index:2147483647;box-shadow:0 -2px 12px rgba(0,0,0,0.09)}
+.app-nav a,.app-nav button.nav-menu-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+.app-nav a .ni,.app-nav button.nav-menu-btn .ni{font-size:22px;line-height:1;display:block}
+.app-nav a .nl,.app-nav button.nav-menu-btn .nl{font-size:10px;font-weight:700;display:block}
+.app-nav a.on .nl{color:#2D6A4F}
+.menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;backdrop-filter:blur(2px)}
+.menu-overlay.open{display:block}
+.side-drawer{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:9999;box-shadow:4px 0 24px rgba(0,0,0,0.15);transition:left .3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto}
+.side-drawer.open{left:0}
+.drawer-header{background:linear-gradient(135deg,#2D6A4F 0%,#3A7D5F 50%,#F4A261 100%);padding:48px 20px 24px;display:flex;align-items:center;gap:12px}
+.drawer-header img{width:48px;height:48px;object-fit:contain}
+.drawer-logo-txt{font-size:22px;font-weight:800;color:white;font-family:serif}
+.drawer-logo-txt span{color:#FFD580}
+.drawer-tagline{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;letter-spacing:0.5px}
+.drawer-section-title{font-size:10px;font-weight:800;color:#8A8FA8;letter-spacing:1.5px;text-transform:uppercase;padding:16px 20px 6px}
+.drawer-item{display:flex;align-items:center;gap:14px;padding:13px 20px;text-decoration:none;color:#1A1A2E;font-size:15px;font-weight:600;transition:background .15s;border-left:3px solid transparent}
+.drawer-item:hover{background:#F4F1ED}
+.drawer-item.active{background:#E8F5EE;color:#2D6A4F;border-left-color:#2D6A4F}
+.drawer-item .di{font-size:20px;width:28px;text-align:center}
+.drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD}
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2D6A4F">
@@ -242,101 +163,102 @@ body {
 </head>
 <body>
 
-<!-- HEADER -->
-<div class="header">
-  <div class="header-leaf">🌿</div>
-  <div class="header-top">
-    <div class="logo-wrap">
+<div class="hero">
+  <div class="hero-blob1"></div>
+  <div class="hero-blob2"></div>
+  <div class="hero-top">
+    <div class="logo">
       <img src="/logo-psicoapp.png" alt="PsicoApp">
-      <div class="logo-name">Psico<span>App</span></div>
+      <span class="logo-txt">Psico<span>App</span></span>
     </div>
-    <div class="avatar-btn" id="avatarBtn" onclick="window.location.href='psicoapp-perfil.html'">
-      <span id="avatarIcon">👤</span>
-    </div>
+    <div class="hero-avatar" onclick="window.location.href='psicoapp-perfil.html'">👤</div>
   </div>
-  <div class="greeting-area">
-    <div class="greeting-saludo" id="greetingSaludo">¡Hola!</div>
-    <div class="greeting-fecha" id="greetingFecha">—</div>
-    <div class="pill-motiv">
-      <span class="pill-motiv-icon">🌱</span>
-      <span id="pillText">Hoy podés ayudar a alguien a sentirse mejor.</span>
-    </div>
+  <div class="hero-greeting">
+    <div class="hero-greeting-sub" id="greetSub">—</div>
+    <div class="hero-name" id="greetName">—</div>
+    <div class="hero-date" id="greetDate">—</div>
+  </div>
+  <div class="hero-frase">
+    <div class="hero-frase-txt" id="fraseTexto">—</div>
+    <div class="hero-frase-autor" id="fraseAutor">—</div>
   </div>
 </div>
 
-<!-- MI DÍA -->
-<div style="margin-top:16px; margin-bottom:16px" class="section anim anim-1">
+<div class="stats-row">
+  <div class="stat-card" onclick="window.location.href='psicoapp-agenda.html'">
+    <div class="stat-top"><div class="stat-icon si-green">📅</div><div class="stat-badge green" id="badgeTurnos">Hoy</div></div>
+    <div class="stat-num" id="numTurnos">—</div>
+    <div class="stat-label">Turnos hoy</div>
+  </div>
+  <div class="stat-card" onclick="window.location.href='psicoapp-pacientes.html'">
+    <div class="stat-top"><div class="stat-icon si-blue">👥</div><div class="stat-badge">Total</div></div>
+    <div class="stat-num blue" id="numPacientes">—</div>
+    <div class="stat-label">Pacientes activos</div>
+  </div>
+  <div class="stat-card" onclick="window.location.href='psicoapp-pagos.html'">
+    <div class="stat-top"><div class="stat-icon si-orange">💰</div><div class="stat-badge orange" id="badgeMes">Mes</div></div>
+    <div class="stat-num orange" id="numIngresos">—</div>
+    <div class="stat-label">Facturado</div>
+  </div>
+  <div class="stat-card" onclick="window.location.href='psicoapp-pericias.html'">
+    <div class="stat-top"><div class="stat-icon si-purple">⚖️</div><div class="stat-badge">Activas</div></div>
+    <div class="stat-num purple" id="numPericias">—</div>
+    <div class="stat-label">Pericias</div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:18px">
   <div class="section-header">
-    <div class="section-title">Mi día</div>
-    <div class="badge-equil" id="agendaBadge">
-      <span>✓</span><span id="badgeText">Cargando...</span>
+    <div class="section-title">Impacto esta semana</div>
+    <a class="section-link" href="psicoapp-agenda.html">Ver agenda →</a>
+  </div>
+  <div class="impacto-card">
+    <div class="impacto-item">
+      <div class="impacto-num" id="impSesiones">—</div>
+      <div class="impacto-label">Sesiones realizadas</div>
+    </div>
+    <div class="impacto-item">
+      <div class="impacto-num orange" id="impIngresos">—</div>
+      <div class="impacto-label">Facturado</div>
+    </div>
+    <div class="impacto-item">
+      <div class="impacto-num" id="impPacientes">—</div>
+      <div class="impacto-label">Pacientes atendidos</div>
     </div>
   </div>
-  <div class="stats-grid">
-    <a class="stat-card" href="psicoapp-agenda.html">
-      <div class="stat-card-icon icon-green">📅</div>
-      <div class="stat-lbl">Turnos hoy</div>
-      <div class="stat-num num-green" id="statTurnos">—</div>
-      <div class="stat-link">Ver agenda →</div>
-    </a>
-    <a class="stat-card" href="psicoapp-pacientes.html">
-      <div class="stat-card-icon icon-blue">👥</div>
-      <div class="stat-lbl">Pacientes activos</div>
-      <div class="stat-num num-blue" id="statPacientes">—</div>
-      <div class="stat-link">Ver lista →</div>
-    </a>
-    <a class="stat-card" href="psicoapp-pagos.html">
-      <div class="stat-card-icon icon-orange">💰</div>
-      <div class="stat-lbl">Ingresos del mes</div>
-      <div class="stat-num num-orange" id="statIngresos" style="font-size:20px">—</div>
-      <div class="stat-trend" id="statTrend">↑ Este mes</div>
-    </a>
-    <a class="stat-card" href="psicoapp-pericias.html">
-      <div class="stat-card-icon icon-purple">⚖️</div>
-      <div class="stat-lbl">Pericias activas</div>
-      <div class="stat-num num-purple" id="statPericias">—</div>
-      <div class="stat-link">Ver detalles →</div>
-    </a>
-  </div>
-</div>
-
-<!-- IMPACTO DE LA SEMANA -->
-<div class="section anim anim-2" style="margin-bottom:16px">
-  <div class="section-header">
-    <div class="section-title">Impacto de la semana</div>
-    <a href="psicoapp-pagos.html" style="font-size:13px;color:var(--orange2);font-weight:700;text-decoration:none">Ver más →</a>
-  </div>
-  <div class="impact-grid">
-    <div class="impact-card">
-      <span class="impact-icon">🧑‍🤝‍🧑</span>
-      <span class="impact-num in-orange" id="impPersonas">—</span>
-      <span class="impact-lbl">Personas acompañadas</span>
-    </div>
-    <div class="impact-card">
-      <span class="impact-icon">💬</span>
-      <span class="impact-num in-blue" id="impSesiones">—</span>
-      <span class="impact-lbl">Sesiones realizadas</span>
-    </div>
-    <div class="impact-card">
-      <span class="impact-icon">✨</span>
-      <span class="impact-num in-purple" id="impNuevos">—</span>
-      <span class="impact-lbl">Pacientes nuevos</span>
+  <div class="week-bars">
+    <div class="week-bars-title">Turnos por día — semana actual</div>
+    <div class="bars-row" id="barsRow">
+      <div class="bar-col"><div class="bar-num"></div><div class="bar-fill skel" style="height:8px"></div><div class="bar-day">—</div></div>
+      <div class="bar-col"><div class="bar-num"></div><div class="bar-fill skel" style="height:8px"></div><div class="bar-day">—</div></div>
+      <div class="bar-col"><div class="bar-num"></div><div class="bar-fill skel" style="height:8px"></div><div class="bar-day">—</div></div>
+      <div class="bar-col"><div class="bar-num"></div><div class="bar-fill skel" style="height:8px"></div><div class="bar-day">—</div></div>
+      <div class="bar-col"><div class="bar-num"></div><div class="bar-fill skel" style="height:8px"></div><div class="bar-day">—</div></div>
+      <div class="bar-col"><div class="bar-num"></div><div class="bar-fill skel" style="height:8px"></div><div class="bar-day">—</div></div>
     </div>
   </div>
 </div>
 
-<!-- TURNOS DE HOY -->
-<div class="section anim anim-3" style="margin-bottom:16px">
+<div class="section" style="margin-top:16px">
   <div class="section-header">
     <div class="section-title">Turnos de hoy</div>
-    <button class="btn-agendar" onclick="window.location.href='psicoapp-agenda.html'">＋ Agendar turno</button>
+    <a class="section-link" href="psicoapp-agenda.html">Ver todos →</a>
   </div>
-  <div id="turnosList">
-    <div class="empty-card">Cargando...</div>
+  <div class="turnos-list" id="turnosList">
+    <div class="empty-card"><div class="skel" style="height:14px;margin-bottom:8px"></div><div class="skel" style="height:14px;width:60%"></div></div>
   </div>
 </div>
 
-<!-- OVERLAY + DRAWER -->
+<div class="section" style="margin-top:16px;margin-bottom:20px">
+  <div class="section-header"><div class="section-title">Acceso rápido</div></div>
+  <div class="quick-grid">
+    <a class="qa" href="psicoapp-agenda.html"><div class="qa-icon">📅</div><div class="qa-label">Nueva sesión</div></a>
+    <a class="qa" href="psicoapp-pacientes.html"><div class="qa-icon">👤</div><div class="qa-label">Nuevo paciente</div></a>
+    <a class="qa" href="psicoapp-pagos.html"><div class="qa-icon">💰</div><div class="qa-label">Registrar pago</div></a>
+    <a class="qa" href="psicoapp-whatsapp.html"><div class="qa-icon">💬</div><div class="qa-label">WhatsApp</div></a>
+  </div>
+</div>
+
 <div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
 <div class="side-drawer" id="sideDrawer">
   <div class="drawer-header">
@@ -347,21 +269,18 @@ body {
     </div>
   </div>
   <div class="drawer-section-title">Principal</div>
-  <a href="psicoapp-index.html"     class="drawer-item active" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
-  <a href="psicoapp-agenda.html"    class="drawer-item"        onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
-  <a href="psicoapp-pacientes.html" class="drawer-item"        onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
-  <a href="psicoapp-whatsapp.html"  class="drawer-item"        onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
-  <a href="psicoapp-cuenta.html"    class="drawer-item"        onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
+  <a href="psicoapp-index.html" class="drawer-item active" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
+  <a href="psicoapp-agenda.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
+  <a href="psicoapp-pacientes.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
+  <a href="psicoapp-whatsapp.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
+  <a href="psicoapp-cuenta.html" class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
   <div class="drawer-section-title">Más módulos</div>
-  <a href="psicoapp-pagos.html"     class="drawer-item"        onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
-  <a href="psicoapp-pericias.html"  class="drawer-item"        onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
-  <a href="psicoapp-perfil.html"    class="drawer-item"        onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
-  <div class="drawer-footer">
-    <button class="drawer-logout" onclick="doLogout()">🚪 Cerrar sesión</button>
-  </div>
+  <a href="psicoapp-pagos.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
+  <a href="psicoapp-pericias.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
+  <a href="psicoapp-perfil.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
+  <div class="drawer-footer"></div>
 </div>
 
-<!-- NAV -->
 <nav class="app-nav">
   <a href="psicoapp-index.html" class="on"><span class="ni">🏠</span><span class="nl">Inicio</span></a>
   <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
@@ -372,168 +291,128 @@ body {
 </nav>
 
 <script>
-const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
-const { createClient } = supabase;
-const sb = createClient(SUPA_URL, SUPA_KEY);
+function toggleDrawer(){document.getElementById('sideDrawer').classList.toggle('open');document.getElementById('menuOverlay').classList.toggle('open')}
+function closeDrawer(){document.getElementById('sideDrawer').classList.remove('open');document.getElementById('menuOverlay').classList.remove('open')}
+</script>
 
-const DIAS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const FRASES = [
-  'Hoy podés ayudar a alguien a sentirse mejor.',
-  'Cada sesión es un paso hacia el bienestar.',
-  'Tu trabajo hace la diferencia en la vida de otros.',
-  'Una escucha atenta cambia vidas.',
-  'Hoy es un buen día para acompañar.',
+<script>
+const SUPA_URL='https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const{createClient}=supabase;
+const sb=createClient(SUPA_URL,SUPA_KEY);
+const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const FRASES=[
+  {txt:'Cuidar la salud mental de otros comienza por honrar la propia vocación.',autor:'— PsicoApp'},
+  {txt:'Cada sesión es una oportunidad de transformación.',autor:'— PsicoApp'},
+  {txt:'El orden en tu consultorio libera espacio para lo que importa: tus pacientes.',autor:'— PsicoApp'},
+  {txt:'La escucha atenta es el primer acto terapéutico.',autor:'— Carl Rogers'},
+  {txt:'No podés verter de un vaso vacío. Cuidate para poder cuidar.',autor:'— Proverbio clínico'},
+  {txt:'Lo que no se nombra no puede sanarse.',autor:'— PsicoApp'},
+  {txt:'Cada paciente lleva su propia respuesta. Tu rol es ayudarla a emerger.',autor:'— PsicoApp'},
 ];
 
-function toggleDrawer() {
-  document.getElementById('sideDrawer').classList.toggle('open');
-  document.getElementById('menuOverlay').classList.toggle('open');
-}
-function closeDrawer() {
-  document.getElementById('sideDrawer').classList.remove('open');
-  document.getElementById('menuOverlay').classList.remove('open');
-}
-async function doLogout() {
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
-function fmtDate(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function formatPeso(n) {
-  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
-  if (n >= 1000)    return '$' + Math.round(n/1000) + 'k';
-  return '$' + n;
-}
-
-(async () => {
-  const { data:{ session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-
-  // Frase motivacional aleatoria
-  document.getElementById('pillText').textContent = FRASES[Math.floor(Math.random() * FRASES.length)];
-
-  // Saludo + fecha
-  const now  = new Date();
-  const hora = now.getHours();
-  const saludo = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
-  document.getElementById('greetingFecha').textContent =
-    `${DIAS[now.getDay()]} ${now.getDate()} de ${MESES[now.getMonth()]} · ${String(hora).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-  // Perfil
-  const { data: perfil } = await sb.from('profiles')
-    .select('titulo,nombre_completo,avatar_url')
-    .eq('id', session.user.id).maybeSingle();
-
-  const primerNombre = perfil?.nombre_completo
-    ? perfil.nombre_completo.split(' ')[0]
-    : session.user.email.split('@')[0];
-  const titulo = perfil?.titulo ? perfil.titulo + ' ' : '';
-  document.getElementById('greetingSaludo').innerHTML =
-    `¡${saludo}, <strong>${titulo}${primerNombre}!</strong>`;
-
-  if (perfil?.avatar_url) {
-    document.getElementById('avatarBtn').innerHTML =
-      `<img src="${perfil.avatar_url}" alt="Perfil">`;
-  }
-
-  // Datos en paralelo
-  await Promise.all([cargarTurnos(), cargarPacientes(), cargarIngresos(), cargarPericias(), cargarImpacto()]);
+(async()=>{
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return}
+  setGreeting(session);
+  setFrase();
+  await Promise.all([cargarTurnosHoy(),cargarPacientes(),cargarIngresosMes(),cargarPericias(),cargarImpactoSemanal()]);
 })();
 
-async function cargarTurnos() {
-  const hoy = fmtDate(new Date());
-  const { data } = await sb.from('turnos')
-    .select('*, pacientes(nombre, apellido)')
-    .eq('fecha', hoy).neq('estado','cancelado').order('hora');
+async function setGreeting(session){
+  const now=new Date();
+  const h=now.getHours();
+  document.getElementById('greetSub').textContent=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches';
+  document.getElementById('greetDate').textContent=`${DIAS[now.getDay()]} ${now.getDate()} de ${MESES[now.getMonth()]}`;
+  document.getElementById('badgeMes').textContent=MESES[now.getMonth()].slice(0,3);
+  const{data:p}=await sb.from('profiles').select('titulo,nombre_completo').eq('id',session.user.id).maybeSingle();
+  document.getElementById('greetName').textContent=`${p?.titulo||''} ${p?.nombre_completo||session.user.email.split('@')[0]}`.trim();
+}
 
-  const turnos = data || [];
-  document.getElementById('statTurnos').textContent = turnos.length;
+function setFrase(){
+  const f=FRASES[Math.floor(Math.random()*FRASES.length)];
+  document.getElementById('fraseTexto').textContent=`"${f.txt}"`;
+  document.getElementById('fraseAutor').textContent=f.autor;
+}
 
-  const badge = document.getElementById('agendaBadge');
-  const txt   = document.getElementById('badgeText');
-  if (!turnos.length)    { txt.textContent = 'Sin turnos hoy'; badge.style.cssText = 'background:#FEF0E6;color:#E8873A;display:flex;align-items:center;gap:5px;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700'; }
-  else if (turnos.length <= 6) { txt.textContent = 'Agenda equilibrada'; }
-  else                   { txt.textContent = 'Agenda cargada'; badge.style.cssText = 'background:#FEF0E6;color:#E8873A;display:flex;align-items:center;gap:5px;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700'; }
-
-  if (!turnos.length) {
-    document.getElementById('turnosList').innerHTML =
-      `<div class="empty-card">Sin turnos para hoy. <a href="psicoapp-agenda.html">Agendar →</a></div>`;
+async function cargarTurnosHoy(){
+  const hoy=fmtDate(new Date());
+  const{data}=await sb.from('turnos').select('*,pacientes(nombre,apellido)').eq('fecha',hoy).order('hora');
+  const turnos=data||[];
+  document.getElementById('numTurnos').textContent=turnos.length;
+  const conf=turnos.filter(t=>t.estado==='confirmado').length;
+  document.getElementById('badgeTurnos').textContent=conf?`${conf} confirm.`:'Hoy';
+  const list=document.getElementById('turnosList');
+  if(!turnos.length){
+    list.innerHTML=`<div class="empty-card"><div class="empty-card-icon">🌿</div><div class="empty-card-txt">Sin turnos para hoy.<br><a class="empty-card-link" href="psicoapp-agenda.html">Ir a la agenda →</a></div></div>`;
     return;
   }
-
-  const horaCSS = { sesion:'hora-green', online:'hora-blue', judicial:'hora-purple', evaluacion:'hora-blue', evento:'hora-orange', otro:'hora-orange' };
-  const tipoLbl = { sesion:'Sesión presencial', online:'Sesión online', judicial:'Pericia judicial', evaluacion:'Evaluación', evento:'Evento personal', otro:'Turno' };
-  const avatarEmoji = { sesion:'🧑', online:'💻', judicial:'⚖️', evaluacion:'📋', evento:'📌', otro:'🗒️' };
-
-  const html = turnos.map(t => {
-    const pac    = t.pacientes;
-    const nombre = pac ? `${pac.nombre} ${pac.apellido}` : (tipoLbl[t.tipo] || 'Turno');
-    const tipo   = tipoLbl[t.tipo] || t.tipo;
-    const hora   = (t.hora || '').slice(0,5);
-    const clr    = horaCSS[t.tipo] || 'hora-green';
-    const emo    = avatarEmoji[t.tipo] || '🧑';
-    return `<a class="turno-row" href="psicoapp-agenda.html">
-        <div class="turno-hora ${clr}">${hora}</div>
-        <div class="turno-avatar">${emo}</div>
-        <div class="turno-info">
-          <div class="turno-nombre">${nombre}</div>
-          <div class="turno-tipo">${tipo}</div>
-        </div>
-        <div class="turno-arrow">›</div>
-      </a>`;
-  }).join('');
-
-  document.getElementById('turnosList').innerHTML = `<div class="turnos-wrap">${html}</div>`;
+  const ahora=new Date();
+  const hAct=ahora.getHours();
+  let html='';let nowOk=false;
+  turnos.forEach(t=>{
+    const hT=parseInt(t.hora);
+    const pac=t.pacientes;
+    const nom=pac?`${pac.nombre} ${pac.apellido}`:tipoLabel(t.tipo);
+    const hs=t.hora?.slice(0,5);
+    const past=hT<hAct,now=hT===hAct,jud=t.tipo==='judicial';
+    if(!nowOk&&hT>=hAct){nowOk=true;html+=`<div class="now-line-container"><div class="now-dot-red"></div><div class="now-label-red">AHORA · ${String(hAct).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}</div><div class="now-line-red"></div></div>`}
+    const b=badgeEstado(t.estado,jud);
+    html+=`<div class="turno-card ${jud?'tc-jud':'tc-pac'} ${past?'tc-past':''} ${now?'tc-now':''}" onclick="window.location.href='psicoapp-agenda.html'"><div class="turno-time ${now?'now':''}">${hs}</div><div class="turno-info"><div class="turno-name">${nom}</div><div class="turno-meta">${tipoLabel(t.tipo)} · ${t.duracion||50} min</div></div><div class="turno-badge ${b.cls}">${b.txt}</div></div>`;
+  });
+  list.innerHTML=html;
 }
 
-async function cargarPacientes() {
-  const { count } = await sb.from('pacientes').select('*',{count:'exact',head:true}).eq('activo',true);
-  document.getElementById('statPacientes').textContent = count || 0;
+async function cargarPacientes(){
+  const{count}=await sb.from('pacientes').select('*',{count:'exact',head:true}).eq('activo',true);
+  document.getElementById('numPacientes').textContent=count||0;
 }
 
-async function cargarIngresos() {
-  const now   = new Date();
-  const desde = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-  const hasta = fmtDate(new Date(now.getFullYear(), now.getMonth()+1, 0));
-  const { data } = await sb.from('pagos').select('monto').gte('fecha',desde).lte('fecha',hasta);
-  const total = (data||[]).reduce((s,p) => s+(p.monto||0), 0);
-  document.getElementById('statIngresos').textContent = formatPeso(total);
-  document.getElementById('statTrend').textContent = '↑ ' + MESES[now.getMonth()];
+async function cargarIngresosMes(){
+  const now=new Date();
+  const desde=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  const hasta=fmtDate(new Date(now.getFullYear(),now.getMonth()+1,0));
+  const{data}=await sb.from('pagos').select('monto').gte('fecha',desde).lte('fecha',hasta);
+  document.getElementById('numIngresos').textContent=formatPeso((data||[]).reduce((s,p)=>s+(p.monto||0),0));
 }
 
-async function cargarPericias() {
-  const { count } = await sb.from('pericias').select('*',{count:'exact',head:true}).eq('estado','en_curso');
-  document.getElementById('statPericias').textContent = count || 0;
+async function cargarPericias(){
+  const{count}=await sb.from('pericias').select('*',{count:'exact',head:true}).eq('estado','en_curso');
+  document.getElementById('numPericias').textContent=count||0;
 }
 
-async function cargarImpacto() {
-  const hoy   = new Date();
-  const dia   = hoy.getDay();
-  const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - ((dia+6)%7));
-  const dom   = new Date(lunes); dom.setDate(lunes.getDate()+6);
-  const desde = fmtDate(lunes);
-  const hasta = fmtDate(dom);
-
-  const [sesRes, pacNew] = await Promise.all([
-    sb.from('turnos').select('paciente_id').gte('fecha',desde).lte('fecha',hasta).eq('estado','realizado'),
-    sb.from('pacientes').select('*',{count:'exact',head:true})
-      .gte('created_at', desde+'T00:00:00').lte('created_at', hasta+'T23:59:59'),
-  ]);
-
-  const sesiones = (sesRes.data||[]).length;
-  const personas = new Set((sesRes.data||[]).map(t=>t.paciente_id).filter(Boolean)).size;
-  const nuevos   = pacNew.count || 0;
-
-  document.getElementById('impSesiones').textContent = sesiones;
-  document.getElementById('impPersonas').textContent = personas;
-  document.getElementById('impNuevos').innerHTML =
-    nuevos > 0 ? `${nuevos}<span class="new-dot"></span>` : '0';
+async function cargarImpactoSemanal(){
+  const hoy=new Date();
+  const dow=hoy.getDay();
+  const lunes=new Date(hoy);lunes.setDate(hoy.getDate()-(dow===0?6:dow-1));
+  const sab=new Date(lunes);sab.setDate(lunes.getDate()+6);
+  const desde=fmtDate(lunes),hasta=fmtDate(sab);
+  const{data:turnos}=await sb.from('turnos').select('fecha,estado,paciente_id,tipo').gte('fecha',desde).lte('fecha',hasta);
+  const{data:pagos}=await sb.from('pagos').select('monto,fecha').gte('fecha',desde).lte('fecha',hasta);
+  const ts=turnos||[],ps=pagos||[];
+  document.getElementById('impSesiones').textContent=ts.filter(t=>t.estado==='realizado'&&t.tipo==='sesion').length;
+  document.getElementById('impIngresos').textContent=formatPeso(ps.reduce((s,p)=>s+(p.monto||0),0));
+  document.getElementById('impPacientes').textContent=new Set(ts.filter(t=>t.paciente_id).map(t=>t.paciente_id)).size;
+  const dias=['Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const counts={};
+  ts.forEach(t=>{counts[t.fecha]=(counts[t.fecha]||0)+1});
+  const maxV=Math.max(1,...Object.values(counts));
+  const todayStr=fmtDate(hoy);
+  let html='';
+  for(let i=0;i<6;i++){
+    const d=new Date(lunes);d.setDate(lunes.getDate()+i);
+    const key=fmtDate(d),cnt=counts[key]||0,pct=Math.round((cnt/maxV)*44),isT=key===todayStr;
+    html+=`<div class="bar-col"><div class="bar-num">${cnt||''}</div><div class="bar-fill ${isT?'today':''}" style="height:${Math.max(4,pct)}px"></div><div class="bar-day ${isT?'today':''}">${dias[i]}</div></div>`;
+  }
+  document.getElementById('barsRow').innerHTML=html;
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+function fmtDate(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function formatPeso(n){if(!n)return'$0';if(n>=1000000)return'$'+(n/1000000).toFixed(1).replace('.',',')+' M';if(n>=1000)return'$'+Math.round(n/1000)+'k';return'$'+n}
+function tipoLabel(t){return{sesion:'Sesión',judicial:'Judicial',evaluacion:'Evaluación',evento:'Evento',otro:'Otro'}[t]||'Sesión'}
+function badgeEstado(e,jud){if(jud)return{cls:'tb-jud',txt:'Judicial'};return{pendiente:{cls:'tb-wait',txt:'⏳ Sin confirmar'},confirmado:{cls:'tb-ok',txt:'✓ Confirmó'},realizado:{cls:'tb-done',txt:'✅ Realizado'},cancelado:{cls:'tb-done',txt:'❌ Cancelado'}}[e]||{cls:'tb-wait',txt:e}}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
