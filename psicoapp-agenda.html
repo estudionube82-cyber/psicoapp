@@ -661,9 +661,31 @@
   let editandoId = null;
   let pacientesList = [];
 
+  // ── AUTH ──
+  function getToken() {
+    const claves = [
+      'sb-terlbqrcampdqtxjbihg-auth-token',
+      'sb-access-token',
+      'supabase.auth.token'
+    ];
+    for (const clave of claves) {
+      const raw = localStorage.getItem(clave);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.access_token) return parsed.access_token;
+          if (parsed[0]?.access_token) return parsed[0].access_token;
+        } catch(e) {
+          if (raw.length > 20) return raw;
+        }
+      }
+    }
+    return null;
+  }
+
   // ── INIT ──
   async function init() {
-    token = localStorage.getItem('sb-access-token');
+    token = getToken();
     if (!token) { location.href = 'login.html'; return; }
 
     const uRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {

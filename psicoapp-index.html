@@ -595,6 +595,27 @@
   const SUPABASE_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
 
+  function getToken() {
+    const claves = [
+      'sb-terlbqrcampdqtxjbihg-auth-token',
+      'sb-access-token',
+      'supabase.auth.token'
+    ];
+    for (const clave of claves) {
+      const raw = localStorage.getItem(clave);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.access_token) return parsed.access_token;
+          if (parsed[0]?.access_token) return parsed[0].access_token;
+        } catch(e) {
+          if (raw.length > 20) return raw;
+        }
+      }
+    }
+    return null;
+  }
+
   const frases = [
     "Cada sesión es un paso hacia el cambio.",
     "Escuchar es el arte más poderoso que existe.",
@@ -624,7 +645,7 @@
 
   async function getSession() {
     const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${localStorage.getItem('sb-access-token') || ''}` }
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${getToken() || ''}` }
     });
     if (!r.ok) { location.href = 'login.html'; return null; }
     return r.json();
@@ -672,7 +693,7 @@
       '"' + frases[Math.floor(Math.random() * frases.length)] + '"';
 
     // Sesión usuario
-    const token = localStorage.getItem('sb-access-token');
+    const token = getToken();
     if (!token) { location.href = 'login.html'; return; }
 
     const uRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
