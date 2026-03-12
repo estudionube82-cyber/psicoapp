@@ -1,904 +1,452 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PsicoApp – Inicio</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --verde: #2ecc71;
-      --verde-oscuro: #27ae60;
-      --naranja: #f39c12;
-      --naranja-claro: #f8b739;
-      --gris-fondo: #f4f6f9;
-      --gris-texto: #6c757d;
-      --texto: #2d3748;
-      --blanco: #ffffff;
-      --sombra: 0 2px 12px rgba(0,0,0,0.08);
-      --sombra-hover: 0 6px 24px rgba(0,0,0,0.13);
-      --radio: 16px;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--gris-fondo);
-      color: var(--texto);
-      min-height: 100vh;
-      padding-bottom: 80px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Psicoapp — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #F4F1ED;
+  --surface: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-light: #E8F5EE;
+  --primary-mid: #52B788;
+  --accent: #F4A261;
+  --accent-light: #FEF0E6;
+  --text: #1A1A2E;
+  --text-muted: #8A8FA8;
+  --border: #E8E4DD;
+  --danger: #E53935;
+  --danger-light: #FFEBEE;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 24px rgba(0,0,0,0.10);
+  --radius: 16px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  max-width: 720px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
 
-    /* ── RESPONSIVE WRAPPER ── */
-    .page-wrap {
-      max-width: 720px;
-      margin: 0 auto;
-    }
+/* HEADER */
+.header {
+  background: linear-gradient(145deg, #1B4332 0%, #2D6A4F 60%, #40916C 100%);
+  padding: 20px 20px 28px;
+  position: relative;
+  overflow: hidden;
+}
+.header::after {
+  content: ''; position: absolute; right: -40px; top: -40px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+.header::before {
+  content: ''; position: absolute; left: -30px; bottom: -60px;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+.header-row { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+.logo { font-family: 'Playfair Display', serif; font-size: 22px; color: white; }
+.logo span { color: var(--accent); }
+.header-icons { display: flex; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 11px;
+  background: rgba(255,255,255,0.15); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
+}
+.greeting { margin-top: 16px; position: relative; z-index: 1; }
+.greeting-sub { font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.greeting-name { font-size: 24px; font-weight: 800; color: white; margin-top: 2px; line-height: 1.1; }
+.greeting-date { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 4px; }
 
-    @media (min-width: 600px) {
-      .header { padding: 18px 32px; }
-      .header-brand { font-size: 22px; }
-      .hero-card { margin: 20px 20px 0; padding: 36px 32px; }
-      .hero-titulo { font-size: 28px; }
-      .hero-frase { font-size: 16px; }
-      .stats-grid { padding: 20px 20px 0; gap: 16px; }
-      .stat-card { padding: 22px; }
-      .stat-valor { font-size: 36px; }
-      .stat-icon { font-size: 30px; }
-      .stat-label { font-size: 14px; }
-      .section { padding: 20px 20px 0; }
-      .section-titulo { font-size: 17px; }
-      .turno-card { padding: 18px 20px; margin-bottom: 12px; }
-      .turno-hora { font-size: 17px; }
-      .turno-paciente { font-size: 17px; }
-      .accesos-grid { gap: 14px; }
-      .acceso-btn { padding: 20px 10px; }
-      .acceso-icon { font-size: 32px; }
-      .acceso-label { font-size: 13px; }
-      .impacto-card { padding: 24px; }
-      .impacto-num { font-size: 32px; }
-      .barras-fila { height: 80px; }
-      .nav-bottom { max-width: 720px; left: 50%; transform: translateX(-50%); border-radius: 16px 16px 0 0; }
-    }
+/* QUICK STATS */
+.quick-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  padding: 16px 16px 0; margin-top: -20px; position: relative; z-index: 5;
+}
+.stat-card {
+  background: var(--surface); border-radius: var(--radius);
+  padding: 14px 16px; box-shadow: var(--shadow-md);
+  cursor: pointer; transition: transform 0.15s;
+}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.stat-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.si-green  { background: var(--primary-light); }
+.si-orange { background: var(--accent-light); }
+.si-blue   { background: #E3F2FD; }
+.si-purple { background: #EDE9FE; }
+.stat-trend { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 20px; }
+.trend-up      { background: var(--primary-light); color: var(--primary); }
+.trend-neutral { background: var(--bg); color: var(--text-muted); }
+.stat-num { font-size: 26px; font-weight: 800; line-height: 1; color: var(--text); }
+.stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 3px; }
 
-    /* ── HEADER ── */
-    .header {
-      background: var(--blanco);
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #eef0f3;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .header-logo {
-      width: 36px;
-      height: 36px;
-      object-fit: contain;
-    }
-    .header-brand {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--verde-oscuro);
-    }
-    .header-saludo {
-      font-size: 13px;
-      color: var(--gris-texto);
-    }
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .btn-notif {
-      background: none;
-      border: none;
-      font-size: 22px;
-      cursor: pointer;
-      position: relative;
-    }
-    .notif-badge {
-      position: absolute;
-      top: -2px;
-      right: -2px;
-      background: #e74c3c;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-    .avatar-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--verde), var(--naranja));
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 700;
-      font-size: 14px;
-      overflow: hidden;
-    }
-    .avatar-btn img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+/* SECTION */
+.section { padding: 16px 16px 0; }
+.section-title {
+  font-size: 13px; font-weight: 800; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.section-link { font-size: 12px; color: var(--primary); font-weight: 700; text-transform: none; letter-spacing: 0; text-decoration: none; }
 
-    /* ── HERO CARD ── */
-    .hero-card {
-      margin: 16px 16px 0;
-      background: linear-gradient(135deg, var(--verde-oscuro) 0%, var(--verde) 50%, var(--naranja) 100%);
-      border-radius: var(--radio);
-      padding: 24px 20px;
-      color: white;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero-card::before {
-      content: '';
-      position: absolute;
-      top: -30px; right: -30px;
-      width: 120px; height: 120px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 50%;
-    }
-    .hero-card::after {
-      content: '';
-      position: absolute;
-      bottom: -20px; left: -20px;
-      width: 80px; height: 80px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 50%;
-    }
-    .hero-fecha {
-      font-size: 12px;
-      opacity: 0.85;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .hero-titulo {
-      font-size: 22px;
-      font-weight: 700;
-      margin: 4px 0 2px;
-    }
-    .hero-frase {
-      font-size: 13px;
-      opacity: 0.85;
-      font-style: italic;
-      margin-top: 8px;
-      line-height: 1.4;
-    }
+/* TURNOS */
+.turnos-list { display: flex; flex-direction: column; gap: 8px; }
+.turno-card {
+  background: var(--surface); border-radius: 14px; padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden;
+}
+.turno-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.tc-pac::before { background: var(--primary); }
+.tc-jud::before { background: #7B5EA7; }
+.tc-past { opacity: 0.5; }
+.tc-now { box-shadow: 0 0 0 2px var(--primary), var(--shadow-md); }
+.turno-time { font-size: 13px; font-weight: 800; color: var(--text-muted); min-width: 44px; text-align: center; }
+.turno-time.now { color: var(--danger); }
+.turno-info { flex: 1; }
+.turno-name { font-size: 14px; font-weight: 700; }
+.turno-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.turno-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
+.tb-ok   { background: #D1FAE5; color: #065F46; }
+.tb-wait { background: #FEF3C7; color: #92400E; }
+.tb-done { background: var(--bg); color: var(--text-muted); }
+.tb-jud  { background: #EDE9FE; color: #5B21B6; }
 
-    /* ── STATS ROW ── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      padding: 16px 16px 0;
-    }
-    .stat-card {
-      background: var(--blanco);
-      border-radius: var(--radio);
-      padding: 16px;
-      box-shadow: var(--sombra);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .stat-icon {
-      font-size: 24px;
-      margin-bottom: 4px;
-    }
-    .stat-valor {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--texto);
-      line-height: 1;
-    }
-    .stat-label {
-      font-size: 12px;
-      color: var(--gris-texto);
-      font-weight: 500;
-    }
-    .stat-card.verde .stat-valor { color: var(--verde-oscuro); }
-    .stat-card.naranja .stat-valor { color: var(--naranja); }
-    .stat-card.azul .stat-valor { color: #3498db; }
-    .stat-card.violeta .stat-valor { color: #8e44ad; }
+.now-indicator { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.now-line-h { flex: 1; height: 1.5px; background: var(--danger); }
+.now-dot-h { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
+.now-label { font-size: 10px; font-weight: 800; color: var(--danger); flex-shrink: 0; }
 
-    /* ── SECCIÓN ── */
-    .section {
-      padding: 16px 16px 0;
-    }
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .section-titulo {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--texto);
-    }
-    .section-link {
-      font-size: 13px;
-      color: var(--verde-oscuro);
-      text-decoration: none;
-      font-weight: 600;
-    }
+/* INGRESOS */
+.income-card { background: var(--surface); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-sm); }
+.income-main { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
+.income-amount { font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1; }
+.income-sub { font-size: 12px; color: var(--text-muted); font-weight: 600; padding-bottom: 4px; }
+.income-bar-container { background: var(--bg); border-radius: 20px; height: 8px; overflow: hidden; margin-bottom: 10px; }
+.income-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--primary), var(--primary-mid)); transition: width 1s ease; }
 
-    /* ── TURNO CARD HOY ── */
-    .turno-card {
-      background: var(--blanco);
-      border-radius: var(--radio);
-      padding: 14px 16px;
-      box-shadow: var(--sombra);
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 10px;
-      border-left: 4px solid var(--verde);
-      transition: box-shadow 0.2s;
-    }
-    .turno-card.naranja { border-color: var(--naranja); }
-    .turno-card.azul { border-color: #3498db; }
-    .turno-card.violeta { border-color: #8e44ad; }
-    .turno-hora {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--texto);
-      min-width: 48px;
-    }
-    .turno-info { flex: 1; }
-    .turno-paciente {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--texto);
-    }
-    .turno-tipo {
-      font-size: 12px;
-      color: var(--gris-texto);
-      margin-top: 2px;
-    }
-    .turno-estado {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .estado-pendiente { background: #fff3cd; color: #856404; }
-    .estado-realizado { background: #d4edda; color: #155724; }
-    .estado-cancelado { background: #f8d7da; color: #721c24; }
+/* ACCESOS RÁPIDOS */
+.quick-access { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.qa-item {
+  background: var(--surface); border-radius: 14px; padding: 14px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; box-shadow: var(--shadow-sm); transition: transform 0.15s;
+  text-decoration: none; color: inherit;
+}
+.qa-item:hover { transform: translateY(-2px); }
+.qa-icon { font-size: 24px; }
+.qa-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-align: center; }
 
-    /* ── ACCESOS RAPIDOS ── */
-    .accesos-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-    .acceso-btn {
-      background: var(--blanco);
-      border: none;
-      border-radius: var(--radio);
-      padding: 14px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      box-shadow: var(--sombra);
-      cursor: pointer;
-      text-decoration: none;
-      color: var(--texto);
-      transition: box-shadow 0.2s, transform 0.1s;
-    }
-    .acceso-btn:active { transform: scale(0.97); }
-    .acceso-icon {
-      font-size: 26px;
-    }
-    .acceso-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--gris-texto);
-      text-align: center;
-    }
+/* EMPTY */
+.empty-section { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
 
-    /* ── IMPACTO SEMANAL ── */
-    .impacto-card {
-      background: var(--blanco);
-      border-radius: var(--radio);
-      padding: 16px;
-      box-shadow: var(--sombra);
-    }
-    .impacto-row {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 16px;
-    }
-    .impacto-item {
-      text-align: center;
-    }
-    .impacto-num {
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--verde-oscuro);
-    }
-    .impacto-lbl {
-      font-size: 11px;
-      color: var(--gris-texto);
-    }
-    .barras-fila {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 6px;
-      height: 60px;
-    }
-    .barra-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      flex: 1;
-    }
-    .barra {
-      width: 100%;
-      border-radius: 6px 6px 0 0;
-      background: #e8f5e9;
-      min-height: 4px;
-      transition: height 0.4s;
-    }
-    .barra.hoy { background: var(--naranja); }
-    .barra.tiene { background: var(--verde); }
-    .barra-dia {
-      font-size: 10px;
-      color: var(--gris-texto);
-      font-weight: 600;
-    }
-    .barra-dia.hoy { color: var(--naranja); font-weight: 700; }
+/* SKELETON */
+.skel { background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-    /* ── EMPTY STATE ── */
-    .empty {
-      text-align: center;
-      padding: 24px;
-      color: var(--gris-texto);
-    }
-    .empty-icon { font-size: 36px; margin-bottom: 8px; }
-    .empty-txt { font-size: 13px; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.stat-card { animation: fadeUp 0.3s ease both; }
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.10s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.20s; }
 
-    /* ── NAV BOTTOM ── */
-    .nav-bottom {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--blanco);
-      border-top: 1px solid #eef0f3;
-      display: flex;
-      z-index: 100;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-    }
-    .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 4px 8px;
-      text-decoration: none;
-      color: var(--gris-texto);
-      font-size: 10px;
-      font-weight: 500;
-      gap: 3px;
-      border: none;
-      background: none;
-      cursor: pointer;
-    }
-    .nav-item.activo { color: var(--verde-oscuro); }
-    .nav-icon { font-size: 22px; }
-
-    /* ── HAMBURGUESA ── */
-    .drawer-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 200;
-    }
-    .drawer-overlay.open { display: block; }
-    .drawer {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--blanco);
-      border-radius: 20px 20px 0 0;
-      padding: 20px;
-      z-index: 201;
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
-    }
-    .drawer.open { transform: translateY(0); }
-    .drawer-handle {
-      width: 40px; height: 4px;
-      background: #ddd;
-      border-radius: 2px;
-      margin: 0 auto 20px;
-    }
-    .drawer-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-    .drawer-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 14px 6px;
-      border-radius: 12px;
-      text-decoration: none;
-      color: var(--texto);
-      background: var(--gris-fondo);
-    }
-    .drawer-icon { font-size: 28px; }
-    .drawer-label { font-size: 12px; font-weight: 600; }
-
-    .skeleton {
-      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.2s infinite;
-      border-radius: 8px;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-  </style>
+/* NAV */
+.app-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 720px; height: 64px;
+  background: #fff; border-top: 1.5px solid #E8E4DD;
+  display: flex; align-items: center;
+  z-index: 2147483647; box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
+}
+.app-nav a {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 2px; text-decoration: none; color: #8A8FA8; padding: 4px 0;
+}
+.app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
+.app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
+.app-nav a.on .nl { color: #2D6A4F; }
+</style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2D6A4F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icon-192.png">
 </head>
 <body>
 
 <!-- HEADER -->
-<header class="header">
-  <div class="header-left">
-    <img src="logo-psicoapp.png" alt="PsicoApp" class="header-logo" onerror="this.style.display='none'">
-    <div>
-      <div class="header-brand">PsicoApp</div>
-      <div class="header-saludo" id="saludo">Hola 👋</div>
+<div class="header">
+  <div class="header-row">
+    <div class="logo">Psico<span>app</span></div>
+    <div class="header-icons">
+      <button class="icon-btn" onclick="window.location.href='psicoapp-perfil.html'" title="Mi perfil">👤</button>
     </div>
   </div>
-  <div class="header-right">
-    <button class="btn-notif" onclick="location.href='psicoapp-whatsapp.html'" title="Notificaciones">
-      🔔
-      <span class="notif-badge" id="notif-badge" style="display:none"></span>
-    </button>
-    <button class="avatar-btn" onclick="location.href='psicoapp-perfil.html'" id="avatar-btn">
-      <span id="avatar-inicial">?</span>
-    </button>
+  <div class="greeting">
+    <div class="greeting-sub" id="greeting-sub">Cargando...</div>
+    <div class="greeting-name" id="greeting-name">—</div>
+    <div class="greeting-date" id="greeting-date">—</div>
   </div>
-</header>
-
-<div class="page-wrap">
-
-<!-- HERO -->
-<div class="hero-card">
-  <div class="hero-fecha" id="hero-fecha">—</div>
-  <div class="hero-titulo" id="hero-titulo">Cargando…</div>
-  <div class="hero-frase" id="hero-frase">"Cada sesión es un paso hacia el cambio."</div>
 </div>
 
-<!-- STATS -->
-<div class="stats-grid">
-  <div class="stat-card verde">
-    <div class="stat-icon">📅</div>
-    <div class="stat-valor" id="stat-hoy">—</div>
+<!-- QUICK STATS -->
+<div class="quick-stats">
+  <div class="stat-card" onclick="window.location.href='psicoapp-agenda.html'">
+    <div class="stat-card-top">
+      <div class="stat-icon si-green">📅</div>
+      <div class="stat-trend trend-neutral" id="trend-turnos">Hoy</div>
+    </div>
+    <div class="stat-num" id="stat-turnos">—</div>
     <div class="stat-label">Turnos hoy</div>
   </div>
-  <div class="stat-card naranja">
-    <div class="stat-icon">💰</div>
-    <div class="stat-valor" id="stat-mes">—</div>
-    <div class="stat-label">Facturado este mes</div>
-  </div>
-  <div class="stat-card azul">
-    <div class="stat-icon">👥</div>
-    <div class="stat-valor" id="stat-pacientes">—</div>
+  <div class="stat-card" onclick="window.location.href='psicoapp-pacientes.html'">
+    <div class="stat-card-top">
+      <div class="stat-icon si-blue">👥</div>
+      <div class="stat-trend trend-neutral">Total</div>
+    </div>
+    <div class="stat-num" id="stat-pacientes" style="color:#1976D2">—</div>
     <div class="stat-label">Pacientes activos</div>
   </div>
-  <div class="stat-card violeta">
-    <div class="stat-icon">📋</div>
-    <div class="stat-valor" id="stat-pericias">—</div>
-    <div class="stat-label">Pericias activas</div>
+  <div class="stat-card" onclick="window.location.href='psicoapp-pagos.html'">
+    <div class="stat-card-top">
+      <div class="stat-icon si-orange">💰</div>
+      <div class="stat-trend trend-up" id="trend-mes">Este mes</div>
+    </div>
+    <div class="stat-num" id="stat-ingresos" style="font-size:18px">—</div>
+    <div class="stat-label">Facturado</div>
+  </div>
+  <div class="stat-card" onclick="window.location.href='psicoapp-pericias.html'">
+    <div class="stat-card-top">
+      <div class="stat-icon si-purple">⚖️</div>
+      <div class="stat-trend trend-neutral">Activas</div>
+    </div>
+    <div class="stat-num" id="stat-pericias" style="color:#7B5EA7">—</div>
+    <div class="stat-label">Pericias</div>
   </div>
 </div>
 
 <!-- TURNOS DE HOY -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-titulo">📅 Hoy</div>
-    <a href="psicoapp-agenda.html" class="section-link">Ver agenda →</a>
+<div class="section" style="margin-top:16px">
+  <div class="section-title">
+    Turnos de hoy
+    <a class="section-link" href="psicoapp-agenda.html">Ver agenda →</a>
   </div>
-  <div id="turnos-hoy-lista">
-    <div class="turno-card">
-      <div class="skeleton" style="width:48px;height:20px;border-radius:6px"></div>
-      <div class="turno-info">
-        <div class="skeleton" style="width:120px;height:16px;border-radius:6px;margin-bottom:6px"></div>
-        <div class="skeleton" style="width:80px;height:12px;border-radius:6px"></div>
-      </div>
+  <div class="turnos-list" id="turnosList">
+    <div class="empty-section">Cargando...</div>
+  </div>
+</div>
+
+<!-- INGRESOS DEL MES -->
+<div class="section" style="margin-top:16px">
+  <div class="section-title">
+    <span id="titulo-ingresos">Ingresos — este mes</span>
+    <a class="section-link" href="psicoapp-pagos.html">Ver detalle →</a>
+  </div>
+  <div class="income-card">
+    <div class="income-main">
+      <div class="income-amount" id="income-total">$0</div>
+      <div class="income-sub" id="income-cant">0 pagos registrados</div>
+    </div>
+    <div class="income-bar-container">
+      <div class="income-bar" id="income-bar" style="width:0%"></div>
     </div>
   </div>
 </div>
 
 <!-- ACCESOS RÁPIDOS -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-titulo">⚡ Accesos rápidos</div>
-  </div>
-  <div class="accesos-grid">
-    <a href="psicoapp-agenda.html" class="acceso-btn">
-      <div class="acceso-icon">📅</div>
-      <div class="acceso-label">Nueva sesión</div>
-    </a>
-    <a href="psicoapp-pacientes.html" class="acceso-btn">
-      <div class="acceso-icon">👤</div>
-      <div class="acceso-label">Nuevo paciente</div>
-    </a>
-    <a href="psicoapp-pagos.html" class="acceso-btn">
-      <div class="acceso-icon">💳</div>
-      <div class="acceso-label">Registrar pago</div>
-    </a>
-    <a href="psicoapp-pericias.html" class="acceso-btn">
-      <div class="acceso-icon">📋</div>
-      <div class="acceso-label">Nueva pericia</div>
-    </a>
+<div class="section" style="margin-top:16px; margin-bottom:16px">
+  <div class="section-title">Acceso rápido</div>
+  <div class="quick-access">
+    <a class="qa-item" href="psicoapp-agenda.html"><div class="qa-icon">➕</div><div class="qa-label">Nuevo turno</div></a>
+    <a class="qa-item" href="psicoapp-pacientes.html"><div class="qa-icon">👤</div><div class="qa-label">Nuevo paciente</div></a>
+    <a class="qa-item" href="psicoapp-pagos.html"><div class="qa-icon">💰</div><div class="qa-label">Registrar pago</div></a>
+    <a class="qa-item" href="psicoapp-pericias.html"><div class="qa-icon">⚖️</div><div class="qa-label">Nueva pericia</div></a>
   </div>
 </div>
 
-<!-- IMPACTO SEMANAL -->
-<div class="section" style="padding-bottom: 16px;">
-  <div class="section-header">
-    <div class="section-titulo">📊 Esta semana</div>
-  </div>
-  <div class="impacto-card">
-    <div class="impacto-row">
-      <div class="impacto-item">
-        <div class="impacto-num" id="sem-sesiones">—</div>
-        <div class="impacto-lbl">Sesiones</div>
-      </div>
-      <div class="impacto-item">
-        <div class="impacto-num" id="sem-pacientes">—</div>
-        <div class="impacto-lbl">Pacientes</div>
-      </div>
-      <div class="impacto-item">
-        <div class="impacto-num" id="sem-facturado">—</div>
-        <div class="impacto-lbl">Facturado</div>
-      </div>
-    </div>
-    <div class="barras-fila" id="barras-semana">
-      <!-- generado por JS -->
-    </div>
-  </div>
-</div>
-
-</div><!-- /page-wrap -->
-
-<!-- NAV BOTTOM -->
-<nav class="nav-bottom">
-  <a class="nav-item activo" href="psicoapp-index.html">
-    <span class="nav-icon">🏠</span>Inicio
-  </a>
-  <a class="nav-item" href="psicoapp-agenda.html">
-    <span class="nav-icon">📅</span>Agenda
-  </a>
-  <a class="nav-item" href="psicoapp-pacientes.html">
-    <span class="nav-icon">👥</span>Pacientes
-  </a>
-  <a class="nav-item" href="psicoapp-whatsapp.html">
-    <span class="nav-icon">💬</span>WhatsApp
-  </a>
-  <button class="nav-item" onclick="abrirDrawer()">
-    <span class="nav-icon">☰</span>Más
-  </button>
+<nav class="app-nav">
+  <a href="psicoapp-index.html" class="on"><span class="ni">📊</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-pericias.html"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
+  <a href="psicoapp-cuenta.html"><span class="ni">👤</span><span class="nl">Cuenta</span></a>
 </nav>
 
-<!-- DRAWER -->
-<div class="drawer-overlay" id="drawer-overlay" onclick="cerrarDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-handle"></div>
-  <div class="drawer-grid">
-    <a href="psicoapp-pagos.html" class="drawer-item">
-      <span class="drawer-icon">💰</span>
-      <span class="drawer-label">Pagos</span>
-    </a>
-    <a href="psicoapp-pericias.html" class="drawer-item">
-      <span class="drawer-icon">📋</span>
-      <span class="drawer-label">Pericias</span>
-    </a>
-    <a href="psicoapp-perfil.html" class="drawer-item">
-      <span class="drawer-icon">👤</span>
-      <span class="drawer-label">Perfil</span>
-    </a>
-    <a href="psicoapp-cuenta.html" class="drawer-item">
-      <span class="drawer-icon">⚙️</span>
-      <span class="drawer-label">Cuenta</span>
-    </a>
-  </div>
-</div>
-
 <script>
-  const SUPABASE_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
 
-  function getToken() {
-    const claves = [
-      'sb-terlbqrcampdqtxjbihg-auth-token',
-      'sb-access-token',
-      'supabase.auth.token'
-    ];
-    for (const clave of claves) {
-      const raw = localStorage.getItem(clave);
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          if (parsed.access_token) return parsed.access_token;
-          if (parsed[0]?.access_token) return parsed[0].access_token;
-        } catch(e) {
-          if (raw.length > 20) return raw;
-        }
-      }
-    }
-    return null;
+const DIAS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+
+  setGreeting();
+  await Promise.all([
+    cargarTurnosHoy(),
+    cargarPacientes(),
+    cargarIngresos(),
+    cargarPericias(),
+  ]);
+})();
+
+async function setGreeting() {
+  const now  = new Date();
+  const hora = now.getHours();
+  const sub  = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
+  document.getElementById('greeting-sub').textContent  = sub;
+  document.getElementById('greeting-date').textContent =
+    `${DIAS[now.getDay()]} ${now.getDate()} de ${MESES[now.getMonth()]} · ${String(hora).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const mesNombre = MESES[now.getMonth()];
+  document.getElementById('titulo-ingresos').textContent = `Ingresos — ${mesNombre}`;
+  document.getElementById('trend-mes').textContent = mesNombre.slice(0,3);
+
+  // leer perfil
+  const { data:{ session } } = await sb.auth.getSession();
+  const { data: perfil } = await sb.from('profiles').select('titulo,nombre_completo').eq('id', session.user.id).maybeSingle();
+  const titulo = perfil?.titulo || '';
+  const nombre = perfil?.nombre_completo || session.user.email;
+  document.getElementById('greeting-name').textContent = `${titulo} ${nombre}`.trim();
+}
+
+async function cargarTurnosHoy() {
+  const hoy = fmtDate(new Date());
+  const { data } = await sb
+    .from('turnos')
+    .select('*, pacientes(nombre, apellido)')
+    .eq('fecha', hoy)
+    .order('hora');
+
+  const list = document.getElementById('turnosList');
+  const turnos = data || [];
+  document.getElementById('stat-turnos').textContent = turnos.length;
+  document.getElementById('trend-turnos').textContent =
+    turnos.length ? `${turnos.filter(t => t.estado === 'confirmado').length} confirm.` : 'Sin turnos';
+
+  if (!turnos.length) {
+    list.innerHTML = '<div class="empty-section">Sin turnos para hoy. <a href="psicoapp-agenda.html" style="color:var(--primary);font-weight:700">Agendar →</a></div>';
+    return;
   }
 
-  const frases = [
-    "Cada sesión es un paso hacia el cambio.",
-    "Escuchar es el arte más poderoso que existe.",
-    "El consultorio es un espacio de transformación.",
-    "Tu trabajo importa más de lo que creés.",
-    "Hoy ayudás a alguien a entenderse mejor.",
-    "La empatía es tu herramienta más valiosa.",
-    "Cada paciente trae una historia única."
-  ];
+  const ahora = new Date();
+  const horaActual = ahora.getHours();
+  let html = '';
+  let nowInserted = false;
 
-  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  turnos.forEach(t => {
+    const horaT = parseInt(t.hora);
+    const pac   = t.pacientes;
+    const nombre = pac ? `${pac.nombre} ${pac.apellido}` : tipoLabel(t.tipo);
+    const horaStr = t.hora?.slice(0,5);
+    const isPast  = horaT < horaActual;
+    const isNow   = horaT === horaActual;
+    const isJud   = t.tipo === 'judicial';
 
-  let userId = null;
-
-  async function sb(endpoint, params = '') {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}${params}`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    if (!r.ok) return null;
-    return r.json();
-  }
-
-  async function getSession() {
-    const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${getToken() || ''}` }
-    });
-    if (!r.ok) { location.href = 'login.html'; return null; }
-    return r.json();
-  }
-
-  function horaActual() {
-    const h = new Date().getHours();
-    if (h < 12) return 'Buenos días';
-    if (h < 19) return 'Buenas tardes';
-    return 'Buenas noches';
-  }
-
-  function formatPeso(n) {
-    if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
-    if (n >= 1000) return '$' + Math.round(n / 1000) + 'k';
-    return '$' + n;
-  }
-
-  function colorTipo(tipo) {
-    if (!tipo) return '';
-    const t = tipo.toLowerCase();
-    if (t.includes('sesión') || t.includes('sesion') || t.includes('paciente')) return '';
-    if (t.includes('evento')) return 'naranja';
-    if (t.includes('pericia')) return 'violeta';
-    return 'azul';
-  }
-
-  function estadoClass(e) {
-    if (!e) return 'estado-pendiente';
-    if (e === 'realizado' || e === 'realizada') return 'estado-realizado';
-    if (e === 'cancelado' || e === 'cancelada') return 'estado-cancelado';
-    return 'estado-pendiente';
-  }
-
-  async function cargarDashboard() {
-    const hoy = new Date();
-    const hoyStr = hoy.toISOString().split('T')[0];
-
-    // Fecha en hero
-    document.getElementById('hero-fecha').textContent =
-      `${dias[hoy.getDay()]}, ${hoy.getDate()} de ${meses[hoy.getMonth()]} de ${hoy.getFullYear()}`;
-
-    // Frase
-    document.getElementById('hero-frase').textContent =
-      '"' + frases[Math.floor(Math.random() * frases.length)] + '"';
-
-    // Sesión usuario
-    const token = getToken();
-    if (!token) { location.href = 'login.html'; return; }
-
-    const uRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-    });
-    if (!uRes.ok) { location.href = 'login.html'; return; }
-    const user = await uRes.json();
-    userId = user.id;
-
-    // Perfil
-    const perfRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=nombre,apellido,foto_url`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-    });
-    if (perfRes.ok) {
-      const perfs = await perfRes.json();
-      if (perfs && perfs.length > 0) {
-        const p = perfs[0];
-        const nombre = p.nombre || '';
-        document.getElementById('hero-titulo').textContent = `${horaActual()}, ${nombre || 'Doc'} 👋`;
-        document.getElementById('saludo').textContent = nombre ? `Lic. ${nombre}` : '';
-        document.getElementById('avatar-inicial').textContent = nombre ? nombre[0].toUpperCase() : '?';
-        if (p.foto_url) {
-          const ab = document.getElementById('avatar-btn');
-          ab.innerHTML = `<img src="${p.foto_url}" alt="foto">`;
-        }
-      }
+    if (!nowInserted && horaT >= horaActual) {
+      nowInserted = true;
+      html += `<div class="now-indicator">
+        <div class="now-dot-h"></div>
+        <div class="now-label">AHORA · ${String(horaActual).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}</div>
+        <div class="now-line-h"></div>
+      </div>`;
     }
 
-    // Turnos HOY
-    const turnRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/turnos?user_id=eq.${userId}&fecha=eq.${hoyStr}&order=hora.asc&select=*`,
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
-    );
-    const turnos = turnRes.ok ? await turnRes.json() : [];
-    document.getElementById('stat-hoy').textContent = turnos.length;
-    renderTurnosHoy(turnos);
+    const cls   = `turno-card ${isJud ? 'tc-jud' : 'tc-pac'} ${isPast ? 'tc-past' : ''} ${isNow ? 'tc-now' : ''}`;
+    const badge = badgeEstado(t.estado, isJud);
+    html += `
+      <div class="${cls}" onclick="window.location.href='psicoapp-agenda.html'">
+        <div class="turno-time ${isNow ? 'now' : ''}">${horaStr}</div>
+        <div class="turno-info">
+          <div class="turno-name">${isJud ? '⚖️ ' : '👤 '}${nombre}</div>
+          <div class="turno-meta">${tipoLabel(t.tipo)} · ${t.duracion || 50} min</div>
+        </div>
+        <div class="turno-badge ${badge.cls}">${badge.txt}</div>
+      </div>`;
+  });
 
-    // Pacientes activos
-    const pacRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/pacientes?user_id=eq.${userId}&activo=eq.true&select=id`,
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
-    );
-    const pacs = pacRes.ok ? await pacRes.json() : [];
-    document.getElementById('stat-pacientes').textContent = pacs.length;
-
-    // Facturado mes
-    const mesInicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
-    const mesFin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().split('T')[0];
-    const pagRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/pagos?user_id=eq.${userId}&fecha=gte.${mesInicio}&fecha=lte.${mesFin}&estado=eq.pagado&select=monto`,
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
-    );
-    const pagos = pagRes.ok ? await pagRes.json() : [];
-    const totalMes = pagos.reduce((a, p) => a + (parseFloat(p.monto) || 0), 0);
-    document.getElementById('stat-mes').textContent = formatPeso(totalMes);
-
-    // Pericias activas
-    const perRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/pericias?user_id=eq.${userId}&estado=neq.cerrada&select=id`,
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
-    );
-    const pericias = perRes.ok ? await perRes.json() : [];
-    document.getElementById('stat-pericias').textContent = pericias.length;
-
-    // Impacto semanal
-    cargarSemana(userId, token, hoy);
+  if (!nowInserted) {
+    html = `<div class="now-indicator">
+      <div class="now-dot-h"></div>
+      <div class="now-label">AHORA</div>
+      <div class="now-line-h"></div>
+    </div>` + html;
   }
 
-  function renderTurnosHoy(turnos) {
-    const cont = document.getElementById('turnos-hoy-lista');
-    if (!turnos || turnos.length === 0) {
-      cont.innerHTML = `
-        <div class="empty">
-          <div class="empty-icon">☀️</div>
-          <div class="empty-txt">No tenés turnos agendados para hoy</div>
-        </div>`;
-      return;
-    }
-    cont.innerHTML = turnos.slice(0, 5).map(t => {
-      const color = colorTipo(t.tipo || t.descripcion);
-      const hora = (t.hora || '').substring(0, 5);
-      const pac = t.paciente_nombre || t.descripcion || 'Turno';
-      const tipo = t.tipo || 'Sesión';
-      return `
-        <div class="turno-card ${color}">
-          <div class="turno-hora">${hora}</div>
-          <div class="turno-info">
-            <div class="turno-paciente">${pac}</div>
-            <div class="turno-tipo">${tipo}</div>
-          </div>
-          <span class="turno-estado ${estadoClass(t.estado)}">${t.estado || 'Pendiente'}</span>
-        </div>`;
-    }).join('');
-    if (turnos.length > 5) {
-      cont.innerHTML += `<div style="text-align:center;padding:8px;font-size:13px;color:var(--gris-texto)">+${turnos.length - 5} más en la agenda</div>`;
-    }
-  }
+  list.innerHTML = html;
+}
 
-  async function cargarSemana(userId, token, hoy) {
-    // Lunes de esta semana
-    const lunes = new Date(hoy);
-    const dia = hoy.getDay();
-    const diff = dia === 0 ? -6 : 1 - dia;
-    lunes.setDate(hoy.getDate() + diff);
-    const sabado = new Date(lunes);
-    sabado.setDate(lunes.getDate() + 5);
+async function cargarPacientes() {
+  const { count } = await sb.from('pacientes').select('*', { count: 'exact', head: true }).eq('activo', true);
+  document.getElementById('stat-pacientes').textContent = count || 0;
+}
 
-    const lunesStr = lunes.toISOString().split('T')[0];
-    const sabadoStr = sabado.toISOString().split('T')[0];
+async function cargarIngresos() {
+  const now   = new Date();
+  const desde = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  const hasta = fmtDate(new Date(now.getFullYear(), now.getMonth()+1, 0));
 
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/turnos?user_id=eq.${userId}&fecha=gte.${lunesStr}&fecha=lte.${sabadoStr}&select=fecha,estado,paciente_nombre`,
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
-    );
-    const semTurnos = res.ok ? await res.json() : [];
+  const { data } = await sb.from('pagos').select('monto').gte('fecha', desde).lte('fecha', hasta);
+  const pagos  = data || [];
+  const total  = pagos.reduce((s, p) => s + (p.monto || 0), 0);
 
-    // Agrupar por día
-    const porDia = {};
-    for (let i = 0; i < 6; i++) {
-      const d = new Date(lunes);
-      d.setDate(lunes.getDate() + i);
-      porDia[d.toISOString().split('T')[0]] = 0;
-    }
-    semTurnos.forEach(t => {
-      if (porDia[t.fecha] !== undefined) porDia[t.fecha]++;
-    });
+  document.getElementById('stat-ingresos').textContent = formatPeso(total);
+  document.getElementById('income-total').textContent  = formatPeso(total);
+  document.getElementById('income-cant').textContent   = `${pagos.length} pago${pagos.length !== 1 ? 's' : ''} registrado${pagos.length !== 1 ? 's' : ''}`;
 
-    const vals = Object.values(porDia);
-    const maxVal = Math.max(...vals, 1);
-    const nombresDias = ['Lun','Mar','Mié','Jue','Vie','Sáb'];
-    const hoyStr = hoy.toISOString().split('T')[0];
+  // barra progreso simple (100% = proyección de 30 sesiones)
+  const turnos30 = 30;
+  const pct = Math.min(100, Math.round((pagos.length / turnos30) * 100));
+  setTimeout(() => { document.getElementById('income-bar').style.width = pct + '%'; }, 300);
+}
 
-    const cont = document.getElementById('barras-semana');
-    cont.innerHTML = Object.entries(porDia).map(([fecha, count], i) => {
-      const esHoy = fecha === hoyStr;
-      const altura = Math.max((count / maxVal) * 52, 4);
-      return `
-        <div class="barra-wrap">
-          <div class="barra ${esHoy ? 'hoy' : (count > 0 ? 'tiene' : '')}" style="height:${altura}px"></div>
-          <span class="barra-dia ${esHoy ? 'hoy' : ''}">${nombresDias[i]}</span>
-        </div>`;
-    }).join('');
+async function cargarPericias() {
+  const { count } = await sb.from('pericias').select('*', { count: 'exact', head: true }).eq('estado', 'en_curso');
+  document.getElementById('stat-pericias').textContent = count || 0;
+}
 
-    // Stats semana
-    const sesiones = semTurnos.length;
-    const pacientesSet = new Set(semTurnos.map(t => t.paciente_nombre).filter(Boolean));
-    document.getElementById('sem-sesiones').textContent = sesiones;
-    document.getElementById('sem-pacientes').textContent = pacientesSet.size;
+// helpers
+function fmtDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 
-    // Facturado semana (pagos)
-    const pagRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/pagos?user_id=eq.${userId}&fecha=gte.${lunesStr}&fecha=lte.${sabadoStr}&estado=eq.pagado&select=monto`,
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
-    );
-    const pagSem = pagRes.ok ? await pagRes.json() : [];
-    const totalSem = pagSem.reduce((a, p) => a + (parseFloat(p.monto) || 0), 0);
-    document.getElementById('sem-facturado').textContent = formatPeso(totalSem);
-  }
-
-  function abrirDrawer() {
-    document.getElementById('drawer').classList.add('open');
-    document.getElementById('drawer-overlay').classList.add('open');
-  }
-  function cerrarDrawer() {
-    document.getElementById('drawer').classList.remove('open');
-    document.getElementById('drawer-overlay').classList.remove('open');
-  }
-
-  cargarDashboard();
+// Registrar Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+function formatPeso(n) {
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return '$' + Math.round(n/1000) + 'k';
+  return '$' + n;
+}
+function tipoLabel(t) {
+  return { sesion:'Sesión', judicial:'Judicial', evaluacion:'Evaluación', evento:'Evento', otro:'Otro' }[t] || t || 'Sesión';
+}
+function badgeEstado(e, isJud) {
+  if (isJud) return { cls: 'tb-jud', txt: 'Judicial' };
+  return {
+    pendiente:  { cls: 'tb-wait', txt: '⏳ Sin confirmar' },
+    confirmado: { cls: 'tb-ok',   txt: '✓ Confirmó' },
+    realizado:  { cls: 'tb-done', txt: '✅ Realizado' },
+    cancelado:  { cls: 'tb-done', txt: '❌ Cancelado' },
+  }[e] || { cls: 'tb-wait', txt: e };
+}
 </script>
 </body>
 </html>
