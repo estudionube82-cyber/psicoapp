@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PsicoApp — Consentimiento Informado</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#F4F1ED; --surface:#FFFFFF; --primary:#2D6A4F; --primary-light:#E8F5EE;
+  --accent:#F4A261; --text:#1A1A2E; --muted:#8A8FA8; --border:#E8E4DD;
+  --sh:0 2px 8px rgba(0,0,0,0.06); --sh-md:0 4px 20px rgba(0,0,0,0.10); --r:14px;
+  --danger:#E53935;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;}
+
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--sh);}
+.header-top{display:flex;align-items:center;padding:14px 18px 12px;gap:10px;}
+.header-logo-txt{font-size:18px;font-weight:800;color:var(--primary);}
+.header-logo-txt span{color:var(--accent);}
+.header-title{flex:1;text-align:center;font-size:16px;font-weight:800;}
+
+/* VIEWS */
+.view{display:none;}
+.view.active{display:block;animation:fadeUp 0.2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* SEARCH */
+.search-wrap{padding:14px 16px 8px;}
+.search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px 10px 40px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;color:var(--text);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A8FA8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;}
+.search-input:focus{border-color:var(--primary);}
+
+/* LISTA */
+.pac-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.pac-card{background:var(--surface);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);cursor:pointer;transition:box-shadow 0.15s;}
+.pac-card:hover{box-shadow:var(--sh-md);}
+.pac-avatar{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:white;flex-shrink:0;}
+.pac-info{flex:1;min-width:0;}
+.pac-nombre{font-size:14px;font-weight:700;}
+.pac-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.status-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+.badge-firmado{background:#DCFCE7;color:#166534;}
+.badge-pendiente{background:#FEF9C3;color:#854D0E;}
+.badge-nuevo{background:var(--primary-light);color:var(--primary);}
+
+/* DETALLE HEADER */
+.pac-header-detail{background:var(--primary);padding:20px 18px 16px;display:flex;align-items:center;gap:14px;}
+.pac-avatar-lg{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:white;background:rgba(255,255,255,0.2);flex-shrink:0;}
+.pac-detail-nombre{font-size:17px;font-weight:800;color:white;}
+.pac-detail-sub{font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px;}
+.back-btn{background:rgba(255,255,255,0.2);border:none;color:white;border-radius:10px;padding:8px 10px;font-size:18px;cursor:pointer;flex-shrink:0;}
+
+/* CONSENT CARD */
+.consent-section{padding:16px;}
+.consent-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:12px;}
+.consent-card-header{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bg);}
+.consent-card-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.consent-card-title{font-size:14px;font-weight:800;flex:1;}
+.consent-card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.consent-card-body{padding:14px 16px;}
+
+/* ESTADO FIRMADO */
+.firmado-banner{background:#DCFCE7;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.firmado-icon{font-size:28px;}
+.firmado-info{flex:1;}
+.firmado-title{font-size:13px;font-weight:800;color:#166534;}
+.firmado-fecha{font-size:11px;color:#166534;opacity:0.8;margin-top:2px;}
+
+/* FORM */
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block;}
+.form-input,.form-textarea,.form-select{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color 0.15s;}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--primary);background:white;}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.6;}
+.form-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* PREVIEW DOCUMENTO */
+.doc-preview{background:white;border:1px solid var(--border);border-radius:12px;padding:20px;font-size:12px;line-height:1.8;color:#1a1a1a;margin-bottom:14px;box-shadow:var(--sh);}
+.doc-preview h3{font-size:14px;font-weight:800;text-align:center;margin-bottom:4px;color:#1a1a1a;}
+.doc-preview .doc-sub{text-align:center;font-size:11px;color:var(--muted);margin-bottom:16px;}
+.doc-preview p{margin-bottom:10px;}
+.doc-preview .doc-field{border-bottom:1px solid #ccc;display:inline-block;min-width:120px;margin:0 4px;}
+.doc-section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin:14px 0 6px;}
+.doc-firma-area{border:1px dashed var(--border);border-radius:10px;padding:14px;text-align:center;margin-top:14px;}
+.doc-firma-label{font-size:10px;color:var(--muted);margin-top:6px;}
+
+/* CANVAS FIRMA */
+.firma-wrap{margin-bottom:14px;}
+.firma-canvas-container{background:white;border:2px solid var(--border);border-radius:12px;overflow:hidden;position:relative;}
+.firma-canvas-container.active{border-color:var(--primary);}
+#firmaCanvas{display:block;width:100%;touch-action:none;}
+.firma-tools{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-top:1px solid var(--border);}
+.firma-tool-label{font-size:11px;color:var(--muted);font-weight:600;}
+.btn-limpiar{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.firma-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;}
+.firma-ok-badge{display:none;align-items:center;gap:6px;background:#DCFCE7;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;color:#166534;margin-top:6px;}
+.firma-ok-badge.show{display:flex;}
+
+/* BTN */
+.btn-primary{width:100%;background:var(--primary);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;}
+.btn-secondary{width:100%;background:var(--primary-light);color:var(--primary);border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;}
+.btn-danger{width:100%;background:#FEE2E2;color:var(--danger);border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:8px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:0 0 40px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);}
+.modal-overlay.open .modal-sheet{transform:translateY(0);}
+.modal-drag{width:40px;height:4px;background:var(--border);border-radius:4px;margin:14px auto 0;}
+.modal-header{padding:18px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.modal-title{font-size:17px;font-weight:800;}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);}
+.modal-body{padding:18px 20px;}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px 24px;}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-title{font-size:16px;font-weight:800;margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--muted);line-height:1.5;}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:14px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1A2E;color:white;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* NAV */
+.app-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:64px;background:#fff;border-top:1.5px solid #E8E4DD;display:flex;align-items:center;z-index:2147483647;box-shadow:0 -2px 12px rgba(0,0,0,0.09);}
+.app-nav a,.app-nav button.nav-menu-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0;background:none;border:none;cursor:pointer;}
+.app-nav a .ni,.app-nav button.nav-menu-btn .ni{font-size:22px;line-height:1;display:block;}
+.app-nav a .nl,.app-nav button.nav-menu-btn .nl{font-size:10px;font-weight:700;display:block;}
+.menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:9998;display:none;}
+.menu-overlay.open{display:block;}
+.side-drawer{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:9999;box-shadow:4px 0 24px rgba(0,0,0,0.15);transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
+.side-drawer.open{left:0;}
+.drawer-header{background:linear-gradient(135deg,#2D6A4F 0%,#3A7D5F 50%,#F4A261 100%);padding:48px 20px 24px;}
+.drawer-logo-txt{font-size:22px;font-weight:800;color:white;}
+.drawer-logo-txt span{color:#FFD580;}
+.drawer-tagline{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;}
+.drawer-section-title{font-size:10px;font-weight:800;color:#8A8FA8;letter-spacing:1.5px;text-transform:uppercase;padding:16px 20px 6px;}
+.drawer-item{display:flex;align-items:center;gap:14px;padding:13px 20px;text-decoration:none;color:#1A1A2E;font-size:15px;font-weight:600;transition:background 0.15s;border-left:3px solid transparent;}
+.drawer-item:hover{background:#F4F1ED;}
+.drawer-item.active{background:#E8F5EE;color:#2D6A4F;border-left-color:#2D6A4F;}
+.drawer-item .di{font-size:20px;width:28px;text-align:center;}
+.drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
+.drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
+
+/* TABS */
+.tabs-bar{display:flex;background:var(--bg);border-bottom:1px solid var(--border);}
+.tab-btn{flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);}
+</style>
+</head>
+<body>
+
+<div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
+<div class="side-drawer" id="sideDrawer">
+  <div class="drawer-header">
+    <div class="drawer-logo-txt">Psico<span>App</span></div>
+    <div class="drawer-tagline">Gestión para psicólogos</div>
+  </div>
+  <div class="drawer-section-title">Principal</div>
+  <a href="psicoapp-index.html"          class="drawer-item" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
+  <a href="psicoapp-agenda.html"         class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
+  <a href="psicoapp-pacientes.html"      class="drawer-item" onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
+  <a href="psicoapp-whatsapp.html"       class="drawer-item" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
+  <a href="psicoapp-cuenta.html"         class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
+  <div class="drawer-section-title">Más módulos</div>
+  <a href="psicoapp-pagos.html"          class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
+  <a href="psicoapp-pericias.html"       class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
+  <a href="psicoapp-historia.html"       class="drawer-item" onclick="closeDrawer()"><span class="di">📋</span>Historia Clínica</a>
+  <a href="psicoapp-consentimiento.html" class="drawer-item active" onclick="closeDrawer()"><span class="di">✍️</span>Consentimiento</a>
+  <div class="drawer-footer">
+    <button class="drawer-logout" onclick="doLogout()">🚪 Cerrar sesión</button>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-logo-txt">Psico<span>App</span></div>
+    <div class="header-title" id="headerTitle">Consentimiento</div>
+    <div style="width:40px"></div>
+  </div>
+</div>
+
+<!-- ===== VISTA: LISTA ===== -->
+<div class="view active" id="viewLista">
+  <div class="search-wrap">
+    <input class="search-input" type="text" placeholder="Buscar paciente..." id="searchInput" oninput="filtrarPacientes()">
+  </div>
+  <div class="pac-list" id="pacList">
+    <div class="loading">Cargando pacientes…</div>
+  </div>
+</div>
+
+<!-- ===== VISTA: DETALLE ===== -->
+<div class="view" id="viewDetalle">
+  <div class="pac-header-detail">
+    <button class="back-btn" onclick="volverALista()">←</button>
+    <div class="pac-avatar-lg" id="detailAvatar"></div>
+    <div>
+      <div class="pac-detail-nombre" id="detailNombre"></div>
+      <div class="pac-detail-sub" id="detailSub"></div>
+    </div>
+  </div>
+
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('estado')">📄 Estado</button>
+    <button class="tab-btn" onclick="switchTab('editar')">✏️ Editar</button>
+    <button class="tab-btn" onclick="switchTab('firma')">✍️ Firma</button>
+  </div>
+
+  <!-- TAB ESTADO -->
+  <div id="tabEstado" class="consent-section">
+    <div id="estadoBanner"></div>
+    <div class="consent-card">
+      <div class="consent-card-header">
+        <div class="consent-card-icon" style="background:#E8F5EE">📋</div>
+        <div>
+          <div class="consent-card-title">Documento de consentimiento</div>
+          <div class="consent-card-sub" id="estadoDocSub">Sin generar</div>
+        </div>
+      </div>
+      <div class="consent-card-body">
+        <div id="previewDocumento" class="doc-preview" style="display:none"></div>
+        <button class="btn-secondary" onclick="switchTab('editar')">✏️ Editar contenido</button>
+        <button class="btn-secondary" id="btnVerFirma" onclick="switchTab('firma')" style="margin-top:8px">✍️ Capturar firma</button>
+        <button class="btn-danger" id="btnRevocar" style="display:none" onclick="revocarConsentimiento()">🗑️ Revocar consentimiento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB EDITAR -->
+  <div id="tabEditar" class="consent-section" style="display:none">
+    <div class="consent-card">
+      <div class="consent-card-header">
+        <div class="consent-card-icon" style="background:#FEF3C7">📝</div>
+        <div><div class="consent-card-title">Datos del consentimiento</div></div>
+      </div>
+      <div class="consent-card-body">
+        <div class="form-group">
+          <label class="form-label">Fecha del documento</label>
+          <input class="form-input" type="date" id="inputFecha">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tratamiento / motivo</label>
+          <input class="form-input" type="text" id="inputTratamiento" placeholder="Ej: Tratamiento psicológico individual">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cláusulas adicionales (opcional)</label>
+          <textarea class="form-textarea" id="inputClausulas" placeholder="Condiciones especiales, honorarios, frecuencia de sesiones…"></textarea>
+          <div class="form-hint">Se agregan al pie del documento estándar</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre completo del paciente (para el documento)</label>
+          <input class="form-input" type="text" id="inputNombrePac">
+        </div>
+        <div class="form-group">
+          <label class="form-label">DNI del paciente (opcional)</label>
+          <input class="form-input" type="text" id="inputDni" placeholder="12.345.678">
+        </div>
+        <button class="btn-primary" onclick="guardarYPrevisualizar()">👁️ Guardar y previsualizar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB FIRMA -->
+  <div id="tabFirma" class="consent-section" style="display:none">
+    <div class="consent-card">
+      <div class="consent-card-header">
+        <div class="consent-card-icon" style="background:#EDE9FE">✍️</div>
+        <div>
+          <div class="consent-card-title">Firma digital del paciente</div>
+          <div class="consent-card-sub">El paciente firma con el dedo en pantalla</div>
+        </div>
+      </div>
+      <div class="consent-card-body">
+        <div id="firmaExistente" style="display:none;margin-bottom:14px">
+          <div class="firmado-banner">
+            <div class="firmado-icon">✅</div>
+            <div class="firmado-info">
+              <div class="firmado-title">Documento firmado</div>
+              <div class="firmado-fecha" id="firmaFechaTexto"></div>
+            </div>
+          </div>
+          <img id="firmaImagenExistente" src="" style="width:100%;border:1px solid var(--border);border-radius:10px;max-height:120px;object-fit:contain;background:white;">
+        </div>
+
+        <div class="firma-wrap">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.5">
+            Pedile al paciente que firme dentro del recuadro con el dedo:
+          </p>
+          <div class="firma-canvas-container" id="firmaContainer">
+            <canvas id="firmaCanvas" height="160"></canvas>
+            <div class="firma-tools">
+              <span class="firma-tool-label">✍️ Firma del paciente</span>
+              <button class="btn-limpiar" onclick="limpiarFirma()">Limpiar</button>
+            </div>
+          </div>
+          <div class="firma-hint">Trazá la firma con el dedo o el mouse</div>
+          <div class="firma-ok-badge" id="firmaOkBadge">✅ Firma capturada</div>
+        </div>
+
+        <button class="btn-primary" id="btnGuardarFirma" onclick="guardarFirma()">
+          ✅ Confirmar firma y cerrar consentimiento
+        </button>
+        <button class="btn-secondary" onclick="switchTab('estado')" style="margin-top:8px">← Volver al estado</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="app-nav">
+  <a href="psicoapp-index.html"><span class="ni">🏠</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-cuenta.html"><span class="ni">👤</span><span class="nl">Cuenta</span></a>
+  <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const {createClient} = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+const COLORES = ['#2D6A4F','#1976D2','#7B5EA7','#E65100','#388E3C','#C62828'];
+
+let userId = null, todosPacientes = [], pacienteActual = null, idxActual = 0;
+let consentimientoActual = null, perfilPro = {};
+let firmaCanvas, firmaCtx, dibujando = false, firmaData = null, hasFirma = false;
+
+// AUTH
+sb.auth.onAuthStateChange((e, session) => {
+  if (!session) { window.location.href = 'login.html'; return; }
+  userId = session.user.id;
+  cargarPerfil();
+  cargarPacientes();
+});
+
+// DRAWER
+function toggleDrawer(){document.getElementById('sideDrawer').classList.toggle('open');document.getElementById('menuOverlay').classList.toggle('open');}
+function closeDrawer(){document.getElementById('sideDrawer').classList.remove('open');document.getElementById('menuOverlay').classList.remove('open');}
+async function doLogout(){await sb.auth.signOut();window.location.href='login.html';}
+
+// TOAST
+function showToast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+
+// VIEWS
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+// PERFIL PRO
+async function cargarPerfil(){
+  const {data} = await sb.from('profiles').select('titulo,nombre_completo,especialidad,direccion,telefono_profesional').eq('id',userId).maybeSingle();
+  if(data) perfilPro = data;
+}
+
+// PACIENTES
+async function cargarPacientes(){
+  const {data} = await sb.from('pacientes').select('id,nombre,apellido,telefono,activo').eq('user_id',userId).eq('activo',true).order('apellido');
+  todosPacientes = data || [];
+  renderPacientes(todosPacientes);
+}
+
+function renderPacientes(lista){
+  const el = document.getElementById('pacList');
+  if(!lista.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Sin pacientes</div><div class="empty-sub">Agregá pacientes primero en el módulo Pacientes.</div></div>`;return;}
+  el.innerHTML = lista.map((p,i)=>{
+    const ini = `${p.nombre[0]}${p.apellido[0]}`.toUpperCase();
+    const color = COLORES[i%COLORES.length];
+    return `<div class="pac-card" onclick="abrirDetalle(${i})">
+      <div class="pac-avatar" style="background:${color}">${ini}</div>
+      <div class="pac-info">
+        <div class="pac-nombre">${p.apellido}, ${p.nombre}</div>
+        <div class="pac-sub" id="csub_${p.id}">Verificando…</div>
+      </div>
+      <div class="status-badge badge-nuevo" id="cbadge_${p.id}">—</div>
+    </div>`;
+  }).join('');
+  lista.forEach(p => cargarEstadoBadge(p));
+}
+
+async function cargarEstadoBadge(p){
+  const {data} = await sb.from('consentimientos').select('firmado,created_at').eq('paciente_id',p.id).eq('user_id',userId).maybeSingle();
+  const sub = document.getElementById('csub_'+p.id);
+  const badge = document.getElementById('cbadge_'+p.id);
+  if(!sub||!badge) return;
+  if(!data){ sub.textContent='Sin consentimiento'; badge.textContent='Nuevo'; badge.className='status-badge badge-nuevo'; }
+  else if(data.firmado){ sub.textContent='Firmado'; badge.textContent='✅ Firmado'; badge.className='status-badge badge-firmado'; }
+  else { sub.textContent='Generado, sin firma'; badge.textContent='⏳ Pendiente'; badge.className='status-badge badge-pendiente'; }
+}
+
+function filtrarPacientes(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  renderPacientes(todosPacientes.filter(p=>`${p.nombre} ${p.apellido}`.toLowerCase().includes(q)));
+}
+
+// DETALLE
+async function abrirDetalle(idx){
+  idxActual = idx;
+  pacienteActual = todosPacientes[idx];
+  const color = COLORES[idx%COLORES.length];
+  const ini = `${pacienteActual.nombre[0]}${pacienteActual.apellido[0]}`.toUpperCase();
+  document.getElementById('detailAvatar').textContent = ini;
+  document.getElementById('detailAvatar').style.background = color;
+  document.getElementById('detailNombre').textContent = `${pacienteActual.nombre} ${pacienteActual.apellido}`;
+  document.getElementById('detailSub').textContent = pacienteActual.telefono || 'Sin teléfono';
+  document.getElementById('headerTitle').textContent = 'Consentimiento';
+
+  // defaults
+  document.getElementById('inputFecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('inputTratamiento').value = 'Tratamiento psicológico individual';
+  document.getElementById('inputNombrePac').value = `${pacienteActual.nombre} ${pacienteActual.apellido}`;
+  document.getElementById('inputDni').value = '';
+  document.getElementById('inputClausulas').value = '';
+
+  showView('viewDetalle');
+  switchTab('estado');
+  await cargarConsentimiento();
+  initCanvas();
+}
+
+function volverALista(){
+  showView('viewLista');
+  document.getElementById('headerTitle').textContent = 'Consentimiento';
+  consentimientoActual = null;
+}
+
+// TABS
+function switchTab(tab){
+  ['estado','editar','firma'].forEach(t=>{
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['estado','editar','firma'][i]===tab));
+  if(tab==='firma') setTimeout(resizeCanvas,100);
+}
+
+// CARGAR CONSENTIMIENTO
+async function cargarConsentimiento(){
+  const {data} = await sb.from('consentimientos').select('*').eq('paciente_id',pacienteActual.id).eq('user_id',userId).maybeSingle();
+  consentimientoActual = data;
+
+  if(data){
+    document.getElementById('inputFecha').value = data.fecha || new Date().toISOString().split('T')[0];
+    document.getElementById('inputTratamiento').value = data.tratamiento || '';
+    document.getElementById('inputClausulas').value = data.clausulas_extra || '';
+    document.getElementById('inputNombrePac').value = data.nombre_paciente || `${pacienteActual.nombre} ${pacienteActual.apellido}`;
+    document.getElementById('inputDni').value = data.dni_paciente || '';
+  }
+
+  renderEstado(data);
+}
+
+function renderEstado(data){
+  const banner = document.getElementById('estadoBanner');
+  const preview = document.getElementById('previewDocumento');
+  const sub = document.getElementById('estadoDocSub');
+  const btnRevocar = document.getElementById('btnRevocar');
+
+  if(!data){
+    banner.innerHTML = `<div style="background:#FEF9C3;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-size:24px">📋</span>
+      <div><div style="font-size:13px;font-weight:800;color:#854D0E">Sin consentimiento generado</div>
+      <div style="font-size:11px;color:#854D0E;margin-top:2px">Tocá "Editar" para completar y generar el documento</div></div></div>`;
+    preview.style.display='none';
+    sub.textContent = 'Sin generar';
+    btnRevocar.style.display='none';
+    return;
+  }
+
+  if(data.firmado){
+    banner.innerHTML = `<div class="firmado-banner" style="margin-bottom:14px">
+      <div class="firmado-icon">✅</div>
+      <div class="firmado-info">
+        <div class="firmado-title">Consentimiento firmado y válido</div>
+        <div class="firmado-fecha">Firmado el ${formatFecha(data.firmado_at)}</div>
+      </div></div>`;
+    btnRevocar.style.display='block';
+  } else {
+    banner.innerHTML = `<div style="background:#E3F2FD;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-size:24px">⏳</span>
+      <div><div style="font-size:13px;font-weight:800;color:#1565C0">Documento generado, falta la firma</div>
+      <div style="font-size:11px;color:#1565C0;margin-top:2px">Tocá "Firma" para capturar la firma del paciente</div></div></div>`;
+    btnRevocar.style.display='block';
+  }
+
+  sub.textContent = `Generado el ${formatFecha(data.created_at)}`;
+  preview.style.display='block';
+  preview.innerHTML = generarHTMLDocumento(data);
+}
+
+// GENERAR DOCUMENTO
+function generarHTMLDocumento(data){
+  const prof = `${perfilPro.titulo||'Lic.'} ${perfilPro.nombre_completo||''}`.trim();
+  const mat = perfilPro.especialidad ? `Especialidad: ${perfilPro.especialidad}` : '';
+  const dir = perfilPro.direccion || '';
+  const tel = perfilPro.telefono_profesional || '';
+  const fecha = formatFecha(data.fecha);
+  const pacNombre = data.nombre_paciente || '';
+  const pacDni = data.dni_paciente ? `, DNI ${data.dni_paciente}` : '';
+  const tratamiento = data.tratamiento || 'tratamiento psicológico';
+
+  return `
+    <h3>CONSENTIMIENTO INFORMADO</h3>
+    <div class="doc-sub">Tratamiento Psicológico</div>
+
+    <div class="doc-section-title">Datos del profesional</div>
+    <p><strong>${prof}</strong>${mat?'<br>'+mat:''}<br>${dir}${tel?'<br>Tel: '+tel:''}</p>
+
+    <div class="doc-section-title">Datos del paciente</div>
+    <p><strong>${pacNombre}</strong>${pacDni}</p>
+
+    <div class="doc-section-title">Consentimiento</div>
+    <p>Yo, <strong>${pacNombre}</strong>${pacDni}, en pleno uso de mis facultades mentales, declaro haber recibido información suficiente y comprensible sobre el <strong>${tratamiento}</strong> que me será brindado por <strong>${prof}</strong>.</p>
+
+    <p>He sido informado/a sobre los objetivos del tratamiento, los métodos terapéuticos a utilizar, los beneficios esperados y los posibles riesgos o efectos adversos. Comprendo que mi participación es voluntaria y que puedo retirar este consentimiento en cualquier momento sin que ello afecte mi atención.</p>
+
+    <p>Autorizo al/la profesional a utilizar la información clínica obtenida durante el tratamiento con fines terapéuticos, manteniendo la confidencialidad de acuerdo con las normas éticas y legales vigentes.</p>
+
+    ${data.clausulas_extra ? `<div class="doc-section-title">Condiciones específicas</div><p>${data.clausulas_extra}</p>` : ''}
+
+    <div class="doc-section-title">Firma</div>
+    <p>En conformidad con lo expuesto, firmo el presente documento en la ciudad de ${dir||'_____________'}, el día ${fecha}.</p>
+
+    ${data.firma_url ? `<div class="doc-firma-area"><img src="${data.firma_url}" style="max-height:80px;max-width:100%;"><div class="doc-firma-label">Firma del paciente</div></div>` :
+    `<div class="doc-firma-area"><div style="height:50px"></div><div class="doc-firma-label">Firma del paciente</div></div>`}
+  `;
+}
+
+// GUARDAR Y PREVISUALIZAR
+async function guardarYPrevisualizar(){
+  const payload = {
+    user_id: userId,
+    paciente_id: pacienteActual.id,
+    fecha: document.getElementById('inputFecha').value,
+    tratamiento: document.getElementById('inputTratamiento').value.trim(),
+    clausulas_extra: document.getElementById('inputClausulas').value.trim() || null,
+    nombre_paciente: document.getElementById('inputNombrePac').value.trim(),
+    dni_paciente: document.getElementById('inputDni').value.trim() || null,
+    firmado: false,
+  };
+
+  let error;
+  if(consentimientoActual?.id){
+    ({error} = await sb.from('consentimientos').update(payload).eq('id',consentimientoActual.id));
+  } else {
+    ({error} = await sb.from('consentimientos').insert(payload));
+  }
+  if(error){showToast('❌ Error: '+error.message);return;}
+  showToast('✅ Documento guardado');
+  await cargarConsentimiento();
+  switchTab('estado');
+}
+
+// CANVAS FIRMA
+function initCanvas(){
+  firmaCanvas = document.getElementById('firmaCanvas');
+  firmaCtx = firmaCanvas.getContext('2d');
+  resizeCanvas();
+  firmaCanvas.addEventListener('mousedown', startDraw);
+  firmaCanvas.addEventListener('mousemove', draw);
+  firmaCanvas.addEventListener('mouseup', endDraw);
+  firmaCanvas.addEventListener('mouseleave', endDraw);
+  firmaCanvas.addEventListener('touchstart', e=>{e.preventDefault();startDraw(e.touches[0]);},{passive:false});
+  firmaCanvas.addEventListener('touchmove', e=>{e.preventDefault();draw(e.touches[0]);},{passive:false});
+  firmaCanvas.addEventListener('touchend', endDraw);
+}
+
+function resizeCanvas(){
+  if(!firmaCanvas) return;
+  const container = firmaCanvas.parentElement;
+  firmaCanvas.width = container.clientWidth;
+  firmaCanvas.height = 160;
+  firmaCtx.strokeStyle = '#1A1A2E';
+  firmaCtx.lineWidth = 2.5;
+  firmaCtx.lineCap = 'round';
+  firmaCtx.lineJoin = 'round';
+}
+
+function getPos(e){
+  const r = firmaCanvas.getBoundingClientRect();
+  return {x:(e.clientX||e.pageX)-r.left, y:(e.clientY||e.pageY)-r.top};
+}
+
+function startDraw(e){
+  dibujando=true;
+  const p=getPos(e);
+  firmaCtx.beginPath();
+  firmaCtx.moveTo(p.x,p.y);
+  document.getElementById('firmaContainer').classList.add('active');
+}
+
+function draw(e){
+  if(!dibujando) return;
+  const p=getPos(e);
+  firmaCtx.lineTo(p.x,p.y);
+  firmaCtx.stroke();
+}
+
+function endDraw(){
+  if(!dibujando) return;
+  dibujando=false;
+  hasFirma=true;
+  firmaData = firmaCanvas.toDataURL('image/png');
+  document.getElementById('firmaOkBadge').classList.add('show');
+}
+
+function limpiarFirma(){
+  firmaCtx.clearRect(0,0,firmaCanvas.width,firmaCanvas.height);
+  hasFirma=false;
+  firmaData=null;
+  document.getElementById('firmaOkBadge').classList.remove('show');
+  document.getElementById('firmaContainer').classList.remove('active');
+}
+
+// GUARDAR FIRMA
+async function guardarFirma(){
+  if(!hasFirma||!firmaData){showToast('⚠️ Primero capturá la firma del paciente');return;}
+  if(!consentimientoActual?.id){showToast('⚠️ Primero guardá el documento en la pestaña Editar');return;}
+
+  const btn = document.getElementById('btnGuardarFirma');
+  btn.disabled=true; btn.textContent='Guardando…';
+
+  // Subir imagen al storage
+  const blob = dataURLtoBlob(firmaData);
+  const path = `firmas/${userId}/${pacienteActual.id}_${Date.now()}.png`;
+  const {error:upErr} = await sb.storage.from('avatars').upload(path, blob, {contentType:'image/png',upsert:true});
+  
+  let firmaUrl = null;
+  if(!upErr){
+    const {data:urlData} = sb.storage.from('avatars').getPublicUrl(path);
+    firmaUrl = urlData.publicUrl;
+  }
+
+  const {error} = await sb.from('consentimientos').update({
+    firmado: true,
+    firmado_at: new Date().toISOString(),
+    firma_url: firmaUrl,
+    firma_data: firmaData, // fallback base64
+  }).eq('id',consentimientoActual.id);
+
+  btn.disabled=false; btn.textContent='✅ Confirmar firma y cerrar consentimiento';
+
+  if(error){showToast('❌ Error: '+error.message);return;}
+  showToast('✅ Consentimiento firmado y guardado');
+  limpiarFirma();
+  await cargarConsentimiento();
+  switchTab('estado');
+  // Actualizar badge en lista
+  cargarEstadoBadge(pacienteActual);
+}
+
+function dataURLtoBlob(dataURL){
+  const arr=dataURL.split(','), mime=arr[0].match(/:(.*?);/)[1];
+  const bstr=atob(arr[1]); let n=bstr.length; const u8=new Uint8Array(n);
+  while(n--) u8[n]=bstr.charCodeAt(n);
+  return new Blob([u8],{type:mime});
+}
+
+// REVOCAR
+async function revocarConsentimiento(){
+  if(!confirm('¿Revocar el consentimiento de este paciente? Se eliminará la firma.')) return;
+  await sb.from('consentimientos').delete().eq('id',consentimientoActual.id);
+  consentimientoActual=null;
+  showToast('🗑️ Consentimiento revocado');
+  await cargarConsentimiento();
+  cargarEstadoBadge(pacienteActual);
+}
+
+// UTILS
+function formatFecha(f){
+  if(!f) return '—';
+  const d=new Date(f);
+  return d.toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
+}
+</script>
+</body>
+</html>
