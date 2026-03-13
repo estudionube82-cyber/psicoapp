@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PsicoApp — Historia Clínica</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#F4F1ED; --surface:#FFFFFF; --primary:#2D6A4F; --primary-light:#E8F5EE;
+  --accent:#F4A261; --text:#1A1A2E; --muted:#8A8FA8; --border:#E8E4DD;
+  --sh:0 2px 8px rgba(0,0,0,0.06); --sh-md:0 4px 20px rgba(0,0,0,0.10); --r:14px;
+  --danger:#E53935; --warn:#F59E0B; --info:#1976D2;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;}
+
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--sh);}
+.header-top{display:flex;align-items:center;padding:14px 18px 12px;gap:10px;}
+.header-logo{display:flex;align-items:center;gap:8px;}
+.header-logo-txt{font-size:18px;font-weight:800;color:var(--primary);}
+.header-logo-txt span{color:var(--accent);}
+.header-title{flex:1;text-align:center;font-size:16px;font-weight:800;}
+.header-btn{background:none;border:none;cursor:pointer;font-size:20px;padding:4px;}
+
+/* VISTAS */
+.view{display:none;}
+.view.active{display:block;animation:fadeUp 0.2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* SEARCH */
+.search-wrap{padding:14px 16px 8px;}
+.search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px 10px 40px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;color:var(--text);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A8FA8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;}
+.search-input:focus{border-color:var(--primary);}
+
+/* LISTA PACIENTES */
+.pac-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.pac-card{background:var(--surface);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);cursor:pointer;transition:box-shadow 0.15s;}
+.pac-card:hover{box-shadow:var(--sh-md);}
+.pac-avatar{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:white;flex-shrink:0;}
+.pac-info{flex:1;min-width:0;}
+.pac-nombre{font-size:14px;font-weight:700;}
+.pac-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.pac-sesiones-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--primary-light);color:var(--primary);white-space:nowrap;flex-shrink:0;}
+.pac-arrow{color:var(--muted);font-size:16px;flex-shrink:0;}
+
+/* DETALLE PACIENTE */
+.pac-header-detail{background:var(--primary);padding:20px 18px 16px;display:flex;align-items:center;gap:14px;}
+.pac-avatar-lg{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:white;background:rgba(255,255,255,0.2);flex-shrink:0;}
+.pac-detail-nombre{font-size:17px;font-weight:800;color:white;}
+.pac-detail-sub{font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px;}
+.back-btn{background:rgba(255,255,255,0.2);border:none;color:white;border-radius:10px;padding:8px 10px;font-size:18px;cursor:pointer;flex-shrink:0;}
+
+/* TABS DETALLE */
+.detail-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);}
+.detail-tab{flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;}
+.detail-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+.detail-view{display:none;}
+.detail-view.active{display:block;}
+
+/* SESIONES LIST */
+.sesiones-header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;}
+.sesiones-title{font-size:15px;font-weight:800;}
+.btn-nueva-sesion{background:var(--primary);color:white;border:none;border-radius:11px;padding:8px 14px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.sesiones-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
+.sesion-card{background:var(--surface);border-radius:14px;padding:14px;box-shadow:var(--sh);cursor:pointer;transition:box-shadow 0.15s;border-left:4px solid var(--primary);}
+.sesion-card:hover{box-shadow:var(--sh-md);}
+.sesion-card.sesion-nueva{border-left-color:var(--accent);}
+.sesion-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.sesion-num{width:32px;height:32px;border-radius:10px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
+.sesion-fecha{font-size:13px;font-weight:700;flex:1;}
+.sesion-tipo-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;}
+.tipo-individual{background:#E8F5EE;color:#2D6A4F;}
+.tipo-pareja{background:#EDE9FE;color:#5B21B6;}
+.tipo-familia{background:#FEF3C7;color:#92400E;}
+.tipo-evaluacion{background:#E3F2FD;color:#1565C0;}
+.tipo-seguimiento{background:#FCE4EC;color:#880E4F;}
+.sesion-resumen{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sesion-footer{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.sesion-diag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#F3E8FF;color:#6B21A8;}
+.sesion-estado-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.chip-realizada{background:#DCFCE7;color:#166534;}
+.chip-cancelada{background:#FEE2E2;color:#991B1B;}
+.chip-pendiente{background:#FEF9C3;color:#854D0E;}
+.empty-state{text-align:center;padding:40px 24px;}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-title{font-size:16px;font-weight:800;margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--muted);line-height:1.5;}
+
+/* INFO CLÍNICA */
+.info-section{padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+.info-card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--sh);}
+.info-card-title{font-size:13px;font-weight:800;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.info-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.info-row:last-child{margin-bottom:0;}
+.info-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+.info-value{font-size:14px;font-weight:600;color:var(--text);}
+.info-value.empty{color:var(--muted);font-weight:400;font-style:italic;}
+.btn-edit-info{width:100%;background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;}
+
+/* ======= MODAL SESIÓN ======= */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:0 0 40px;width:100%;max-width:430px;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);}
+.modal-overlay.open .modal-sheet{transform:translateY(0);}
+.modal-drag{width:40px;height:4px;background:var(--border);border-radius:4px;margin:14px auto 0;}
+.modal-header{padding:18px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.modal-title{font-size:17px;font-weight:800;}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);padding:4px;}
+.modal-body{padding:18px 20px;}
+
+/* FORM STYLES */
+.form-group{margin-bottom:16px;}
+.form-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block;}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color 0.15s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--primary);background:white;}
+.form-textarea{resize:vertical;min-height:90px;line-height:1.6;}
+.form-textarea.tall{min-height:120px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* DIAGNÓSTICO CHIPS */
+.diag-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.diag-chip{padding:5px 11px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all 0.15s;}
+.diag-chip.sel{background:#F3E8FF;color:#6B21A8;border-color:#6B21A8;}
+.diag-custom{display:flex;gap:8px;margin-top:8px;}
+.diag-custom input{flex:1;}
+
+/* ESCALA ÁNIMO */
+.mood-scale{display:flex;gap:6px;margin-top:6px;}
+.mood-btn{flex:1;aspect-ratio:1;border-radius:12px;border:2px solid var(--border);background:var(--surface);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:18px;transition:all 0.15s;}
+.mood-btn span{font-size:10px;font-weight:700;color:var(--muted);}
+.mood-btn.sel{border-color:var(--primary);background:var(--primary-light);}
+.mood-btn.sel span{color:var(--primary);}
+
+/* BTN GUARDAR */
+.btn-guardar{width:100%;background:var(--primary);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
+.btn-guardar:disabled{opacity:0.6;cursor:not-allowed;}
+.btn-danger{background:#FEE2E2;color:var(--danger);border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;margin-top:8px;}
+
+/* SESIÓN DETALLE */
+.sesion-detail-header{background:var(--primary);padding:16px 18px;display:flex;align-items:center;gap:12px;}
+.sesion-detail-title{font-size:16px;font-weight:800;color:white;flex:1;}
+.sesion-detail-fecha{font-size:12px;color:rgba(255,255,255,0.75);}
+.sesion-section{margin:0 16px 14px;}
+.sesion-section-title{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-top:14px;}
+.sesion-content{background:var(--surface);border-radius:12px;padding:13px 14px;font-size:14px;line-height:1.7;color:var(--text);box-shadow:var(--sh);}
+.sesion-content.empty{color:var(--muted);font-style:italic;}
+.sesion-diag-list{display:flex;flex-wrap:wrap;gap:6px;}
+.sesion-mood-display{display:flex;align-items:center;gap:10px;}
+.sesion-mood-emoji{font-size:28px;}
+.sesion-mood-label{font-size:14px;font-weight:700;color:var(--text);}
+.btn-edit-sesion{background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px 18px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;margin:0 16px;}
+
+/* MODAL EDIT INFO */
+.modal-info-body{padding:16px 20px;}
+
+/* NAV */
+.app-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:64px;background:#fff;border-top:1.5px solid #E8E4DD;display:flex;align-items:center;z-index:2147483647;box-shadow:0 -2px 12px rgba(0,0,0,0.09);}
+.app-nav a,.app-nav button.nav-menu-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0;background:none;border:none;cursor:pointer;}
+.app-nav a .ni,.app-nav button.nav-menu-btn .ni{font-size:22px;line-height:1;display:block;}
+.app-nav a .nl,.app-nav button.nav-menu-btn .nl{font-size:10px;font-weight:700;display:block;}
+.app-nav a.on .nl{color:#2D6A4F;}
+.menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:9998;display:none;}
+.menu-overlay.open{display:block;}
+.side-drawer{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:9999;box-shadow:4px 0 24px rgba(0,0,0,0.15);transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
+.side-drawer.open{left:0;}
+.drawer-header{background:linear-gradient(135deg,#2D6A4F 0%,#3A7D5F 50%,#F4A261 100%);padding:48px 20px 24px;display:flex;align-items:center;gap:12px;}
+.drawer-logo-txt{font-size:22px;font-weight:800;color:white;}
+.drawer-logo-txt span{color:#FFD580;}
+.drawer-tagline{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;}
+.drawer-section-title{font-size:10px;font-weight:800;color:#8A8FA8;letter-spacing:1.5px;text-transform:uppercase;padding:16px 20px 6px;}
+.drawer-item{display:flex;align-items:center;gap:14px;padding:13px 20px;text-decoration:none;color:#1A1A2E;font-size:15px;font-weight:600;transition:background 0.15s;border-left:3px solid transparent;}
+.drawer-item:hover{background:#F4F1ED;}
+.drawer-item.active{background:#E8F5EE;color:#2D6A4F;border-left-color:#2D6A4F;}
+.drawer-item .di{font-size:20px;width:28px;text-align:center;}
+.drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
+.drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1A2E;color:white;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:14px;}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 16px 0;}
+.stat-card{background:var(--surface);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--sh);}
+.stat-num{font-size:22px;font-weight:800;color:var(--primary);}
+.stat-label{font-size:10px;color:var(--muted);font-weight:600;margin-top:2px;}
+</style>
+</head>
+<body>
+
+<!-- DRAWER OVERLAY -->
+<div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
+
+<!-- SIDE DRAWER -->
+<div class="side-drawer" id="sideDrawer">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-logo-txt">Psico<span>App</span></div>
+      <div class="drawer-tagline">Gestión para psicólogos</div>
+    </div>
+  </div>
+  <div class="drawer-section-title">Principal</div>
+  <a href="psicoapp-index.html"     class="drawer-item"        onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
+  <a href="psicoapp-agenda.html"    class="drawer-item"        onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
+  <a href="psicoapp-pacientes.html" class="drawer-item"        onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
+  <a href="psicoapp-whatsapp.html"  class="drawer-item"        onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
+  <a href="psicoapp-cuenta.html"    class="drawer-item"        onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
+  <div class="drawer-section-title">Más módulos</div>
+  <a href="psicoapp-pagos.html"     class="drawer-item"        onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
+  <a href="psicoapp-pericias.html"  class="drawer-item"        onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
+  <a href="psicoapp-historia.html"  class="drawer-item active" onclick="closeDrawer()"><span class="di">📋</span>Historia Clínica</a>
+  <div class="drawer-footer">
+    <button class="drawer-logout" onclick="doLogout()">🚪 Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-logo">
+      <div class="header-logo-txt">Psico<span>App</span></div>
+    </div>
+    <div class="header-title" id="headerTitle">Historia Clínica</div>
+    <div style="width:40px"></div>
+  </div>
+</div>
+
+<!-- ========== VISTA: LISTA PACIENTES ========== -->
+<div class="view active" id="viewLista">
+  <div class="search-wrap">
+    <input class="search-input" type="text" placeholder="Buscar paciente..." id="searchInput" oninput="filtrarPacientes()">
+  </div>
+  <div id="statsRow"></div>
+  <div class="pac-list" id="pacList">
+    <div class="loading">Cargando pacientes…</div>
+  </div>
+</div>
+
+<!-- ========== VISTA: DETALLE PACIENTE ========== -->
+<div class="view" id="viewDetalle">
+  <div class="pac-header-detail" id="detailHeader">
+    <button class="back-btn" onclick="volverALista()">←</button>
+    <div class="pac-avatar-lg" id="detailAvatar"></div>
+    <div>
+      <div class="pac-detail-nombre" id="detailNombre"></div>
+      <div class="pac-detail-sub" id="detailSub"></div>
+    </div>
+  </div>
+  <div class="detail-tabs">
+    <div class="detail-tab active" onclick="switchDetailTab('sesiones')">📋 Sesiones</div>
+    <div class="detail-tab" onclick="switchDetailTab('info')">🩺 Info clínica</div>
+  </div>
+
+  <!-- TAB: SESIONES -->
+  <div class="detail-view active" id="dtSesiones">
+    <div class="sesiones-header">
+      <div class="sesiones-title">Registro de sesiones</div>
+      <button class="btn-nueva-sesion" onclick="abrirModalNuevaSesion()">+ Nueva</button>
+    </div>
+    <div class="sesiones-list" id="sesionesList">
+      <div class="loading">Cargando sesiones…</div>
+    </div>
+  </div>
+
+  <!-- TAB: INFO CLÍNICA -->
+  <div class="detail-view" id="dtInfo">
+    <div class="info-section" id="infoClinicaContent">
+      <div class="loading">Cargando…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== VISTA: SESIÓN DETALLE ========== -->
+<div class="view" id="viewSesion">
+  <div class="sesion-detail-header">
+    <button class="back-btn" onclick="volverADetalle()" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:10px;padding:8px 10px;font-size:18px;cursor:pointer;">←</button>
+    <div style="flex:1">
+      <div class="sesion-detail-title" id="sdTitle"></div>
+      <div class="sesion-detail-fecha" id="sdFecha"></div>
+    </div>
+    <button onclick="editarSesionActual()" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:10px;padding:8px 10px;font-size:18px;cursor:pointer;">✏️</button>
+  </div>
+  <div id="sdContent"></div>
+</div>
+
+<!-- ========== MODAL: NUEVA/EDITAR SESIÓN ========== -->
+<div class="modal-overlay" id="modalSesion">
+  <div class="modal-sheet">
+    <div class="modal-drag"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modalSesionTitle">Nueva sesión</div>
+      <button class="modal-close" onclick="cerrarModalSesion()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Fecha</label>
+          <input class="form-input" type="date" id="sesionFecha">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="sesionTipo">
+            <option value="individual">Individual</option>
+            <option value="pareja">Pareja</option>
+            <option value="familia">Familia</option>
+            <option value="evaluacion">Evaluación</option>
+            <option value="seguimiento">Seguimiento</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Estado de ánimo del paciente</label>
+        <div class="mood-scale" id="moodScale">
+          <button class="mood-btn" data-v="1" onclick="selMood(1)">😞<span>Muy mal</span></button>
+          <button class="mood-btn" data-v="2" onclick="selMood(2)">😕<span>Mal</span></button>
+          <button class="mood-btn" data-v="3" onclick="selMood(3)">😐<span>Regular</span></button>
+          <button class="mood-btn" data-v="4" onclick="selMood(4)">🙂<span>Bien</span></button>
+          <button class="mood-btn" data-v="5" onclick="selMood(5)">😄<span>Muy bien</span></button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Motivo / tema de la sesión</label>
+        <textarea class="form-textarea" id="sesionMotivo" placeholder="¿Qué trajo el paciente a consulta hoy?"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notas de la sesión</label>
+        <textarea class="form-textarea tall" id="sesionNotas" placeholder="Observaciones clínicas, intervenciones realizadas, respuesta del paciente…"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tareas / compromisos para próxima sesión</label>
+        <textarea class="form-textarea" id="sesionTareas" placeholder="Qué queda para trabajar o hacer…"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Diagnóstico (DSM-5 / CIE-11)</label>
+        <div class="diag-chips" id="diagChips">
+          <div class="diag-chip" data-v="F32 – Episodio depresivo" onclick="toggleDiag(this)">F32 – Dep. mayor</div>
+          <div class="diag-chip" data-v="F41.1 – TAG" onclick="toggleDiag(this)">F41.1 – TAG</div>
+          <div class="diag-chip" data-v="F41.0 – Pánico" onclick="toggleDiag(this)">F41.0 – Pánico</div>
+          <div class="diag-chip" data-v="F43.1 – TEPT" onclick="toggleDiag(this)">F43.1 – TEPT</div>
+          <div class="diag-chip" data-v="F60.3 – TLP" onclick="toggleDiag(this)">F60.3 – TLP</div>
+          <div class="diag-chip" data-v="F84.0 – TEA" onclick="toggleDiag(this)">F84.0 – TEA</div>
+          <div class="diag-chip" data-v="F90 – TDAH" onclick="toggleDiag(this)">F90 – TDAH</div>
+          <div class="diag-chip" data-v="F20 – Esquizofrenia" onclick="toggleDiag(this)">F20 – Esq.</div>
+          <div class="diag-chip" data-v="F31 – TAB" onclick="toggleDiag(this)">F31 – TAB</div>
+          <div class="diag-chip" data-v="Z65.3 – Consulta de orientación" onclick="toggleDiag(this)">Z65.3 – Orient.</div>
+        </div>
+        <div class="diag-custom">
+          <input class="form-input" id="diagCustomInput" type="text" placeholder="Otro diagnóstico…" style="font-size:13px;padding:8px 12px;">
+          <button onclick="addDiagCustom()" style="background:var(--primary-light);color:var(--primary);border:none;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">+ Agregar</button>
+        </div>
+        <div id="diagCustomList" class="diag-chips" style="margin-top:6px;"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Sesión N°</label>
+          <input class="form-input" type="number" id="sesionNumero" min="1" placeholder="Ej: 5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select class="form-select" id="sesionEstado">
+            <option value="realizada">Realizada</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-guardar" id="btnGuardarSesion" onclick="guardarSesion()">
+        💾 Guardar sesión
+      </button>
+      <button class="btn-danger" id="btnEliminarSesion" style="display:none" onclick="eliminarSesion()">
+        🗑️ Eliminar sesión
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL: EDITAR INFO CLÍNICA ========== -->
+<div class="modal-overlay" id="modalInfo">
+  <div class="modal-sheet">
+    <div class="modal-drag"></div>
+    <div class="modal-header">
+      <div class="modal-title">Info clínica</div>
+      <button class="modal-close" onclick="cerrarModalInfo()">✕</button>
+    </div>
+    <div class="modal-info-body">
+      <div class="form-group">
+        <label class="form-label">Motivo de consulta inicial</label>
+        <textarea class="form-textarea" id="infoMotivo" placeholder="¿Por qué llegó a consulta?"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Antecedentes relevantes</label>
+        <textarea class="form-textarea" id="infoAntecedentes" placeholder="Historia personal, familiar, tratamientos previos…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Medicación actual</label>
+        <input class="form-input" id="infoMedicacion" type="text" placeholder="Ej: Sertralina 50mg, Clonazepam 0.5mg">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Diagnóstico principal</label>
+        <input class="form-input" id="infoDiagnostico" type="text" placeholder="Ej: F32 – Episodio depresivo moderado">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Enfoque terapéutico</label>
+        <select class="form-select" id="infoEnfoque">
+          <option value="">Seleccionar…</option>
+          <option value="TCC">TCC – Cognitivo conductual</option>
+          <option value="Psicoanalítico">Psicoanalítico / Psicodinámico</option>
+          <option value="Sistémico">Sistémico</option>
+          <option value="Humanista">Humanista / Gestalt</option>
+          <option value="EMDR">EMDR</option>
+          <option value="ACT">ACT – Aceptación y compromiso</option>
+          <option value="Integrativo">Integrativo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Objetivos terapéuticos</label>
+        <textarea class="form-textarea" id="infoObjetivos" placeholder="Metas del tratamiento…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas generales</label>
+        <textarea class="form-textarea" id="infoNotas" placeholder="Observaciones sobre el paciente…"></textarea>
+      </div>
+      <button class="btn-guardar" onclick="guardarInfoClinica()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="app-nav">
+  <a href="psicoapp-index.html"><span class="ni">🏠</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-cuenta.html"><span class="ni">👤</span><span class="nl">Cuenta</span></a>
+  <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+const COLORES = ['#2D6A4F','#1976D2','#7B5EA7','#E65100','#388E3C','#C62828'];
+
+let todosPacientes = [];
+let pacienteActual = null;
+let sesionesActuales = [];
+let sesionActual = null;
+let infoClinicaActual = null;
+let moodSeleccionado = 0;
+let diagsSeleccionados = [];
+let diagsCustom = [];
+let editandoSesionId = null;
+let userId = null;
+
+// ---- AUTH ----
+sb.auth.onAuthStateChange((event, session) => {
+  if (!session) { window.location.href = 'login.html'; return; }
+  userId = session.user.id;
+  cargarPacientes();
+});
+
+// ---- DRAWER ----
+function toggleDrawer(){document.getElementById('sideDrawer').classList.toggle('open');document.getElementById('menuOverlay').classList.toggle('open');}
+function closeDrawer(){document.getElementById('sideDrawer').classList.remove('open');document.getElementById('menuOverlay').classList.remove('open');}
+async function doLogout(){await sb.auth.signOut();window.location.href='login.html';}
+
+// ---- TOAST ----
+function showToast(msg, dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// ---- VIEWS ----
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ---- CARGAR PACIENTES ----
+async function cargarPacientes(){
+  const { data, error } = await sb.from('pacientes')
+    .select('id,nombre,apellido,telefono,activo')
+    .eq('user_id', userId)
+    .eq('activo', true)
+    .order('apellido');
+  if(error){ document.getElementById('pacList').innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Error al cargar</div></div>'; return; }
+  todosPacientes = data || [];
+  renderPacientes(todosPacientes);
+  renderStats(todosPacientes.length);
+}
+
+function renderStats(total){
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Pacientes</div></div>
+      <div class="stat-card"><div class="stat-num" id="statSesiones">—</div><div class="stat-label">Sesiones</div></div>
+      <div class="stat-card"><div class="stat-num" id="statEste">—</div><div class="stat-label">Este mes</div></div>
+    </div>`;
+  cargarStatsGlobales();
+}
+
+async function cargarStatsGlobales(){
+  const { count } = await sb.from('sesiones_clinicas').select('id',{count:'exact',head:true}).eq('user_id',userId);
+  const mesInicio = new Date(); mesInicio.setDate(1); mesInicio.setHours(0,0,0,0);
+  const { count: contMes } = await sb.from('sesiones_clinicas').select('id',{count:'exact',head:true}).eq('user_id',userId).gte('fecha',mesInicio.toISOString().split('T')[0]);
+  if(document.getElementById('statSesiones')) document.getElementById('statSesiones').textContent = count || 0;
+  if(document.getElementById('statEste')) document.getElementById('statEste').textContent = contMes || 0;
+}
+
+function renderPacientes(lista){
+  const el = document.getElementById('pacList');
+  if(!lista.length){ el.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Sin pacientes</div><div class="empty-sub">Agregá pacientes en el módulo Pacientes primero.</div></div>`; return; }
+  el.innerHTML = lista.map((p,i)=>{
+    const iniciales = `${p.nombre[0]}${p.apellido[0]}`.toUpperCase();
+    const color = COLORES[i % COLORES.length];
+    return `<div class="pac-card" onclick="abrirDetalle(${JSON.stringify(p).replace(/"/g,'&quot;')},${i})">
+      <div class="pac-avatar" style="background:${color}">${iniciales}</div>
+      <div class="pac-info">
+        <div class="pac-nombre">${p.apellido}, ${p.nombre}</div>
+        <div class="pac-sub" id="sub_${p.id}">Cargando sesiones…</div>
+      </div>
+      <div class="pac-arrow">›</div>
+    </div>`;
+  }).join('');
+  cargarContadorSesiones(lista);
+}
+
+async function cargarContadorSesiones(lista){
+  for(const p of lista){
+    const { count } = await sb.from('sesiones_clinicas').select('id',{count:'exact',head:true}).eq('paciente_id',p.id).eq('user_id',userId);
+    const el = document.getElementById('sub_'+p.id);
+    if(el) el.textContent = count ? `${count} sesión${count>1?'es':''}` : 'Sin sesiones registradas';
+  }
+}
+
+function filtrarPacientes(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtrado = todosPacientes.filter(p=>`${p.nombre} ${p.apellido}`.toLowerCase().includes(q));
+  renderPacientes(filtrado);
+}
+
+// ---- DETALLE PACIENTE ----
+function abrirDetalle(pac, idx){
+  pacienteActual = pac;
+  const color = COLORES[idx % COLORES.length];
+  const iniciales = `${pac.nombre[0]}${pac.apellido[0]}`.toUpperCase();
+  document.getElementById('detailAvatar').textContent = iniciales;
+  document.getElementById('detailAvatar').style.background = color;
+  document.getElementById('detailNombre').textContent = `${pac.nombre} ${pac.apellido}`;
+  document.getElementById('detailSub').textContent = pac.telefono || 'Sin teléfono';
+  document.getElementById('headerTitle').textContent = 'Historia clínica';
+  switchDetailTab('sesiones');
+  showView('viewDetalle');
+  cargarSesiones();
+  cargarInfoClinica();
+}
+
+function volverALista(){
+  showView('viewLista');
+  document.getElementById('headerTitle').textContent = 'Historia Clínica';
+}
+
+function switchDetailTab(tab){
+  document.querySelectorAll('.detail-tab').forEach((t,i)=>t.classList.toggle('active',(tab==='sesiones'&&i===0)||(tab==='info'&&i===1)));
+  document.querySelectorAll('.detail-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(tab==='sesiones'?'dtSesiones':'dtInfo').classList.add('active');
+}
+
+// ---- SESIONES ----
+async function cargarSesiones(){
+  document.getElementById('sesionesList').innerHTML='<div class="loading">Cargando sesiones…</div>';
+  const { data, error } = await sb.from('sesiones_clinicas')
+    .select('*').eq('paciente_id', pacienteActual.id).eq('user_id', userId)
+    .order('fecha', {ascending:false});
+  if(error){ document.getElementById('sesionesList').innerHTML='<div class="loading">Error al cargar</div>'; return; }
+  sesionesActuales = data || [];
+  renderSesiones(sesionesActuales);
+}
+
+const MOOD_MAP = {1:'😞',2:'😕',3:'😐',4:'🙂',5:'😄'};
+const MOOD_LABELS = {1:'Muy mal',2:'Mal',3:'Regular',4:'Bien',5:'Muy bien'};
+const TIPO_MAP = {individual:'tipo-individual',pareja:'tipo-pareja',familia:'tipo-familia',evaluacion:'tipo-evaluacion',seguimiento:'tipo-seguimiento'};
+const ESTADO_MAP = {realizada:'chip-realizada',cancelada:'chip-cancelada',pendiente:'chip-pendiente'};
+
+function renderSesiones(lista){
+  const el = document.getElementById('sesionesList');
+  if(!lista.length){ el.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sin sesiones registradas</div><div class="empty-sub">Tocá "+ Nueva" para registrar la primera sesión con este paciente.</div></div>`; return; }
+  el.innerHTML = lista.map((s,i)=>{
+    const diags = s.diagnosticos ? JSON.parse(s.diagnosticos) : [];
+    const diagHtml = diags.slice(0,2).map(d=>`<span class="sesion-diag">${d.split('–')[0].trim()}</span>`).join('');
+    const mood = s.estado_animo ? `<span style="font-size:16px">${MOOD_MAP[s.estado_animo]}</span>` : '';
+    const fecha = formatFecha(s.fecha);
+    const tipoClass = TIPO_MAP[s.tipo] || 'tipo-individual';
+    const estadoClass = ESTADO_MAP[s.estado] || 'chip-realizada';
+    return `<div class="sesion-card${s.estado==='pendiente'?' sesion-nueva':''}" onclick="verSesion(${s.id})">
+      <div class="sesion-top">
+        <div class="sesion-num">${s.numero_sesion||i+1}</div>
+        <div class="sesion-fecha">${fecha}</div>
+        ${mood}
+        <span class="sesion-tipo-badge ${tipoClass}">${s.tipo||'individual'}</span>
+      </div>
+      ${s.motivo?`<div class="sesion-resumen">${s.motivo}</div>`:''}
+      <div class="sesion-footer">
+        ${diagHtml}
+        <span class="sesion-estado-chip ${estadoClass}">${s.estado||'realizada'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function formatFecha(f){
+  if(!f) return '';
+  const d = new Date(f+'T12:00:00');
+  return d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+}
+
+// ---- VER SESIÓN ----
+function verSesion(id){
+  sesionActual = sesionesActuales.find(s=>s.id===id);
+  if(!sesionActual) return;
+  const diags = sesionActual.diagnosticos ? JSON.parse(sesionActual.diagnosticos) : [];
+  document.getElementById('sdTitle').textContent = `Sesión N° ${sesionActual.numero_sesion||'—'} · ${sesionActual.tipo||'Individual'}`;
+  document.getElementById('sdFecha').textContent = formatFecha(sesionActual.fecha);
+  document.getElementById('sdContent').innerHTML = `
+    ${sesionActual.estado_animo ? `
+    <div class="sesion-section"><div class="sesion-section-title">Estado de ánimo</div>
+    <div class="sesion-content"><div class="sesion-mood-display">
+      <span class="sesion-mood-emoji">${MOOD_MAP[sesionActual.estado_animo]}</span>
+      <span class="sesion-mood-label">${MOOD_LABELS[sesionActual.estado_animo]}</span>
+    </div></div></div>` : ''}
+    ${sesionActual.motivo ? `
+    <div class="sesion-section"><div class="sesion-section-title">Motivo / tema</div>
+    <div class="sesion-content">${sesionActual.motivo}</div></div>` : ''}
+    ${sesionActual.notas ? `
+    <div class="sesion-section"><div class="sesion-section-title">Notas clínicas</div>
+    <div class="sesion-content">${sesionActual.notas.replace(/\n/g,'<br>')}</div></div>` : ''}
+    ${sesionActual.tareas ? `
+    <div class="sesion-section"><div class="sesion-section-title">Tareas para próxima sesión</div>
+    <div class="sesion-content">${sesionActual.tareas}</div></div>` : ''}
+    ${diags.length ? `
+    <div class="sesion-section"><div class="sesion-section-title">Diagnóstico</div>
+    <div class="sesion-content"><div class="sesion-diag-list">${diags.map(d=>`<span class="sesion-diag">${d}</span>`).join('')}</div></div></div>` : ''}
+    <div style="height:16px"></div>
+  `;
+  showView('viewSesion');
+  document.getElementById('headerTitle').textContent = 'Sesión';
+}
+
+function volverADetalle(){
+  showView('viewDetalle');
+  document.getElementById('headerTitle').textContent = 'Historia clínica';
+}
+
+function editarSesionActual(){
+  if(!sesionActual) return;
+  abrirModalEditarSesion(sesionActual);
+}
+
+// ---- MODAL SESIÓN ----
+function abrirModalNuevaSesion(){
+  editandoSesionId = null;
+  moodSeleccionado = 0;
+  diagsSeleccionados = [];
+  diagsCustom = [];
+  document.getElementById('modalSesionTitle').textContent = 'Nueva sesión';
+  document.getElementById('sesionFecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('sesionTipo').value = 'individual';
+  document.getElementById('sesionMotivo').value = '';
+  document.getElementById('sesionNotas').value = '';
+  document.getElementById('sesionTareas').value = '';
+  document.getElementById('sesionNumero').value = sesionesActuales.length + 1;
+  document.getElementById('sesionEstado').value = 'realizada';
+  document.getElementById('btnEliminarSesion').style.display = 'none';
+  resetMoodUI(); resetDiagUI();
+  document.getElementById('modalSesion').classList.add('open');
+}
+
+function abrirModalEditarSesion(s){
+  editandoSesionId = s.id;
+  moodSeleccionado = s.estado_animo || 0;
+  const savedDiags = s.diagnosticos ? JSON.parse(s.diagnosticos) : [];
+  diagsSeleccionados = [];
+  diagsCustom = [];
+  document.getElementById('modalSesionTitle').textContent = 'Editar sesión';
+  document.getElementById('sesionFecha').value = s.fecha || '';
+  document.getElementById('sesionTipo').value = s.tipo || 'individual';
+  document.getElementById('sesionMotivo').value = s.motivo || '';
+  document.getElementById('sesionNotas').value = s.notas || '';
+  document.getElementById('sesionTareas').value = s.tareas || '';
+  document.getElementById('sesionNumero').value = s.numero_sesion || '';
+  document.getElementById('sesionEstado').value = s.estado || 'realizada';
+  document.getElementById('btnEliminarSesion').style.display = 'block';
+  resetMoodUI();
+  if(moodSeleccionado) document.querySelector(`.mood-btn[data-v="${moodSeleccionado}"]`)?.classList.add('sel');
+  resetDiagUI();
+  // Restore diagnósticos
+  const knownVals = Array.from(document.querySelectorAll('.diag-chip')).map(c=>c.dataset.v);
+  savedDiags.forEach(d=>{
+    const chip = Array.from(document.querySelectorAll('.diag-chip')).find(c=>c.dataset.v===d);
+    if(chip){ chip.classList.add('sel'); diagsSeleccionados.push(d); }
+    else { diagsCustom.push(d); }
+  });
+  renderDiagCustomList();
+  document.getElementById('modalSesion').classList.add('open');
+}
+
+function cerrarModalSesion(){document.getElementById('modalSesion').classList.remove('open');}
+
+function selMood(v){
+  moodSeleccionado = v;
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.toggle('sel',parseInt(b.dataset.v)===v));
+}
+
+function toggleDiag(el){
+  const v = el.dataset.v;
+  if(el.classList.toggle('sel')){ diagsSeleccionados.push(v); }
+  else { diagsSeleccionados = diagsSeleccionados.filter(d=>d!==v); }
+}
+
+function addDiagCustom(){
+  const inp = document.getElementById('diagCustomInput');
+  const val = inp.value.trim();
+  if(!val) return;
+  if(!diagsCustom.includes(val)){ diagsCustom.push(val); renderDiagCustomList(); }
+  inp.value = '';
+}
+
+function renderDiagCustomList(){
+  document.getElementById('diagCustomList').innerHTML = diagsCustom.map(d=>
+    `<div class="diag-chip sel" style="position:relative">${d} <span onclick="removeDiagCustom('${d}')" style="margin-left:4px;cursor:pointer;font-size:12px">✕</span></div>`
+  ).join('');
+}
+
+function removeDiagCustom(v){ diagsCustom=diagsCustom.filter(d=>d!==v); renderDiagCustomList(); }
+
+function resetMoodUI(){ document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel')); }
+function resetDiagUI(){ document.querySelectorAll('.diag-chip').forEach(c=>c.classList.remove('sel')); document.getElementById('diagCustomList').innerHTML=''; document.getElementById('diagCustomInput').value=''; }
+
+async function guardarSesion(){
+  const btn = document.getElementById('btnGuardarSesion');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  const allDiags = [...diagsSeleccionados, ...diagsCustom];
+  const payload = {
+    user_id: userId,
+    paciente_id: pacienteActual.id,
+    fecha: document.getElementById('sesionFecha').value,
+    tipo: document.getElementById('sesionTipo').value,
+    estado_animo: moodSeleccionado || null,
+    motivo: document.getElementById('sesionMotivo').value.trim() || null,
+    notas: document.getElementById('sesionNotas').value.trim() || null,
+    tareas: document.getElementById('sesionTareas').value.trim() || null,
+    numero_sesion: parseInt(document.getElementById('sesionNumero').value) || null,
+    estado: document.getElementById('sesionEstado').value,
+    diagnosticos: allDiags.length ? JSON.stringify(allDiags) : null,
+  };
+  let error;
+  if(editandoSesionId){
+    ({error} = await sb.from('sesiones_clinicas').update(payload).eq('id',editandoSesionId));
+  } else {
+    ({error} = await sb.from('sesiones_clinicas').insert(payload));
+  }
+  btn.disabled=false; btn.textContent='💾 Guardar sesión';
+  if(error){ showToast('❌ Error: '+error.message); return; }
+  cerrarModalSesion();
+  showToast(editandoSesionId?'✅ Sesión actualizada':'✅ Sesión guardada');
+  await cargarSesiones();
+  if(editandoSesionId){ volverADetalle(); sesionActual=null; }
+}
+
+async function eliminarSesion(){
+  if(!confirm('¿Eliminar esta sesión?')) return;
+  const {error} = await sb.from('sesiones_clinicas').delete().eq('id',editandoSesionId);
+  if(error){ showToast('❌ Error al eliminar'); return; }
+  cerrarModalSesion(); showToast('🗑️ Sesión eliminada');
+  await cargarSesiones(); volverADetalle();
+}
+
+// ---- INFO CLÍNICA ----
+async function cargarInfoClinica(){
+  const {data} = await sb.from('historias_clinicas').select('*').eq('paciente_id',pacienteActual.id).eq('user_id',userId).maybeSingle();
+  infoClinicaActual = data;
+  renderInfoClinica(data);
+}
+
+function renderInfoClinica(info){
+  const campo = (label,val,icon='') => `
+    <div class="info-row">
+      <div class="info-label">${icon} ${label}</div>
+      <div class="info-value ${val?'':'empty'}">${val||'Sin datos'}</div>
+    </div>`;
+  document.getElementById('infoClinicaContent').innerHTML = `
+    <div class="info-card">
+      <div class="info-card-title">📋 Motivo de consulta</div>
+      ${campo('Motivo inicial',info?.motivo_consulta)}
+      ${campo('Antecedentes',info?.antecedentes)}
+      <button class="btn-edit-info" onclick="abrirModalInfo()">✏️ Editar información clínica</button>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">🩺 Diagnóstico y tratamiento</div>
+      ${campo('Diagnóstico principal',info?.diagnostico_principal)}
+      ${campo('Medicación',info?.medicacion)}
+      ${campo('Enfoque terapéutico',info?.enfoque_terapeutico)}
+      <button class="btn-edit-info" onclick="abrirModalInfo()">✏️ Editar</button>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">🎯 Objetivos</div>
+      ${campo('Objetivos terapéuticos',info?.objetivos)}
+      ${campo('Notas generales',info?.notas_generales)}
+      <button class="btn-edit-info" onclick="abrirModalInfo()">✏️ Editar</button>
+    </div>
+  `;
+}
+
+function abrirModalInfo(){
+  const info = infoClinicaActual || {};
+  document.getElementById('infoMotivo').value = info.motivo_consulta||'';
+  document.getElementById('infoAntecedentes').value = info.antecedentes||'';
+  document.getElementById('infoMedicacion').value = info.medicacion||'';
+  document.getElementById('infoDiagnostico').value = info.diagnostico_principal||'';
+  document.getElementById('infoEnfoque').value = info.enfoque_terapeutico||'';
+  document.getElementById('infoObjetivos').value = info.objetivos||'';
+  document.getElementById('infoNotas').value = info.notas_generales||'';
+  document.getElementById('modalInfo').classList.add('open');
+}
+
+function cerrarModalInfo(){document.getElementById('modalInfo').classList.remove('open');}
+
+async function guardarInfoClinica(){
+  const payload = {
+    user_id: userId,
+    paciente_id: pacienteActual.id,
+    motivo_consulta: document.getElementById('infoMotivo').value.trim()||null,
+    antecedentes: document.getElementById('infoAntecedentes').value.trim()||null,
+    medicacion: document.getElementById('infoMedicacion').value.trim()||null,
+    diagnostico_principal: document.getElementById('infoDiagnostico').value.trim()||null,
+    enfoque_terapeutico: document.getElementById('infoEnfoque').value||null,
+    objetivos: document.getElementById('infoObjetivos').value.trim()||null,
+    notas_generales: document.getElementById('infoNotas').value.trim()||null,
+  };
+  let error;
+  if(infoClinicaActual?.id){
+    ({error} = await sb.from('historias_clinicas').update(payload).eq('id',infoClinicaActual.id));
+  } else {
+    ({error} = await sb.from('historias_clinicas').insert(payload));
+  }
+  if(error){ showToast('❌ Error: '+error.message); return; }
+  cerrarModalInfo(); showToast('✅ Info clínica guardada');
+  await cargarInfoClinica();
+}
+
+// Cerrar modales al tocar afuera
+document.getElementById('modalSesion').addEventListener('click',e=>{if(e.target===e.currentTarget)cerrarModalSesion();});
+document.getElementById('modalInfo').addEventListener('click',e=>{if(e.target===e.currentTarget)cerrarModalInfo();});
+</script>
+</body>
+</html>
