@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PsicoApp — Estadísticas</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F4F1ED;--surface:#FFFFFF;--primary:#2D6A4F;--primary-light:#E8F5EE;
+  --accent:#F4A261;--text:#1A1A2E;--muted:#8A8FA8;--border:#E8E4DD;
+  --sh:0 2px 8px rgba(0,0,0,0.06);--sh-md:0 4px 20px rgba(0,0,0,0.10);--r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:90px;}
+
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--sh);}
+.header-top{display:flex;align-items:center;padding:14px 18px 12px;gap:10px;}
+.header-logo-txt{font-size:18px;font-weight:800;color:var(--primary);}
+.header-logo-txt span{color:var(--accent);}
+.header-title{flex:1;text-align:center;font-size:16px;font-weight:800;}
+
+/* PERIOD SELECTOR */
+.period-bar{display:flex;gap:6px;padding:14px 16px 0;overflow-x:auto;}
+.period-btn{flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.period-btn.active{background:var(--primary);color:white;border-color:var(--primary);}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px 0;}
+.kpi-card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--sh);position:relative;overflow:hidden;}
+.kpi-card::before{content:'';position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;opacity:0.08;}
+.kpi-ingresos::before{background:var(--primary);}
+.kpi-sesiones::before{background:#1976D2;}
+.kpi-pacientes::before{background:#7B5EA7;}
+.kpi-promedio::before{background:var(--accent);}
+.kpi-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+.kpi-value{font-size:24px;font-weight:800;line-height:1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.kpi-delta{font-size:11px;font-weight:700;margin-top:4px;}
+.delta-up{color:#16A34A;}
+.delta-down{color:#DC2626;}
+.delta-eq{color:var(--muted);}
+
+/* CHART CARDS */
+.chart-card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--sh);margin:12px 16px 0;}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.chart-title{font-size:14px;font-weight:800;}
+.chart-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.chart-wrap{position:relative;height:200px;}
+.chart-wrap-sm{position:relative;height:160px;}
+
+/* RANKING */
+.ranking-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.ranking-item{display:flex;align-items:center;gap:10px;}
+.ranking-pos{width:22px;height:22px;border-radius:8px;background:var(--primary-light);color:var(--primary);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ranking-pos.gold{background:#FEF3C7;color:#92400E;}
+.ranking-pos.silver{background:#F1F5F9;color:#475569;}
+.ranking-pos.bronze{background:#FEF0E6;color:#92400E;}
+.ranking-nombre{flex:1;font-size:13px;font-weight:600;}
+.ranking-bar-wrap{width:90px;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.ranking-bar{height:100%;background:var(--primary);border-radius:3px;transition:width 0.6s ease;}
+.ranking-monto{font-size:12px;font-weight:700;color:var(--primary);white-space:nowrap;}
+
+/* METODOS */
+.metodos-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.metodo-item{display:flex;align-items:center;gap:10px;}
+.metodo-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.metodo-nombre{flex:1;font-size:13px;font-weight:600;}
+.metodo-pct{font-size:12px;font-weight:700;color:var(--muted);}
+.metodo-monto{font-size:12px;font-weight:700;color:var(--primary);}
+
+/* EMPTY */
+.empty-chart{display:flex;flex-direction:column;align-items:center;justify-content:center;height:140px;color:var(--muted);}
+.empty-chart-icon{font-size:36px;margin-bottom:8px;}
+.empty-chart-txt{font-size:13px;font-weight:600;}
+
+/* SECTION TITLE */
+.section-title{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:18px 16px 0;}
+
+/* LOADING */
+.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;flex-direction:column;gap:12px;}
+.loading-spinner{width:36px;height:36px;border:3px solid var(--primary-light);border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:14px;font-weight:600;color:var(--muted);}
+
+/* NAV */
+.app-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:64px;background:#fff;border-top:1.5px solid #E8E4DD;display:flex;align-items:center;z-index:2147483647;box-shadow:0 -2px 12px rgba(0,0,0,0.09);}
+.app-nav a,.app-nav button.nav-menu-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0;background:none;border:none;cursor:pointer;}
+.app-nav a .ni,.app-nav button.nav-menu-btn .ni{font-size:22px;line-height:1;display:block;}
+.app-nav a .nl,.app-nav button.nav-menu-btn .nl{font-size:10px;font-weight:700;display:block;}
+.menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:9998;display:none;}
+.menu-overlay.open{display:block;}
+.side-drawer{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:9999;box-shadow:4px 0 24px rgba(0,0,0,0.15);transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
+.side-drawer.open{left:0;}
+.drawer-header{background:linear-gradient(135deg,#2D6A4F 0%,#3A7D5F 50%,#F4A261 100%);padding:48px 20px 24px;}
+.drawer-logo-txt{font-size:22px;font-weight:800;color:white;}
+.drawer-logo-txt span{color:#FFD580;}
+.drawer-tagline{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;}
+.drawer-section-title{font-size:10px;font-weight:800;color:#8A8FA8;letter-spacing:1.5px;text-transform:uppercase;padding:16px 20px 6px;}
+.drawer-item{display:flex;align-items:center;gap:14px;padding:13px 20px;text-decoration:none;color:#1A1A2E;font-size:15px;font-weight:600;transition:background 0.15s;border-left:3px solid transparent;}
+.drawer-item:hover{background:#F4F1ED;}
+.drawer-item.active{background:#E8F5EE;color:#2D6A4F;border-left-color:#2D6A4F;}
+.drawer-item .di{font-size:20px;width:28px;text-align:center;}
+.drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
+.drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:fadeUp 0.3s ease both;}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-txt">Calculando estadísticas…</div>
+</div>
+
+<div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
+<div class="side-drawer" id="sideDrawer">
+  <div class="drawer-header">
+    <div class="drawer-logo-txt">Psico<span>App</span></div>
+    <div class="drawer-tagline">Gestión para psicólogos</div>
+  </div>
+  <div class="drawer-section-title">Principal</div>
+  <a href="psicoapp-index.html"            class="drawer-item" onclick="closeDrawer()"><span class="di">🏠</span>Inicio</a>
+  <a href="psicoapp-agenda.html"           class="drawer-item" onclick="closeDrawer()"><span class="di">📅</span>Agenda</a>
+  <a href="psicoapp-pacientes.html"        class="drawer-item" onclick="closeDrawer()"><span class="di">👥</span>Pacientes</a>
+  <a href="psicoapp-whatsapp.html"         class="drawer-item" onclick="closeDrawer()"><span class="di">💬</span>WhatsApp</a>
+  <a href="psicoapp-cuenta.html"           class="drawer-item" onclick="closeDrawer()"><span class="di">👤</span>Mi Cuenta</a>
+  <div class="drawer-section-title">Más módulos</div>
+  <a href="psicoapp-pagos.html"            class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
+  <a href="psicoapp-pericias.html"         class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
+  <a href="psicoapp-historia.html"         class="drawer-item" onclick="closeDrawer()"><span class="di">📋</span>Historia Clínica</a>
+  <a href="psicoapp-consentimiento.html"   class="drawer-item" onclick="closeDrawer()"><span class="di">✍️</span>Consentimiento</a>
+  <a href="psicoapp-estadisticas.html"     class="drawer-item active" onclick="closeDrawer()"><span class="di">📊</span>Estadísticas</a>
+  <div class="drawer-footer">
+    <button class="drawer-logout" onclick="doLogout()">🚪 Cerrar sesión</button>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-logo-txt">Psico<span>App</span></div>
+    <div class="header-title">Estadísticas</div>
+    <div style="width:40px"></div>
+  </div>
+</div>
+
+<!-- PERIOD -->
+<div class="period-bar">
+  <button class="period-btn" onclick="setPeriod('mes')" id="btn-mes">Este mes</button>
+  <button class="period-btn active" onclick="setPeriod('3m')" id="btn-3m">3 meses</button>
+  <button class="period-btn" onclick="setPeriod('6m')" id="btn-6m">6 meses</button>
+  <button class="period-btn" onclick="setPeriod('anio')" id="btn-anio">Este año</button>
+  <button class="period-btn" onclick="setPeriod('total')" id="btn-total">Total</button>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid anim" id="kpiGrid">
+  <div class="kpi-card kpi-ingresos">
+    <div class="kpi-label">💰 Ingresos</div>
+    <div class="kpi-value" id="kpiIngresos">—</div>
+    <div class="kpi-delta" id="kpiIngresosDelta"></div>
+  </div>
+  <div class="kpi-card kpi-sesiones">
+    <div class="kpi-label">📅 Sesiones</div>
+    <div class="kpi-value" id="kpiSesiones">—</div>
+    <div class="kpi-delta" id="kpiSesionesDelta"></div>
+  </div>
+  <div class="kpi-card kpi-pacientes">
+    <div class="kpi-label">👥 Pacientes activos</div>
+    <div class="kpi-value" id="kpiPacientes">—</div>
+    <div class="kpi-sub" id="kpiPacientesSub"></div>
+  </div>
+  <div class="kpi-card kpi-promedio">
+    <div class="kpi-label">📈 Promedio/sesión</div>
+    <div class="kpi-value" id="kpiPromedio">—</div>
+    <div class="kpi-sub" id="kpiPromedioSub"></div>
+  </div>
+</div>
+
+<!-- GRÁFICO INGRESOS -->
+<div class="section-title">Ingresos por mes</div>
+<div class="chart-card anim" style="animation-delay:0.05s">
+  <div class="chart-wrap">
+    <canvas id="chartIngresos"></canvas>
+    <div class="empty-chart" id="emptyIngresos" style="display:none">
+      <div class="empty-chart-icon">💰</div>
+      <div class="empty-chart-txt">Sin pagos registrados aún</div>
+    </div>
+  </div>
+</div>
+
+<!-- GRÁFICO SESIONES -->
+<div class="section-title">Sesiones por mes</div>
+<div class="chart-card anim" style="animation-delay:0.1s">
+  <div class="chart-wrap">
+    <canvas id="chartSesiones"></canvas>
+    <div class="empty-chart" id="emptySesiones" style="display:none">
+      <div class="empty-chart-icon">📅</div>
+      <div class="empty-chart-txt">Sin turnos registrados aún</div>
+    </div>
+  </div>
+</div>
+
+<!-- RANKING PACIENTES -->
+<div class="section-title">Top pacientes por ingresos</div>
+<div class="chart-card anim" style="animation-delay:0.15s">
+  <div class="ranking-list" id="rankingPacientes">
+    <div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">Cargando…</div>
+  </div>
+</div>
+
+<!-- MÉTODOS DE PAGO -->
+<div class="section-title">Métodos de pago</div>
+<div class="chart-card anim" style="animation-delay:0.2s" style="margin-bottom:0">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center">
+    <div class="chart-wrap-sm">
+      <canvas id="chartMetodos"></canvas>
+      <div class="empty-chart" id="emptyMetodos" style="display:none;height:140px">
+        <div class="empty-chart-icon">💳</div>
+        <div class="empty-chart-txt">Sin datos</div>
+      </div>
+    </div>
+    <div class="metodos-list" id="metodosList"></div>
+  </div>
+</div>
+
+<div style="height:16px"></div>
+
+<nav class="app-nav">
+  <a href="psicoapp-index.html"><span class="ni">🏠</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-cuenta.html"><span class="ni">👤</span><span class="nl">Cuenta</span></a>
+  <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
+</nav>
+
+<script>
+const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const {createClient} = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+let userId = null;
+let periodoActual = '3m';
+let chartIngresos = null, chartSesiones = null, chartMetodos = null;
+
+const COLORES_METODO = {
+  'Efectivo':'#2D6A4F','Transferencia':'#1976D2','Mercado Pago':'#00ADEF',
+  'Tarjeta':'#7B5EA7','Cheque':'#E65100','Otro':'#8A8FA8'
+};
+
+sb.auth.onAuthStateChange((e, session) => {
+  if (!session) { window.location.href = 'login.html'; return; }
+  userId = session.user.id;
+  cargarTodo();
+});
+
+function toggleDrawer(){document.getElementById('sideDrawer').classList.toggle('open');document.getElementById('menuOverlay').classList.toggle('open');}
+function closeDrawer(){document.getElementById('sideDrawer').classList.remove('open');document.getElementById('menuOverlay').classList.remove('open');}
+async function doLogout(){await sb.auth.signOut();window.location.href='login.html';}
+
+function setPeriod(p) {
+  periodoActual = p;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-'+p).classList.add('active');
+  cargarTodo();
+}
+
+function getFechaDesde(periodo) {
+  const hoy = new Date();
+  if (periodo === 'mes')  { return new Date(hoy.getFullYear(), hoy.getMonth(), 1); }
+  if (periodo === '3m')   { const d=new Date(hoy); d.setMonth(d.getMonth()-3); return d; }
+  if (periodo === '6m')   { const d=new Date(hoy); d.setMonth(d.getMonth()-6); return d; }
+  if (periodo === 'anio') { return new Date(hoy.getFullYear(), 0, 1); }
+  return new Date('2020-01-01');
+}
+
+function getNMeses(periodo) {
+  if (periodo === 'mes')  return 1;
+  if (periodo === '3m')   return 3;
+  if (periodo === '6m')   return 6;
+  if (periodo === 'anio') return new Date().getMonth() + 1;
+  return 24;
+}
+
+async function cargarTodo() {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  const desde = getFechaDesde(periodoActual).toISOString().split('T')[0];
+
+  const [resPagos, resTurnos, resPacientes] = await Promise.all([
+    sb.from('pagos').select('monto,fecha,metodo,paciente_id,pacientes(nombre,apellido)').eq('user_id', userId).gte('fecha', desde).order('fecha'),
+    sb.from('turnos').select('fecha,estado').eq('user_id', userId).gte('fecha', desde).order('fecha'),
+    sb.from('pacientes').select('id').eq('user_id', userId).eq('activo', true),
+  ]);
+
+  const pagos   = resPagos.data || [];
+  const turnos  = resTurnos.data || [];
+  const totalPac = (resPacientes.data || []).length;
+
+  // Período anterior para deltas
+  const nMeses = getNMeses(periodoActual);
+  const desdeAnterior = new Date(getFechaDesde(periodoActual));
+  desdeAnterior.setMonth(desdeAnterior.getMonth() - nMeses);
+  const hastaAnterior = getFechaDesde(periodoActual).toISOString().split('T')[0];
+  const desdeAnteriorStr = desdeAnterior.toISOString().split('T')[0];
+
+  const [resPagosAnt, resTurnosAnt] = await Promise.all([
+    sb.from('pagos').select('monto').eq('user_id', userId).gte('fecha', desdeAnteriorStr).lt('fecha', hastaAnterior),
+    sb.from('turnos').select('id').eq('user_id', userId).eq('estado', 'realizado').gte('fecha', desdeAnteriorStr).lt('fecha', hastaAnterior),
+  ]);
+
+  const pagosAnt   = resPagosAnt.data || [];
+  const turnosAnt  = resTurnosAnt.data || [];
+
+  renderKPIs(pagos, turnos, totalPac, pagosAnt, turnosAnt);
+  renderGraficoIngresos(pagos);
+  renderGraficoSesiones(turnos);
+  renderRanking(pagos);
+  renderMetodos(pagos);
+
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+// ---- KPIs ----
+function renderKPIs(pagos, turnos, totalPac, pagosAnt, turnosAnt) {
+  const totalIngresos = pagos.reduce((s,p) => s + (parseFloat(p.monto)||0), 0);
+  const totalIngresosAnt = pagosAnt.reduce((s,p) => s + (parseFloat(p.monto)||0), 0);
+  const sesionesRealizadas = turnos.filter(t => t.estado === 'realizado').length;
+  const sesionesAnt = turnosAnt.length;
+  const promedio = sesionesRealizadas > 0 ? totalIngresos / sesionesRealizadas : 0;
+
+  document.getElementById('kpiIngresos').textContent = formatPesos(totalIngresos);
+  document.getElementById('kpiSesiones').textContent = sesionesRealizadas;
+  document.getElementById('kpiPacientes').textContent = totalPac;
+  document.getElementById('kpiPacientesSub').textContent = 'activos en total';
+  document.getElementById('kpiPromedio').textContent = formatPesos(promedio);
+  document.getElementById('kpiPromedioSub').textContent = 'por sesión realizada';
+
+  // Deltas
+  setDelta('kpiIngresosDelta', totalIngresos, totalIngresosAnt, true);
+  setDelta('kpiSesionesDelta', sesionesRealizadas, sesionesAnt, false);
+}
+
+function setDelta(elId, actual, anterior, esMonto) {
+  const el = document.getElementById(elId);
+  if (anterior === 0) { el.textContent = ''; return; }
+  const pct = Math.round(((actual - anterior) / anterior) * 100);
+  const abs = esMonto ? formatPesos(Math.abs(actual - anterior)) : Math.abs(actual - anterior);
+  if (pct > 0)       { el.textContent = `▲ ${pct}% vs período anterior`; el.className = 'kpi-delta delta-up'; }
+  else if (pct < 0)  { el.textContent = `▼ ${Math.abs(pct)}% vs período anterior`; el.className = 'kpi-delta delta-down'; }
+  else               { el.textContent = 'Sin cambios'; el.className = 'kpi-delta delta-eq'; }
+}
+
+// ---- GRÁFICO INGRESOS ----
+function renderGraficoIngresos(pagos) {
+  const {labels, values} = agruparPorMes(pagos, 'monto');
+  document.getElementById('emptyIngresos').style.display = values.every(v=>v===0) ? 'flex' : 'none';
+  document.getElementById('chartIngresos').style.display = values.every(v=>v===0) ? 'none' : 'block';
+
+  if (chartIngresos) chartIngresos.destroy();
+  chartIngresos = new Chart(document.getElementById('chartIngresos'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Ingresos',
+        data: values,
+        backgroundColor: 'rgba(45,106,79,0.15)',
+        borderColor: '#2D6A4F',
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => formatPesos(ctx.raw) } } },
+      scales: {
+        y: { ticks: { callback: v => formatPesosCorto(v), font: {size:10}, color:'#8A8FA8' }, grid: { color:'#F4F1ED' }, border:{display:false} },
+        x: { ticks: { font: {size:10}, color:'#8A8FA8' }, grid: { display:false }, border:{display:false} }
+      }
+    }
+  });
+}
+
+// ---- GRÁFICO SESIONES ----
+function renderGraficoSesiones(turnos) {
+  const realizados = turnos.filter(t => t.estado === 'realizado');
+  const {labels, values} = agruparPorMes(realizados, null);
+  document.getElementById('emptySesiones').style.display = values.every(v=>v===0) ? 'flex' : 'none';
+  document.getElementById('chartSesiones').style.display = values.every(v=>v===0) ? 'none' : 'block';
+
+  if (chartSesiones) chartSesiones.destroy();
+  chartSesiones = new Chart(document.getElementById('chartSesiones'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Sesiones',
+        data: values,
+        borderColor: '#1976D2',
+        backgroundColor: 'rgba(25,118,210,0.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#1976D2',
+        pointRadius: 4,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { stepSize:1, font:{size:10}, color:'#8A8FA8' }, grid:{color:'#F4F1ED'}, border:{display:false} },
+        x: { ticks: { font:{size:10}, color:'#8A8FA8' }, grid:{display:false}, border:{display:false} }
+      }
+    }
+  });
+}
+
+// ---- RANKING ----
+function renderRanking(pagos) {
+  const mapa = {};
+  pagos.forEach(p => {
+    const id = p.paciente_id;
+    const nombre = p.pacientes ? `${p.pacientes.nombre} ${p.pacientes.apellido}` : 'Sin nombre';
+    if (!mapa[id]) mapa[id] = { nombre, total: 0 };
+    mapa[id].total += parseFloat(p.monto) || 0;
+  });
+  const lista = Object.values(mapa).sort((a,b) => b.total - a.total).slice(0,5);
+  const max = lista[0]?.total || 1;
+  const posClasses = ['gold','silver','bronze','',''];
+
+  document.getElementById('rankingPacientes').innerHTML = lista.length === 0
+    ? '<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">Sin pagos en el período</div>'
+    : lista.map((p,i) => `
+      <div class="ranking-item">
+        <div class="ranking-pos ${posClasses[i]}">${i+1}</div>
+        <div class="ranking-nombre">${p.nombre}</div>
+        <div class="ranking-bar-wrap"><div class="ranking-bar" style="width:${Math.round(p.total/max*100)}%"></div></div>
+        <div class="ranking-monto">${formatPesosCorto(p.total)}</div>
+      </div>`).join('');
+}
+
+// ---- MÉTODOS ----
+function renderMetodos(pagos) {
+  const mapa = {};
+  const total = pagos.reduce((s,p) => { const m = p.metodo||'Otro'; mapa[m]=(mapa[m]||0)+(parseFloat(p.monto)||0); return s+(parseFloat(p.monto)||0); }, 0);
+  const lista = Object.entries(mapa).sort((a,b)=>b[1]-a[1]);
+
+  if (lista.length === 0) {
+    document.getElementById('emptyMetodos').style.display = 'flex';
+    document.getElementById('chartMetodos').style.display = 'none';
+    document.getElementById('metodosList').innerHTML = '';
+    return;
+  }
+  document.getElementById('emptyMetodos').style.display = 'none';
+  document.getElementById('chartMetodos').style.display = 'block';
+
+  if (chartMetodos) chartMetodos.destroy();
+  const colors = lista.map(([m]) => COLORES_METODO[m] || '#8A8FA8');
+  chartMetodos = new Chart(document.getElementById('chartMetodos'), {
+    type: 'doughnut',
+    data: { labels: lista.map(([m])=>m), datasets: [{ data: lista.map(([,v])=>v), backgroundColor: colors, borderWidth:0, hoverOffset:4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => formatPesos(ctx.raw) } } },
+      cutout: '65%',
+    }
+  });
+
+  document.getElementById('metodosList').innerHTML = lista.map(([m,v]) => `
+    <div class="metodo-item">
+      <div class="metodo-dot" style="background:${COLORES_METODO[m]||'#8A8FA8'}"></div>
+      <div class="metodo-nombre">${m}</div>
+      <div class="metodo-pct">${total?Math.round(v/total*100):0}%</div>
+    </div>`).join('');
+}
+
+// ---- HELPERS ----
+function agruparPorMes(items, campoMonto) {
+  const nMeses = getNMeses(periodoActual);
+  const labels = [], values = [];
+  const hoy = new Date();
+
+  for (let i = nMeses - 1; i >= 0; i--) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+    const mes = d.toLocaleString('es-AR', {month:'short'});
+    const anio = d.getFullYear() !== hoy.getFullYear() ? `'${String(d.getFullYear()).slice(2)}` : '';
+    labels.push(`${mes}${anio}`);
+
+    const suma = items.filter(item => {
+      const f = new Date(item.fecha+'T12:00:00');
+      return f.getFullYear() === d.getFullYear() && f.getMonth() === d.getMonth();
+    }).reduce((s, item) => s + (campoMonto ? (parseFloat(item[campoMonto])||0) : 1), 0);
+    values.push(suma);
+  }
+  return {labels, values};
+}
+
+function formatPesos(n) {
+  if (!n) return '$0';
+  return '$' + Math.round(n).toLocaleString('es-AR');
+}
+function formatPesosCorto(n) {
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return '$' + (n/1000).toFixed(0) + 'k';
+  return '$' + Math.round(n);
+}
+</script>
+</body>
+</html>
