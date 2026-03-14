@@ -588,6 +588,11 @@ body {
   <a href="psicoapp-pagos.html" class="drawer-item" onclick="closeDrawer()"><span class="di">💰</span>Pagos</a>
   <a href="psicoapp-pericias.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚖️</span>Pericias</a>
   <a href="psicoapp-historia.html" class="drawer-item" onclick="closeDrawer()"><span class="di">🧠</span>Historia Clínica</a>
+  <div class="drawer-section-title">Integraciones</div>
+  <div class="drawer-item" onclick="conectarGoogleCalendar()" id="gcal-drawer-btn">
+    <span class="di">📅</span>
+    <span id="gcal-drawer-txt">Conectar Google Calendar</span>
+  </div>
   <a href="psicoapp-consentimiento.html" class="drawer-item" onclick="closeDrawer()"><span class="di">✍️</span>Consentimiento</a>
   <a href="psicoapp-estadisticas.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📊</span>Estadísticas</a>
   <a href="psicoapp-perfil.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
@@ -979,6 +984,21 @@ async function crearTurno() {
     enviarWAppConfirmacion(insertData.paciente_id, fecha, hora, session);
   }
 
+  // ── GOOGLE CALENDAR ──
+  if (modoModal === 'turno' && gcalToken) {
+    const { data: turnos } = await sb.from('turnos')
+      .select('*, pacientes(nombre,apellido)')
+      .eq('fecha', fecha).eq('hora', hora + ':00')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (turnos?.length) {
+      const t = turnos[0];
+      const nombre = t.pacientes ? `${t.pacientes.nombre} ${t.pacientes.apellido}` : t.tipo;
+      await crearEventoGCal(t, nombre);
+    }
+  }
+
   cerrarModal();
   await cargarTurnos();
   buildDayStrip();
@@ -1179,6 +1199,155 @@ function filaD(icon, label, val) {
     }
   });
 });
+</script>
+<!-- GOOGLE CALENDAR INTEGRATION -->
+<script src="https://apis.google.com/js/api.js"></script>
+<script>
+const GCAL_CLIENT_ID = '258644442158-gid3k8d4ga7a9lem9e4tjl4aif33gsu1.apps.googleusercontent.com';
+const GCAL_SCOPES    = 'https://www.googleapis.com/auth/calendar';
+const GCAL_KEY       = 'gcal_token';
+
+let gcalToken = localStorage.getItem(GCAL_KEY) || null;
+
+// ── Inicializar Google API ──
+function initGoogleAPI() {
+  gapi.load('client:auth2', async () => {
+    await gapi.client.init({
+      clientId: GCAL_CLIENT_ID,
+      scope: GCAL_SCOPES,
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']
+    });
+    const auth = gapi.auth2.getAuthInstance();
+    if (auth.isSignedIn.get()) {
+      gcalToken = auth.currentUser.get().getAuthResponse().access_token;
+      localStorage.setItem(GCAL_KEY, gcalToken);
+      actualizarEstadoGCal(true);
+    }
+    auth.isSignedIn.listen(signed => {
+      if (signed) {
+        gcalToken = auth.currentUser.get().getAuthResponse().access_token;
+        localStorage.setItem(GCAL_KEY, gcalToken);
+        actualizarEstadoGCal(true);
+        sincronizarTodosLosEventos();
+      } else {
+        gcalToken = null;
+        localStorage.removeItem(GCAL_KEY);
+        actualizarEstadoGCal(false);
+      }
+    });
+  });
+}
+
+function actualizarEstadoGCal(conectado) {
+  const txt = document.getElementById('gcal-drawer-txt');
+  if (txt) txt.textContent = conectado ? '✅ Google Calendar conectado' : 'Conectar Google Calendar';
+}
+
+async function conectarGoogleCalendar() {
+  if (!window.gapi?.auth2) {
+    mostrarToastAgenda('Cargando Google...', false);
+    setTimeout(conectarGoogleCalendar, 1500);
+    return;
+  }
+  const auth = gapi.auth2.getAuthInstance();
+  if (auth.isSignedIn.get()) {
+    if (confirm('¿Desconectar Google Calendar?')) {
+      await auth.signOut();
+      mostrarToastAgenda('Google Calendar desconectado');
+    }
+  } else {
+    try {
+      await auth.signIn();
+      mostrarToastAgenda('✅ Google Calendar conectado');
+      closeDrawer();
+    } catch(e) {
+      mostrarToastAgenda('Error al conectar Google Calendar');
+    }
+  }
+}
+
+// ── Crear evento en Google Calendar ──
+async function crearEventoGCal(turno, pacNombre) {
+  if (!gcalToken) return;
+  try {
+    const [y, m, d] = turno.fecha.split('-');
+    const [h, min]  = (turno.hora || '09:00').slice(0,5).split(':');
+    const durMin    = turno.duracion || 50;
+    const start     = new Date(y, m-1, d, h, min);
+    const end       = new Date(start.getTime() + durMin * 60000);
+
+    const fmt = dt => dt.toISOString();
+
+    const evento = {
+      summary:     `${pacNombre} — ${tipoLabel(turno.tipo)}`,
+      description: turno.notas || '',
+      start:  { dateTime: fmt(start), timeZone: 'America/Argentina/Buenos_Aires' },
+      end:    { dateTime: fmt(end),   timeZone: 'America/Argentina/Buenos_Aires' },
+      colorId: turno.tipo === 'judicial' ? '3' : '2',
+    };
+
+    const res = await gapi.client.calendar.events.insert({
+      calendarId: 'primary',
+      resource: evento,
+    });
+
+    // Guardar el gcal_event_id en Supabase
+    if (res.result?.id && turno.id) {
+      await sb.from('turnos').update({ gcal_event_id: res.result.id }).eq('id', turno.id);
+    }
+    mostrarToastAgenda('📅 Evento creado en Google Calendar');
+  } catch(e) {
+    console.error('GCal error:', e);
+  }
+}
+
+// ── Eliminar evento de Google Calendar ──
+async function eliminarEventoGCal(gcalEventId) {
+  if (!gcalToken || !gcalEventId) return;
+  try {
+    await gapi.client.calendar.events.delete({
+      calendarId: 'primary',
+      eventId: gcalEventId,
+    });
+  } catch(e) {
+    console.error('GCal delete error:', e);
+  }
+}
+
+// ── Sincronizar todos los turnos futuros ──
+async function sincronizarTodosLosEventos() {
+  if (!gcalToken) return;
+  const hoy = fmtDate(new Date());
+  const { data } = await sb.from('turnos')
+    .select('*, pacientes(nombre, apellido)')
+    .gte('fecha', hoy)
+    .neq('estado', 'cancelado')
+    .is('gcal_event_id', null);
+
+  if (!data?.length) return;
+  mostrarToastAgenda(`Sincronizando ${data.length} turnos con Google Calendar...`, false);
+  for (const t of data) {
+    const nombre = t.pacientes ? `${t.pacientes.nombre} ${t.pacientes.apellido}` : t.tipo;
+    await crearEventoGCal(t, nombre);
+    await new Promise(r => setTimeout(r, 200));
+  }
+  mostrarToastAgenda('✅ Sincronización completada');
+}
+
+function mostrarToastAgenda(msg, autoHide=true) {
+  let t = document.getElementById('toast-agenda');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-agenda';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;transition:opacity 0.3s;max-width:320px;text-align:center;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1'; t.style.display = 'block';
+  if (autoHide) setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.style.display='none',300); }, 3000);
+}
+
+// Iniciar cuando carga la página
+window.addEventListener('load', initGoogleAPI);
 </script>
 </body>
 </html>
