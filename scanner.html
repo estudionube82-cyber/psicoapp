@@ -171,15 +171,8 @@ function openCrop(img){
 function draw(){
   CX.clearRect(0,0,CC.width,CC.height);
   CX.drawImage(cImg,0,0,CC.width,CC.height);
-  // oscurecer fuera
-  CX.save();
-  CX.fillStyle='rgba(0,0,0,.55)';
-  CX.fillRect(0,0,CC.width,CC.height);
-  CX.globalCompositeOperation='destination-out';
-  CX.beginPath();
-  cPts.forEach((p,i)=>i?CX.lineTo(p.x,p.y):CX.moveTo(p.x,p.y));
-  CX.closePath(); CX.fill();
-  CX.restore();
+  // sin overlay oscuro - imagen clara
+  // imagen clara, sin oscurecer
   // borde
   CX.beginPath();
   cPts.forEach((p,i)=>i?CX.lineTo(p.x,p.y):CX.moveTo(p.x,p.y));
