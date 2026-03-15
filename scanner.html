@@ -6,6 +6,8 @@
 <title>Scanner — Pérez Aré</title>
 <meta name="theme-color" content="#0F172A"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<link rel="manifest" href="/manifest-scanner.json"/>
+<link rel="apple-touch-icon" href="/icon-scanner.png"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -113,6 +115,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       Subir a Drive
     </button>
   </div>
+  <button class="bsec" id="bshr" onclick="compartir()" disabled style="border-color:#25D366;color:#25D366;width:100%;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Compartir (WhatsApp, Mail...)
+  </button>
 </div>
 
 <!-- CROP MODAL -->
@@ -280,8 +286,22 @@ async function genPDF(){
     a.href=URL.createObjectURL(blob); a.download=`scan_${fmt()}.pdf`; a.click();
     showToast('✅ PDF guardado');
     if(token)document.getElementById('bupl').disabled=false;
+    document.getElementById('bshr').disabled=false;
   }catch(e){showToast('Error al generar PDF');console.error(e);}
   finally{showPbar(false);setPbar(0);}
+}
+
+async function compartir(){
+  if(!blob){showToast("Generá el PDF primero");return;}
+  const nombre=`scan_${fmt()}.pdf`;
+  const file=new File([blob],nombre,{type:"application/pdf"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:"Documento escaneado",text:"Documento escaneado con Scanner — Pérez Aré"});}
+    catch(e){if(e.name!=="AbortError")showToast("Error al compartir");}
+  }else{
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nombre;a.click();
+    showToast("Descargado (compartir no disponible en este navegador)");
+  }
 }
 
 function gapiLoaded(){
