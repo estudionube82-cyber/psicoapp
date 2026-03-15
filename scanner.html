@@ -6,594 +6,329 @@
 <title>Scanner — Pérez Aré</title>
 <meta name="theme-color" content="#0F172A"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
-  --bg:#0F172A; --surface:#1E293B; --surface2:#334155;
-  --accent:#38BDF8; --accent2:#818CF8; --green:#34D399;
-  --red:#F87171; --text:#F1F5F9; --muted:#94A3B8;
-  --border:#334155; --r:16px;
+  --bg:#0F172A;--surface:#1E293B;--accent:#38BDF8;--accent2:#818CF8;
+  --green:#34D399;--red:#F87171;--text:#F1F5F9;--muted:#94A3B8;--border:#334155;--r:16px;
 }
 html,body{height:100%;overflow:hidden;}
-body{
-  font-family:'DM Sans',system-ui,sans-serif;
-  background:var(--bg); color:var(--text);
-  display:flex; flex-direction:column;
-  max-width:430px; margin:0 auto;
-  height:100dvh;
-}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;max-width:430px;margin:0 auto;height:100dvh;}
 
-.header{
-  padding:52px 20px 14px;
-  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
-}
-.header-brand{display:flex;align-items:center;gap:10px;}
-.header-icon{
-  width:40px;height:40px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-radius:12px;display:flex;align-items:center;justify-content:center;
-  font-size:20px;box-shadow:0 4px 16px rgba(56,189,248,0.3);
-}
-.header-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:-.02em;}
-.header-sub{font-size:.75rem;color:var(--muted);margin-top:1px;}
-.btn-drive{
-  display:flex;align-items:center;gap:6px;
-  background:var(--surface);border:1.5px solid var(--border);
-  border-radius:10px;padding:7px 12px;
-  font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;
-}
-.btn-drive.connected{color:var(--green);border-color:var(--green);}
+.header{padding:52px 20px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hbrand{display:flex;align-items:center;gap:10px;}
+.hicon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 16px rgba(56,189,248,.3);}
+.htitle{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:-.02em;}
+.hsub{font-size:.75rem;color:var(--muted);}
+.btn-drive{display:flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;}
+.btn-drive.on{color:var(--green);border-color:var(--green);}
 
-.status-bar{
-  padding:0 16px 8px;display:flex;align-items:center;
-  justify-content:space-between;flex-shrink:0;
-}
-.page-count{font-size:.8rem;font-weight:700;color:var(--muted);}
-.page-count span{color:var(--accent);font-size:1rem;}
-.btn-clear{font-size:.75rem;font-weight:700;color:var(--red);background:none;border:none;cursor:pointer;padding:4px 8px;}
+.sbar{padding:0 16px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.scount{font-size:.8rem;font-weight:700;color:var(--muted);}
+.scount span{color:var(--accent);font-size:1rem;}
+.sbclear{font-size:.75rem;font-weight:700;color:var(--red);background:none;border:none;cursor:pointer;padding:4px 8px;}
 
-.progress-bar{height:3px;background:var(--surface2);border-radius:2px;margin:0 16px 12px;overflow:hidden;display:none;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s;width:0%;}
+.pbar{height:3px;background:#334155;border-radius:2px;margin:0 16px 12px;overflow:hidden;display:none;}
+.pfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s;width:0%;}
 
-.preview-area{flex:1;padding:0 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-.preview-area::-webkit-scrollbar{display:none;}
-.empty-state{
-  height:100%;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:12px;color:var(--muted);text-align:center;padding:20px;
-}
-.empty-icon{
-  width:80px;height:80px;background:var(--surface);border-radius:24px;
-  display:flex;align-items:center;justify-content:center;font-size:36px;
-  border:2px dashed var(--border);
-}
-.empty-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);}
-.empty-sub{font-size:.85rem;line-height:1.5;}
+.preview{flex:1;padding:0 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.preview::-webkit-scrollbar{display:none;}
+.empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);text-align:center;padding:20px;}
+.eicon{width:80px;height:80px;background:var(--surface);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:36px;border:2px dashed var(--border);}
+.etitle{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);}
+.esub{font-size:.85rem;line-height:1.5;}
 
-.pages-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:16px;}
-.page-item{
-  position:relative;border-radius:12px;overflow:hidden;
-  aspect-ratio:3/4;background:var(--surface);box-shadow:0 4px 16px rgba(0,0,0,0.3);
-}
-.page-item img{width:100%;height:100%;object-fit:cover;display:block;}
-.page-num{
-  position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);
-  color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;
-}
-.page-del{
-  position:absolute;top:8px;right:8px;width:28px;height:28px;
-  background:rgba(248,113,113,0.9);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  border:none;cursor:pointer;font-size:14px;color:#fff;
-}
-.page-badge{
-  position:absolute;bottom:8px;left:8px;
-  background:rgba(52,211,153,0.9);color:#064e3b;
-  font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;
-}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:16px;}
+.pitem{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:3/4;background:var(--surface);box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.pitem img{width:100%;height:100%;object-fit:cover;display:block;}
+.pnum{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;}
+.pdel{position:absolute;top:8px;right:8px;width:28px;height:28px;background:rgba(248,113,113,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-size:14px;color:#fff;}
+.pbadge{position:absolute;bottom:8px;left:8px;background:rgba(52,211,153,.9);color:#064e3b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;}
 
-/* ── CROP MODAL ── */
-.crop-overlay{
-  position:fixed;inset:0;background:#000;z-index:100;
-  display:none;flex-direction:column;
-}
-.crop-overlay.open{display:flex;}
-.crop-header{
-  padding:52px 20px 12px;
-  display:flex;align-items:center;justify-content:space-between;
-  background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);
-  flex-shrink:0;
-}
-.crop-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;}
+.actions{padding:12px 16px 32px;display:flex;flex-direction:column;gap:10px;flex-shrink:0;background:linear-gradient(to top,var(--bg) 80%,transparent);}
+.bcap{width:100%;padding:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0F172A;border:none;border-radius:var(--r);font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(56,189,248,.35);}
+.bcap:active{transform:scale(.98);}
+.brow{display:flex;gap:10px;}
+.bsec{flex:1;padding:13px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.bsec:active{transform:scale(.98);}
+.bsec.pdf{border-color:var(--green);color:var(--green);}
+.bsec.upl{border-color:var(--accent2);color:var(--accent2);}
+.bsec:disabled{opacity:.4;cursor:not-allowed;}
+
+/* CROP */
+.crop-ov{position:fixed;inset:0;background:#000;z-index:100;display:none;flex-direction:column;}
+.crop-ov.open{display:flex;}
+.crop-hdr{padding:52px 20px 12px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.85);flex-shrink:0;}
+.crop-ttl{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;}
 .crop-btns{display:flex;gap:8px;}
-.btn-skip{
-  padding:8px 14px;background:rgba(255,255,255,.12);border:none;
-  border-radius:10px;color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;
-}
-.btn-apply{
-  padding:8px 16px;background:var(--accent);border:none;
-  border-radius:10px;color:#0F172A;font-size:.8rem;font-weight:800;cursor:pointer;
-}
-.crop-wrap{
-  flex:1;position:relative;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;
-}
-#cropCanvas{
-  max-width:100%;max-height:100%;display:block;
-  touch-action:none;user-select:none;
-}
-.crop-footer{
-  padding:12px 20px 28px;background:rgba(0,0,0,0.8);
-  backdrop-filter:blur(8px);text-align:center;
-  font-size:.8rem;color:var(--muted);font-weight:600;flex-shrink:0;
-}
+.bskip{padding:8px 14px;background:rgba(255,255,255,.12);border:none;border-radius:10px;color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;}
+.bok{padding:8px 16px;background:var(--accent);border:none;border-radius:10px;color:#0F172A;font-size:.8rem;font-weight:800;cursor:pointer;}
+.crop-body{flex:1;position:relative;overflow:hidden;}
+#cropCanvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);touch-action:none;}
+.crop-ftr{padding:12px 20px 28px;background:rgba(0,0,0,.85);text-align:center;font-size:.8rem;color:var(--muted);font-weight:600;flex-shrink:0;}
 
-/* ── ACCIONES ── */
-.actions{
-  padding:12px 16px 32px;display:flex;flex-direction:column;gap:10px;
-  flex-shrink:0;background:linear-gradient(to top,var(--bg) 80%,transparent);
-}
-.btn-capture{
-  width:100%;padding:16px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#0F172A;border:none;border-radius:var(--r);
-  font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  box-shadow:0 4px 20px rgba(56,189,248,0.35);
-}
-.btn-capture:active{transform:scale(.98);}
-.btn-row{display:flex;gap:10px;}
-.btn-sec{
-  flex:1;padding:13px;background:var(--surface);border:1.5px solid var(--border);
-  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;
-  font-size:.875rem;font-weight:700;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.btn-sec:active{transform:scale(.98);}
-.btn-sec.pdf{border-color:var(--green);color:var(--green);}
-.btn-sec.upload{border-color:var(--accent2);color:var(--accent2);}
-.btn-sec:disabled{opacity:.4;cursor:not-allowed;}
-
-.toast{
-  position:fixed;bottom:140px;left:50%;transform:translateX(-50%);
-  background:#1E293B;border:1px solid var(--border);color:var(--text);
-  padding:12px 20px;border-radius:12px;font-size:.875rem;font-weight:600;
-  z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;
-  box-shadow:0 8px 32px rgba(0,0,0,.4);pointer-events:none;
-}
+.toast{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);background:#1E293B;border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:12px;font-size:.875rem;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.4);pointer-events:none;}
 .toast.show{opacity:1;}
-#fileInput{display:none;}
-#offscreen{display:none;}
+#fin{display:none;}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-brand">
-    <div class="header-icon">📄</div>
-    <div>
-      <div class="header-title">Scanner</div>
-      <div class="header-sub">Pérez Aré · Estudio</div>
-    </div>
+  <div class="hbrand">
+    <div class="hicon">📄</div>
+    <div><div class="htitle">Scanner</div><div class="hsub">Pérez Aré · Estudio</div></div>
   </div>
-  <button class="btn-drive" id="btnDrive" onclick="conectarDrive()">
-    <span id="driveLabel">☁ Drive</span>
-  </button>
+  <button class="btn-drive" id="btnDrive" onclick="conectarDrive()"><span id="drvLbl">☁ Drive</span></button>
 </div>
 
-<div class="status-bar" id="statusBar" style="display:none">
-  <div class="page-count"><span id="pageCount">0</span> página(s)</div>
-  <button class="btn-clear" onclick="limpiarTodo()">✕ Limpiar</button>
+<div class="sbar" id="sbar" style="display:none">
+  <div class="scount"><span id="cnt">0</span> página(s)</div>
+  <button class="sbclear" onclick="limpiar()">✕ Limpiar</button>
 </div>
-<div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="pbar" id="pbar"><div class="pfill" id="pfill"></div></div>
 
-<div class="preview-area">
-  <div class="empty-state" id="emptyState">
-    <div class="empty-icon">📷</div>
-    <div class="empty-title">Sin páginas</div>
-    <div class="empty-sub">Capturá una página. Podrás ajustar las 4 esquinas del documento antes de agregar.</div>
+<div class="preview">
+  <div class="empty" id="empty">
+    <div class="eicon">📷</div>
+    <div class="etitle">Sin páginas</div>
+    <div class="esub">Capturá y ajustá las 4 esquinas del documento antes de agregar.</div>
   </div>
-  <div class="pages-grid" id="pagesGrid" style="display:none"></div>
+  <div class="grid" id="grid" style="display:none"></div>
 </div>
 
 <div class="actions">
-  <button class="btn-capture" onclick="capturar()">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-      <circle cx="12" cy="13" r="4"/>
-    </svg>
+  <button class="bcap" onclick="capturar()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
     Capturar página
   </button>
-  <div class="btn-row">
-    <button class="btn-sec pdf" id="btnPDF" onclick="generarPDF()" disabled>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-      </svg>
+  <div class="brow">
+    <button class="bsec pdf" id="bpdf" onclick="genPDF()" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Guardar PDF
     </button>
-    <button class="btn-sec upload" id="btnUpload" onclick="subirDrive()" disabled>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="16 16 12 12 8 16"/>
-        <line x1="12" y1="12" x2="12" y2="21"/>
-        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
-      </svg>
+    <button class="bsec upl" id="bupl" onclick="subirDrive()" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
       Subir a Drive
     </button>
   </div>
 </div>
 
 <!-- CROP MODAL -->
-<div class="crop-overlay" id="cropOverlay">
-  <div class="crop-header">
-    <div class="crop-title">📐 Ajustar documento</div>
+<div class="crop-ov" id="cropOv">
+  <div class="crop-hdr">
+    <div class="crop-ttl">📐 Ajustar documento</div>
     <div class="crop-btns">
-      <button class="btn-skip" onclick="saltarCrop()">Sin recorte</button>
-      <button class="btn-apply" onclick="aplicarCrop()">✓ Recortar</button>
+      <button class="bskip" onclick="skip()">Sin recorte</button>
+      <button class="bok" onclick="aplicar()">✓ Recortar</button>
     </div>
   </div>
-  <div class="crop-wrap">
-    <canvas id="cropCanvas"></canvas>
-  </div>
-  <div class="crop-footer">Arrastrá las esquinas azules para ajustar el documento</div>
+  <div class="crop-body"><canvas id="cropCanvas"></canvas></div>
+  <div class="crop-ftr">Arrastrá las esquinas azules para ajustar el documento</div>
 </div>
 
 <div class="toast" id="toast"></div>
-<input type="file" id="fileInput" accept="image/*" capture="environment" onchange="procesarFoto(event)"/>
-<canvas id="offscreen"></canvas>
+<input type="file" id="fin" accept="image/*" capture="environment" onchange="onFile(event)"/>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-const CLIENT_ID    = '258644442158-gid3k8d4ga7a9lem9e4tjl4aif33gsu1.apps.googleusercontent.com';
-const DRIVE_SCOPE  = 'https://www.googleapis.com/auth/drive.file';
+const CID   = '258644442158-gid3k8d4ga7a9lem9e4tjl4aif33gsu1.apps.googleusercontent.com';
+const DSCOPE= 'https://www.googleapis.com/auth/drive.file';
 
-let paginas    = [];
-let driveToken = null;
-let pdfBlob    = null;
+let pages=[], token=null, blob=null;
+let cImg=null, cPts=[], drag=-1, scale=1, pending=null;
+let CC, CX; // canvas & context
 
-// Crop state
-let cropImg    = null;
-let cropPts    = [];   // [{x,y}] TL TR BR BL en coordenadas canvas
-let dragIdx    = -1;
-let cCanvas, cCtx, cScale;
-let pendingUrl = null;
+function showToast(m,ms=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),ms);}
+function capturar(){document.getElementById('fin').value='';document.getElementById('fin').click();}
 
-// ── TOAST ──
-function toast(msg, ms=3000) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), ms);
+async function onFile(e){
+  const f=e.target.files[0]; if(!f) return;
+  pending=f;
+  const url=await toDataUrl(f);
+  const img=await loadImg(url);
+  openCrop(img);
 }
 
-// ── CAPTURAR ──
-function capturar() {
-  document.getElementById('fileInput').value = '';
-  document.getElementById('fileInput').click();
+function openCrop(img){
+  cImg=img;
+  CC=document.getElementById('cropCanvas');
+  CX=CC.getContext('2d');
+  const body=CC.parentElement;
+  const maxW=body.clientWidth-24;
+  const maxH=body.clientHeight-16;
+  scale=Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight, 1);
+  CC.width =Math.round(img.naturalWidth *scale);
+  CC.height=Math.round(img.naturalHeight*scale);
+  const mx=CC.width*.1, my=CC.height*.1;
+  cPts=[{x:mx,y:my},{x:CC.width-mx,y:my},{x:CC.width-mx,y:CC.height-my},{x:mx,y:CC.height-my}];
+  document.getElementById('cropOv').classList.add('open');
+  draw();
+  bindEvents();
 }
 
-async function procesarFoto(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const url = await fileToDataUrl(file);
-  pendingUrl = url;
-  const img  = await cargarImagen(url);
-  abrirCrop(img);
-}
-
-// ── CROP ──
-function abrirCrop(img) {
-  cropImg   = img;
-  cCanvas   = document.getElementById('cropCanvas');
-  cCtx      = cCanvas.getContext('2d');
-
-  const wrap  = cCanvas.parentElement;
-  const maxW  = wrap.clientWidth  - 32;
-  const maxH  = wrap.clientHeight - 16;
-  cScale      = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
-
-  cCanvas.width  = Math.round(img.naturalWidth  * cScale);
-  cCanvas.height = Math.round(img.naturalHeight * cScale);
-
-  // Puntos iniciales con margen del 8%
-  const mx = cCanvas.width  * 0.08;
-  const my = cCanvas.height * 0.08;
-  cropPts = [
-    { x: mx,                    y: my },                     // TL
-    { x: cCanvas.width  - mx,   y: my },                     // TR
-    { x: cCanvas.width  - mx,   y: cCanvas.height - my },    // BR
-    { x: mx,                    y: cCanvas.height - my },    // BL
-  ];
-
-  document.getElementById('cropOverlay').classList.add('open');
-  drawCrop();
-  bindCropEvents();
-}
-
-function drawCrop() {
-  cCtx.clearRect(0, 0, cCanvas.width, cCanvas.height);
-  cCtx.drawImage(cropImg, 0, 0, cCanvas.width, cCanvas.height);
-
-  // Overlay semitransparente fuera del polígono
-  cCtx.save();
-  cCtx.fillStyle = 'rgba(0,0,0,0.55)';
-  cCtx.fillRect(0, 0, cCanvas.width, cCanvas.height);
-  cCtx.globalCompositeOperation = 'destination-out';
-  cCtx.beginPath();
-  cropPts.forEach((p,i) => i===0 ? cCtx.moveTo(p.x,p.y) : cCtx.lineTo(p.x,p.y));
-  cCtx.closePath();
-  cCtx.fill();
-  cCtx.restore();
-
-  // Líneas del polígono
-  cCtx.beginPath();
-  cropPts.forEach((p,i) => i===0 ? cCtx.moveTo(p.x,p.y) : cCtx.lineTo(p.x,p.y));
-  cCtx.closePath();
-  cCtx.strokeStyle = '#38BDF8';
-  cCtx.lineWidth   = 2.5;
-  cCtx.stroke();
-
-  // Puntos de arrastre
-  cropPts.forEach((p, i) => {
-    // Sombra
-    cCtx.beginPath();
-    cCtx.arc(p.x, p.y, 18, 0, Math.PI*2);
-    cCtx.fillStyle = 'rgba(0,0,0,0.3)';
-    cCtx.fill();
-    // Círculo
-    cCtx.beginPath();
-    cCtx.arc(p.x, p.y, 14, 0, Math.PI*2);
-    cCtx.fillStyle = dragIdx === i ? '#818CF8' : '#38BDF8';
-    cCtx.fill();
-    cCtx.strokeStyle = '#fff';
-    cCtx.lineWidth   = 2.5;
-    cCtx.stroke();
-    // Cruz interior
-    cCtx.strokeStyle = '#fff';
-    cCtx.lineWidth   = 2;
-    cCtx.beginPath();
-    cCtx.moveTo(p.x-5, p.y); cCtx.lineTo(p.x+5, p.y);
-    cCtx.moveTo(p.x, p.y-5); cCtx.lineTo(p.x, p.y+5);
-    cCtx.stroke();
+function draw(){
+  CX.clearRect(0,0,CC.width,CC.height);
+  CX.drawImage(cImg,0,0,CC.width,CC.height);
+  // oscurecer fuera
+  CX.save();
+  CX.fillStyle='rgba(0,0,0,.55)';
+  CX.fillRect(0,0,CC.width,CC.height);
+  CX.globalCompositeOperation='destination-out';
+  CX.beginPath();
+  cPts.forEach((p,i)=>i?CX.lineTo(p.x,p.y):CX.moveTo(p.x,p.y));
+  CX.closePath(); CX.fill();
+  CX.restore();
+  // borde
+  CX.beginPath();
+  cPts.forEach((p,i)=>i?CX.lineTo(p.x,p.y):CX.moveTo(p.x,p.y));
+  CX.closePath(); CX.strokeStyle='#38BDF8'; CX.lineWidth=2.5; CX.stroke();
+  // puntos
+  cPts.forEach((p,i)=>{
+    CX.beginPath(); CX.arc(p.x,p.y,14,0,Math.PI*2);
+    CX.fillStyle=drag===i?'#818CF8':'#38BDF8'; CX.fill();
+    CX.strokeStyle='#fff'; CX.lineWidth=2.5; CX.stroke();
+    CX.strokeStyle='#fff'; CX.lineWidth=2;
+    CX.beginPath(); CX.moveTo(p.x-5,p.y); CX.lineTo(p.x+5,p.y);
+    CX.moveTo(p.x,p.y-5); CX.lineTo(p.x,p.y+5); CX.stroke();
   });
 }
 
-function getCanvasPos(e, touch) {
-  const r = cCanvas.getBoundingClientRect();
-  const scaleX = cCanvas.width  / r.width;
-  const scaleY = cCanvas.height / r.height;
-  const src = touch || e;
-  return {
-    x: (src.clientX - r.left) * scaleX,
-    y: (src.clientY - r.top)  * scaleY,
-  };
+function pos(e,t){
+  const r=CC.getBoundingClientRect();
+  const sx=CC.width/r.width, sy=CC.height/r.height;
+  const src=t||e;
+  return{x:(src.clientX-r.left)*sx, y:(src.clientY-r.top)*sy};
+}
+function nearest(p){
+  let bi=-1,bd=40;
+  cPts.forEach((q,i)=>{const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;bi=i;}});
+  return bi;
+}
+function bindEvents(){
+  CC.ontouchstart=e=>{e.preventDefault();drag=nearest(pos(e,e.touches[0]));draw();};
+  CC.ontouchmove=e=>{e.preventDefault();if(drag<0)return;const p=pos(e,e.touches[0]);cPts[drag]={x:Math.max(0,Math.min(CC.width,p.x)),y:Math.max(0,Math.min(CC.height,p.y))};draw();};
+  CC.ontouchend=()=>{drag=-1;draw();};
+  CC.onmousedown=e=>{drag=nearest(pos(e));draw();};
+  CC.onmousemove=e=>{if(drag<0)return;const p=pos(e);cPts[drag]={x:Math.max(0,Math.min(CC.width,p.x)),y:Math.max(0,Math.min(CC.height,p.y))};draw();};
+  CC.onmouseup=()=>{drag=-1;};
 }
 
-function nearestPoint(pos) {
-  let best = -1, bestD = 40;
-  cropPts.forEach((p,i) => {
-    const d = Math.hypot(p.x-pos.x, p.y-pos.y);
-    if (d < bestD) { bestD=d; best=i; }
-  });
-  return best;
+function aplicar(){
+  document.getElementById('cropOv').classList.remove('open');
+  // Usar canvas pequeño para el recorte — solo la región seleccionada
+  const pts=cPts.map(p=>({x:p.x/scale,y:p.y/scale}));
+  // Calcular bounding box
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  const x0=Math.max(0,Math.min(...xs));
+  const y0=Math.max(0,Math.min(...ys));
+  const x1=Math.min(cImg.naturalWidth, Math.max(...xs));
+  const y1=Math.min(cImg.naturalHeight,Math.max(...ys));
+  const w=Math.round(x1-x0), h=Math.round(y1-y0);
+  if(w<10||h<10){skip();return;}
+  // Recorte simple por bounding box (liviano)
+  const tmp=document.createElement('canvas');
+  tmp.width=w; tmp.height=h;
+  tmp.getContext('2d').drawImage(cImg,x0,y0,w,h,0,0,w,h);
+  const url=tmp.toDataURL('image/jpeg',0.88);
+  addPage(url,true);
 }
 
-function bindCropEvents() {
-  // Touch
-  cCanvas.ontouchstart = e => {
-    e.preventDefault();
-    dragIdx = nearestPoint(getCanvasPos(e, e.touches[0]));
-    drawCrop();
-  };
-  cCanvas.ontouchmove = e => {
-    e.preventDefault();
-    if (dragIdx < 0) return;
-    const pos = getCanvasPos(e, e.touches[0]);
-    cropPts[dragIdx] = {
-      x: Math.max(0, Math.min(cCanvas.width,  pos.x)),
-      y: Math.max(0, Math.min(cCanvas.height, pos.y)),
-    };
-    drawCrop();
-  };
-  cCanvas.ontouchend = () => { dragIdx = -1; drawCrop(); };
-
-  // Mouse
-  cCanvas.onmousedown = e => { dragIdx = nearestPoint(getCanvasPos(e)); drawCrop(); };
-  cCanvas.onmousemove = e => {
-    if (dragIdx < 0) return;
-    const pos = getCanvasPos(e);
-    cropPts[dragIdx] = {
-      x: Math.max(0, Math.min(cCanvas.width,  pos.x)),
-      y: Math.max(0, Math.min(cCanvas.height, pos.y)),
-    };
-    drawCrop();
-  };
-  cCanvas.onmouseup = () => { dragIdx = -1; };
+function skip(){
+  document.getElementById('cropOv').classList.remove('open');
+  toDataUrl(pending).then(u=>addPage(u,false));
 }
 
-async function aplicarCrop() {
-  document.getElementById('cropOverlay').classList.remove('open');
+function addPage(url,cropped){
+  pages.push({url,cropped}); blob=null;
+  render(); updateBtns();
+  showToast(cropped?'✅ Página recortada':'✅ Página agregada');
+}
 
-  // Convertir puntos a coordenadas originales
-  const pts = cropPts.map(p => ({ x: p.x / cScale, y: p.y / cScale }));
+function render(){
+  const g=document.getElementById('grid'),em=document.getElementById('empty'),sb=document.getElementById('sbar');
+  document.getElementById('cnt').textContent=pages.length;
+  if(!pages.length){g.style.display='none';em.style.display='flex';sb.style.display='none';return;}
+  em.style.display='none';g.style.display='grid';sb.style.display='flex';
+  g.innerHTML=pages.map((p,i)=>`
+    <div class="pitem">
+      <img src="${p.url}" alt="${i+1}"/>
+      <div class="pnum">${i+1}</div>
+      <button class="pdel" onclick="del(${i})">✕</button>
+      ${p.cropped?'<div class="pbadge">✓ Recortada</div>':''}
+    </div>`).join('');
+}
+function del(i){pages.splice(i,1);blob=null;render();updateBtns();}
+function limpiar(){if(!confirm('¿Eliminar todo?'))return;pages=[];blob=null;render();updateBtns();}
+function updateBtns(){
+  const hay=pages.length>0;
+  document.getElementById('bpdf').disabled=!hay;
+  document.getElementById('bupl').disabled=!hay||!token;
+}
 
-  // Calcular tamaño destino
-  const w = Math.round(Math.max(
-    Math.hypot(pts[1].x-pts[0].x, pts[1].y-pts[0].y),
-    Math.hypot(pts[2].x-pts[3].x, pts[2].y-pts[3].y)
-  ));
-  const h = Math.round(Math.max(
-    Math.hypot(pts[3].x-pts[0].x, pts[3].y-pts[0].y),
-    Math.hypot(pts[2].x-pts[1].x, pts[2].y-pts[1].y)
-  ));
-
-  const off = document.getElementById('offscreen');
-  off.width = w; off.height = h;
-  const octx = off.getContext('2d');
-
-  // Transformación de perspectiva manual via bilinear
-  const imgW = cropImg.naturalWidth;
-  const imgH = cropImg.naturalHeight;
-
-  // Dibujar imagen original en canvas temporal para leer pixels
-  const tmp = document.createElement('canvas');
-  tmp.width = imgW; tmp.height = imgH;
-  tmp.getContext('2d').drawImage(cropImg, 0, 0);
-
-  const srcData = tmp.getContext('2d').getImageData(0, 0, imgW, imgH);
-  const dstData = octx.createImageData(w, h);
-
-  // Transformación inversa bilineal
-  for (let dy = 0; dy < h; dy++) {
-    const tv = dy / h;
-    for (let dx = 0; dx < w; dx++) {
-      const tu = dx / w;
-      // Interpolación bilinear de los 4 puntos fuente
-      const sx = (1-tv)*((1-tu)*pts[0].x + tu*pts[1].x) + tv*((1-tu)*pts[3].x + tu*pts[2].x);
-      const sy = (1-tv)*((1-tu)*pts[0].y + tu*pts[1].y) + tv*((1-tu)*pts[3].y + tu*pts[2].y);
-
-      const px = Math.round(sx), py = Math.round(sy);
-      if (px < 0 || px >= imgW || py < 0 || py >= imgH) continue;
-
-      const si = (py * imgW + px) * 4;
-      const di = (dy * w  + dx) * 4;
-      dstData.data[di]   = srcData.data[si];
-      dstData.data[di+1] = srcData.data[si+1];
-      dstData.data[di+2] = srcData.data[si+2];
-      dstData.data[di+3] = 255;
+async function genPDF(){
+  if(!pages.length)return;
+  showToast('Generando PDF...',60000);
+  showPbar(true);
+  try{
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    for(let i=0;i<pages.length;i++){
+      setPbar((i/pages.length)*100);
+      if(i>0)pdf.addPage();
+      const img=await loadImg(pages[i].url);
+      const r=img.width/img.height,pw=210,ph=297;
+      let w=pw,h=pw/r; if(h>ph){h=ph;w=ph*r;}
+      pdf.addImage(pages[i].url,'JPEG',(pw-w)/2,(ph-h)/2,w,h,'','FAST');
     }
-  }
-
-  octx.putImageData(dstData, 0, 0);
-  const dataUrl = off.toDataURL('image/jpeg', 0.92);
-  agregarPagina(dataUrl, true);
+    setPbar(100); blob=pdf.output('blob');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download=`scan_${fmt()}.pdf`; a.click();
+    showToast('✅ PDF guardado');
+    if(token)document.getElementById('bupl').disabled=false;
+  }catch(e){showToast('Error al generar PDF');console.error(e);}
+  finally{showPbar(false);setPbar(0);}
 }
 
-function saltarCrop() {
-  document.getElementById('cropOverlay').classList.remove('open');
-  agregarPagina(pendingUrl, false);
-}
-
-function agregarPagina(dataUrl, cropped) {
-  paginas.push({ dataUrl, cropped });
-  pdfBlob = null;
-  renderPaginas();
-  actualizarBotones();
-  toast(cropped ? '✅ Página recortada' : '✅ Página agregada');
-}
-
-// ── RENDER ──
-function renderPaginas() {
-  const grid  = document.getElementById('pagesGrid');
-  const empty = document.getElementById('emptyState');
-  const sb    = document.getElementById('statusBar');
-  document.getElementById('pageCount').textContent = paginas.length;
-  if (!paginas.length) {
-    grid.style.display='none'; empty.style.display='flex'; sb.style.display='none'; return;
-  }
-  empty.style.display='none'; grid.style.display='grid'; sb.style.display='flex';
-  grid.innerHTML = paginas.map((p,i) => `
-    <div class="page-item">
-      <img src="${p.dataUrl}" alt="Pág ${i+1}"/>
-      <div class="page-num">${i+1}</div>
-      <button class="page-del" onclick="eliminarPagina(${i})">✕</button>
-      ${p.cropped ? '<div class="page-badge">✓ Recortada</div>' : ''}
-    </div>
-  `).join('');
-}
-
-function eliminarPagina(i) { paginas.splice(i,1); pdfBlob=null; renderPaginas(); actualizarBotones(); }
-function limpiarTodo() {
-  if (!confirm('¿Eliminar todas las páginas?')) return;
-  paginas=[]; pdfBlob=null; renderPaginas(); actualizarBotones();
-}
-function actualizarBotones() {
-  const hay = paginas.length > 0;
-  document.getElementById('btnPDF').disabled    = !hay;
-  document.getElementById('btnUpload').disabled = !hay || !driveToken;
-}
-
-// ── PDF ──
-async function generarPDF() {
-  if (!paginas.length) return;
-  toast('Generando PDF...', 60000);
-  mostrarProgreso(true);
-  try {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    for (let i=0; i<paginas.length; i++) {
-      setProgreso((i/paginas.length)*100);
-      if (i>0) pdf.addPage();
-      const img = await cargarImagen(paginas[i].dataUrl);
-      const r   = img.width/img.height;
-      const pw=210, ph=297;
-      let w=pw, h=pw/r;
-      if (h>ph) { h=ph; w=ph*r; }
-      pdf.addImage(paginas[i].dataUrl,'JPEG',(pw-w)/2,(ph-h)/2,w,h,'','FAST');
-    }
-    setProgreso(100);
-    pdfBlob = pdf.output('blob');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(pdfBlob);
-    a.download = `scan_${formatFecha()}.pdf`;
-    a.click();
-    toast('✅ PDF guardado');
-    if (driveToken) document.getElementById('btnUpload').disabled = false;
-  } catch(e) { toast('Error al generar PDF'); console.error(e); }
-  finally { mostrarProgreso(false); setProgreso(0); }
-}
-
-// ── DRIVE ──
-function gapiLoaded() {
-  gapi.load('client:auth2', async () => {
-    await gapi.client.init({ clientId: CLIENT_ID, scope: DRIVE_SCOPE });
-    const auth = gapi.auth2.getAuthInstance();
-    if (auth.isSignedIn.get()) { driveToken = auth.currentUser.get().getAuthResponse().access_token; actualizarDrive(true); }
-    auth.isSignedIn.listen(ok => { driveToken = ok ? auth.currentUser.get().getAuthResponse().access_token : null; actualizarDrive(ok); });
+function gapiLoaded(){
+  gapi.load('client:auth2',async()=>{
+    await gapi.client.init({clientId:CID,scope:DSCOPE});
+    const a=gapi.auth2.getAuthInstance();
+    if(a.isSignedIn.get()){token=a.currentUser.get().getAuthResponse().access_token;updDrive(true);}
+    a.isSignedIn.listen(ok=>{token=ok?a.currentUser.get().getAuthResponse().access_token:null;updDrive(ok);});
   });
 }
-function actualizarDrive(ok) {
-  document.getElementById('btnDrive').classList.toggle('connected', ok);
-  document.getElementById('driveLabel').textContent = ok ? '✓ Drive' : '☁ Drive';
-  actualizarBotones();
+function updDrive(ok){
+  document.getElementById('btnDrive').classList.toggle('on',ok);
+  document.getElementById('drvLbl').textContent=ok?'✓ Drive':'☁ Drive';
+  updateBtns();
 }
-async function conectarDrive() {
-  if (!window.gapi?.auth2) { toast('Cargando...'); setTimeout(conectarDrive,1500); return; }
-  const auth = gapi.auth2.getAuthInstance();
-  if (auth.isSignedIn.get()) { if (confirm('¿Desconectar Drive?')) await auth.signOut(); }
-  else { try { await auth.signIn(); toast('✅ Drive conectado'); } catch(e) { toast('Error al conectar'); } }
+async function conectarDrive(){
+  if(!window.gapi?.auth2){showToast('Cargando...');setTimeout(conectarDrive,1500);return;}
+  const a=gapi.auth2.getAuthInstance();
+  if(a.isSignedIn.get()){if(confirm('¿Desconectar?'))await a.signOut();}
+  else{try{await a.signIn();showToast('✅ Drive conectado');}catch(e){showToast('Error al conectar');}}
 }
-async function subirDrive() {
-  if (!pdfBlob) { toast('Generá el PDF primero'); return; }
-  toast('Subiendo a Drive...', 60000);
-  mostrarProgreso(true);
-  try {
-    const nombre = `scan_${formatFecha()}.pdf`;
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify({name:nombre,mimeType:'application/pdf'})],{type:'application/json'}));
-    form.append('file', pdfBlob, nombre);
-    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
-      method:'POST', headers:{Authorization:`Bearer ${driveToken}`}, body:form
-    });
-    if (!res.ok) throw new Error(await res.text());
-    setProgreso(100); toast('✅ Subido a Google Drive');
-  } catch(e) { toast('Error al subir'); console.error(e); }
-  finally { mostrarProgreso(false); setProgreso(0); }
+async function subirDrive(){
+  if(!blob){showToast('Generá el PDF primero');return;}
+  showToast('Subiendo...',60000); showPbar(true);
+  try{
+    const n=`scan_${fmt()}.pdf`,f=new FormData();
+    f.append('metadata',new Blob([JSON.stringify({name:n,mimeType:'application/pdf'})],{type:'application/json'}));
+    f.append('file',blob,n);
+    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:`Bearer ${token}`},body:f});
+    if(!r.ok)throw new Error(await r.text());
+    setPbar(100);showToast('✅ Subido a Google Drive');
+  }catch(e){showToast('Error al subir');console.error(e);}
+  finally{showPbar(false);setPbar(0);}
 }
 
-// ── HELPERS ──
-function fileToDataUrl(file) {
-  return new Promise(r => { const fr=new FileReader(); fr.onload=e=>r(e.target.result); fr.readAsDataURL(file); });
-}
-function cargarImagen(src) {
-  return new Promise((r,j) => { const i=new Image(); i.onload=()=>r(i); i.onerror=j; i.src=src; });
-}
-function mostrarProgreso(s) { document.getElementById('progressBar').style.display=s?'block':'none'; }
-function setProgreso(p) { document.getElementById('progressFill').style.width=p+'%'; }
-function formatFecha() {
-  const d=new Date();
-  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
-}
+function toDataUrl(f){return new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(f);});}
+function loadImg(s){return new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=s;});}
+function showPbar(s){document.getElementById('pbar').style.display=s?'block':'none';}
+function setPbar(p){document.getElementById('pfill').style.width=p+'%';}
+function fmt(){const d=new Date();return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;}
 </script>
 <script src="https://apis.google.com/js/api.js?onload=gapiLoaded"></script>
 </body>
