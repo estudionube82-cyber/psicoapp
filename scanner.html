@@ -8,261 +8,185 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
-  --bg:#0F172A;
-  --surface:#1E293B;
-  --surface2:#334155;
-  --accent:#38BDF8;
-  --accent2:#818CF8;
-  --green:#34D399;
-  --red:#F87171;
-  --text:#F1F5F9;
-  --muted:#94A3B8;
-  --border:#334155;
-  --r:16px;
+  --bg:#0F172A; --surface:#1E293B; --surface2:#334155;
+  --accent:#38BDF8; --accent2:#818CF8; --green:#34D399;
+  --red:#F87171; --text:#F1F5F9; --muted:#94A3B8;
+  --border:#334155; --r:16px;
 }
 html,body{height:100%;overflow:hidden;}
 body{
   font-family:'DM Sans',system-ui,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  display:flex;
-  flex-direction:column;
-  max-width:430px;
-  margin:0 auto;
-  height:100dvh;
-  position:relative;
+  background:var(--bg); color:var(--text);
+  display:flex; flex-direction:column;
+  max-width:430px; margin:0 auto;
+  height:100dvh; position:relative;
 }
 
-/* HEADER */
 .header{
   padding:52px 20px 14px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  flex-shrink:0;
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
 }
-.header-brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
+.header-brand{display:flex;align-items:center;gap:10px;}
 .header-icon{
   width:40px;height:40px;
   background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-radius:12px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;
-  box-shadow:0 4px 16px rgba(56,189,248,0.3);
+  border-radius:12px; display:flex;align-items:center;justify-content:center;
+  font-size:20px; box-shadow:0 4px 16px rgba(56,189,248,0.3);
 }
-.header-title{
-  font-family:'Syne',sans-serif;
-  font-size:1.3rem;
-  font-weight:800;
-  color:var(--text);
-  letter-spacing:-.02em;
-}
+.header-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:-.02em;}
 .header-sub{font-size:.75rem;color:var(--muted);margin-top:1px;}
 .btn-drive{
   display:flex;align-items:center;gap:6px;
-  background:var(--surface);
-  border:1.5px solid var(--border);
-  border-radius:10px;
-  padding:7px 12px;
-  font-size:.75rem;font-weight:700;
-  color:var(--muted);
-  cursor:pointer;
-  border:none;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:10px; padding:7px 12px;
+  font-size:.75rem;font-weight:700; color:var(--muted); cursor:pointer;
   transition:all .2s;
 }
 .btn-drive.connected{color:var(--green);border-color:var(--green);}
-.btn-drive svg{width:16px;height:16px;}
 
-/* PREVIEW AREA */
-.preview-area{
-  flex:1;
-  padding:0 16px;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
+.status-bar{
+  padding:0 16px 8px; display:flex; align-items:center;
+  justify-content:space-between; flex-shrink:0;
 }
+.page-count{font-size:.8rem;font-weight:700;color:var(--muted);}
+.page-count span{color:var(--accent);font-size:1rem;}
+.btn-clear{font-size:.75rem;font-weight:700;color:var(--red);background:none;border:none;cursor:pointer;padding:4px 8px;}
+
+.progress-bar{height:3px;background:var(--surface2);border-radius:2px;margin:0 16px 12px;overflow:hidden;display:none;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .3s;width:0%;}
+
+.preview-area{flex:1;padding:0 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .preview-area::-webkit-scrollbar{display:none;}
 
 .empty-state{
-  height:100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  color:var(--muted);
-  text-align:center;
-  padding:20px;
+  height:100%;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;color:var(--muted);text-align:center;padding:20px;
 }
 .empty-icon{
-  width:80px;height:80px;
-  background:var(--surface);
-  border-radius:24px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:36px;
+  width:80px;height:80px;background:var(--surface);border-radius:24px;
+  display:flex;align-items:center;justify-content:center;font-size:36px;
   border:2px dashed var(--border);
 }
 .empty-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);}
 .empty-sub{font-size:.85rem;line-height:1.5;}
 
-/* PAGES GRID */
-.pages-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  padding-bottom:16px;
-}
+.pages-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:16px;}
 .page-item{
-  position:relative;
-  border-radius:12px;
-  overflow:hidden;
-  aspect-ratio:3/4;
-  background:var(--surface);
-  box-shadow:0 4px 16px rgba(0,0,0,0.3);
+  position:relative;border-radius:12px;overflow:hidden;
+  aspect-ratio:3/4;background:var(--surface);box-shadow:0 4px 16px rgba(0,0,0,0.3);
 }
-.page-item img{
-  width:100%;height:100%;
-  object-fit:cover;
-  display:block;
-}
+.page-item img{width:100%;height:100%;object-fit:cover;display:block;}
 .page-num{
-  position:absolute;
-  top:8px;left:8px;
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(4px);
-  color:#fff;
-  font-size:11px;font-weight:700;
-  padding:3px 8px;
-  border-radius:6px;
+  position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(4px);color:#fff;font-size:11px;font-weight:700;
+  padding:3px 8px;border-radius:6px;
 }
 .page-del{
-  position:absolute;
-  top:8px;right:8px;
-  width:28px;height:28px;
-  background:rgba(248,113,113,0.9);
-  border-radius:50%;
+  position:absolute;top:8px;right:8px;width:28px;height:28px;
+  background:rgba(248,113,113,0.9);border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  border:none;cursor:pointer;
-  font-size:14px;
-  color:#fff;
+  border:none;cursor:pointer;font-size:14px;color:#fff;
+}
+.page-scan-badge{
+  position:absolute;bottom:8px;left:8px;
+  background:rgba(52,211,153,0.9);color:#064e3b;
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;
 }
 
-/* PROGRESS BAR */
-.progress-bar{
-  height:3px;
-  background:var(--surface2);
-  border-radius:2px;
-  margin:0 16px 12px;
-  overflow:hidden;
-  display:none;
+/* CROP MODAL */
+.crop-overlay{
+  position:fixed;inset:0;background:#000;z-index:100;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
 }
-.progress-fill{
-  height:100%;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  border-radius:2px;
-  transition:width .3s ease;
-  width:0%;
+.crop-overlay.open{display:flex;}
+.crop-header{
+  width:100%;padding:52px 20px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:absolute;top:0;
+}
+.crop-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;}
+.crop-actions{display:flex;gap:10px;}
+.btn-crop-skip{
+  padding:8px 16px;background:rgba(255,255,255,.1);border:none;
+  border-radius:10px;color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;
+}
+.btn-crop-ok{
+  padding:8px 16px;background:var(--accent);border:none;
+  border-radius:10px;color:#0F172A;font-size:.8rem;font-weight:700;cursor:pointer;
+}
+.crop-canvas-wrap{
+  position:relative;width:100%;flex:1;display:flex;
+  align-items:center;justify-content:center;overflow:hidden;
+  padding:80px 16px 100px;
+}
+#cropCanvas{
+  max-width:100%;max-height:100%;
+  border-radius:8px;display:block;
+  touch-action:none;
+}
+.crop-hint{
+  position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+  color:#fff;font-size:.75rem;font-weight:600;
+  padding:8px 16px;border-radius:10px;white-space:nowrap;
 }
 
-/* STATUS */
-.status-bar{
-  padding:0 16px 8px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  flex-shrink:0;
+/* LOADING OVERLAY */
+.loading-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.9);z-index:200;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;
 }
-.page-count{
-  font-size:.8rem;font-weight:700;
-  color:var(--muted);
+.loading-overlay.open{display:flex;}
+.loading-spinner{
+  width:48px;height:48px;border:3px solid var(--surface2);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin .8s linear infinite;
 }
-.page-count span{color:var(--accent);font-size:1rem;}
-.btn-clear{
-  font-size:.75rem;font-weight:700;
-  color:var(--red);
-  background:none;border:none;cursor:pointer;
-  padding:4px 8px;
-}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:.9rem;color:var(--muted);font-weight:600;}
 
-/* BOTTOM ACTIONS */
 .actions{
-  padding:12px 16px 32px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  flex-shrink:0;
-  background:linear-gradient(to top,var(--bg) 80%,transparent);
+  padding:12px 16px 32px;display:flex;flex-direction:column;gap:10px;
+  flex-shrink:0;background:linear-gradient(to top,var(--bg) 80%,transparent);
 }
 .btn-capture{
-  width:100%;
-  padding:16px;
+  width:100%;padding:16px;
   background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#0F172A;
-  border:none;border-radius:var(--r);
-  font-family:'Syne',sans-serif;
-  font-size:1rem;font-weight:800;
-  cursor:pointer;
+  color:#0F172A;border:none;border-radius:var(--r);
+  font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:10px;
-  box-shadow:0 4px 20px rgba(56,189,248,0.35);
-  transition:all .15s;
-  letter-spacing:-.01em;
+  box-shadow:0 4px 20px rgba(56,189,248,0.35);transition:all .15s;
 }
 .btn-capture:active{transform:scale(.98);opacity:.9;}
-.btn-capture svg{width:22px;height:22px;}
-
 .btn-row{display:flex;gap:10px;}
 .btn-secondary{
-  flex:1;
-  padding:13px;
-  background:var(--surface);
-  border:1.5px solid var(--border);
-  border-radius:var(--r);
-  color:var(--text);
-  font-family:'DM Sans',sans-serif;
-  font-size:.875rem;font-weight:700;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:all .15s;
+  flex:1;padding:13px;background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:.875rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;
 }
 .btn-secondary:active{transform:scale(.98);}
 .btn-secondary.btn-pdf{border-color:var(--green);color:var(--green);}
 .btn-secondary.btn-upload{border-color:var(--accent2);color:var(--accent2);}
 .btn-secondary:disabled{opacity:.4;cursor:not-allowed;}
 
-/* TOAST */
 .toast{
-  position:fixed;
-  bottom:140px;
-  left:50%;transform:translateX(-50%);
-  background:#1E293B;
-  border:1px solid var(--border);
-  color:var(--text);
-  padding:12px 20px;
-  border-radius:12px;
-  font-size:.875rem;font-weight:600;
-  z-index:999;
-  opacity:0;
-  transition:opacity .3s;
-  white-space:nowrap;
-  box-shadow:0 8px 32px rgba(0,0,0,0.4);
-  pointer-events:none;
+  position:fixed;bottom:140px;left:50%;transform:translateX(-50%);
+  background:#1E293B;border:1px solid var(--border);color:var(--text);
+  padding:12px 20px;border-radius:12px;font-size:.875rem;font-weight:600;
+  z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);pointer-events:none;
 }
 .toast.show{opacity:1;}
-
-/* INPUT FILE HIDDEN */
 #fileInput{display:none;}
+canvas{display:none;}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="header-brand">
     <div class="header-icon">📄</div>
@@ -272,40 +196,32 @@ body{
     </div>
   </div>
   <button class="btn-drive" id="btnDrive" onclick="conectarDrive()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-    </svg>
-    <span id="driveLabel">Drive</span>
+    <span id="driveLabel">☁ Drive</span>
   </button>
 </div>
 
-<!-- STATUS -->
 <div class="status-bar" id="statusBar" style="display:none">
   <div class="page-count"><span id="pageCount">0</span> página(s)</div>
-  <button class="btn-clear" onclick="limpiarTodo()">✕ Limpiar todo</button>
+  <button class="btn-clear" onclick="limpiarTodo()">✕ Limpiar</button>
 </div>
 
-<!-- PROGRESS -->
 <div class="progress-bar" id="progressBar">
   <div class="progress-fill" id="progressFill"></div>
 </div>
 
-<!-- PREVIEW -->
 <div class="preview-area" id="previewArea">
   <div class="empty-state" id="emptyState">
     <div class="empty-icon">📷</div>
     <div class="empty-title">Sin páginas</div>
-    <div class="empty-sub">Tocá el botón de abajo para capturar una página con la cámara o seleccionar desde galería.</div>
+    <div class="empty-sub">Capturá una página con la cámara. El scanner detecta automáticamente los bordes del documento.</div>
   </div>
   <div class="pages-grid" id="pagesGrid" style="display:none"></div>
 </div>
 
-<!-- ACTIONS -->
 <div class="actions">
   <button class="btn-capture" onclick="capturar()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-      <circle cx="12" cy="13" r="4"/>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
     </svg>
     Capturar página
   </button>
@@ -326,54 +242,318 @@ body{
   </div>
 </div>
 
+<!-- CROP MODAL -->
+<div class="crop-overlay" id="cropOverlay">
+  <div class="crop-header">
+    <div class="crop-title">📐 Ajustar recorte</div>
+    <div class="crop-actions">
+      <button class="btn-crop-skip" onclick="saltarCrop()">Usar original</button>
+      <button class="btn-crop-ok" onclick="aplicarCrop()">✓ Recortar</button>
+    </div>
+  </div>
+  <div class="crop-canvas-wrap">
+    <canvas id="cropCanvas"></canvas>
+  </div>
+  <div class="crop-hint">Arrastrá las esquinas para ajustar</div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-txt" id="loadingTxt">Procesando...</div>
+</div>
+
 <div class="toast" id="toast"></div>
-<input type="file" id="fileInput" accept="image/*" capture="environment" multiple onchange="procesarFotos(event)"/>
+<input type="file" id="fileInput" accept="image/*" capture="environment" onchange="procesarFoto(event)"/>
+<canvas id="offscreen"></canvas>
 
-<!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script>
 const GCAL_CLIENT_ID = '258644442158-gid3k8d4ga7a9lem9e4tjl4aif33gsu1.apps.googleusercontent.com';
 const DRIVE_SCOPES   = 'https://www.googleapis.com/auth/drive.file';
 
-let paginas = [];       // { dataUrl, blob }
+let paginas    = [];
 let driveToken = null;
-let pdfBlob = null;
+let pdfBlob    = null;
+let cvReady    = false;
+
+// Imagen actual en crop
+let cropImg    = null;
+let cropPoints = [];
+let dragIdx    = -1;
+let cropCanvas, cropCtx;
+let canvasScale = 1;
+let pendingFile = null;
 
 // ── TOAST ──
 function toast(msg, ms=3000) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function setLoading(show, txt='Procesando...') {
+  document.getElementById('loadingOverlay').classList.toggle('open', show);
+  document.getElementById('loadingTxt').textContent = txt;
 }
 
 // ── CAPTURAR ──
 function capturar() {
+  document.getElementById('fileInput').value = '';
   document.getElementById('fileInput').click();
 }
 
-async function procesarFotos(e) {
-  const files = Array.from(e.target.files);
-  if (!files.length) return;
+async function procesarFoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  pendingFile = file;
 
-  for (const file of files) {
-    const dataUrl = await fileToDataUrl(file);
-    paginas.push({ dataUrl, file });
+  setLoading(true, 'Detectando documento...');
+  const dataUrl = await fileToDataUrl(file);
+  const img = await cargarImagen(dataUrl);
+
+  if (cvReady) {
+    try {
+      const pts = detectarBordes(img);
+      setLoading(false);
+      abrirCrop(img, pts, dataUrl);
+      return;
+    } catch(err) {
+      console.warn('OpenCV detection failed:', err);
+    }
   }
 
-  e.target.value = '';
-  renderPaginas();
-  actualizarBotones();
-  toast(`✅ ${files.length > 1 ? files.length + ' páginas agregadas' : 'Página agregada'}`);
+  setLoading(false);
+  // Sin OpenCV o si falla, agregar directo
+  agregarPagina(dataUrl, false);
 }
 
-function fileToDataUrl(file) {
-  return new Promise(res => {
-    const r = new FileReader();
-    r.onload = e => res(e.target.result);
-    r.readAsDataURL(file);
+// ── DETECCIÓN DE BORDES CON OPENCV ──
+function detectarBordes(img) {
+  const src  = cv.imread(prepararCanvas(img));
+  const gray = new cv.Mat();
+  const blur = new cv.Mat();
+  const edge = new cv.Mat();
+  const hier = new cv.Mat();
+  const contours = new cv.MatVector();
+
+  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+  cv.GaussianBlur(gray, blur, new cv.Size(5,5), 0);
+  cv.Canny(blur, edge, 75, 200);
+
+  cv.findContours(edge, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+  let bestArea = 0;
+  let bestPts  = null;
+
+  for (let i = 0; i < contours.size(); i++) {
+    const cnt  = contours.get(i);
+    const peri = cv.arcLength(cnt, true);
+    const approx = new cv.Mat();
+    cv.approxPolyDP(cnt, approx, 0.02 * peri, true);
+
+    if (approx.rows === 4) {
+      const area = cv.contourArea(approx);
+      if (area > bestArea) {
+        bestArea = area;
+        bestPts  = [];
+        for (let j = 0; j < 4; j++) {
+          bestPts.push({ x: approx.data32S[j*2], y: approx.data32S[j*2+1] });
+        }
+      }
+      approx.delete();
+    } else {
+      approx.delete();
+    }
+    cnt.delete();
+  }
+
+  src.delete(); gray.delete(); blur.delete(); edge.delete(); hier.delete(); contours.delete();
+
+  if (!bestPts || bestArea < (img.width * img.height * 0.1)) {
+    // Fallback: esquinas de la imagen con margen
+    const m = 20;
+    return [
+      {x: m,             y: m},
+      {x: img.width - m, y: m},
+      {x: img.width - m, y: img.height - m},
+      {x: m,             y: img.height - m},
+    ];
+  }
+
+  // Ordenar: TL, TR, BR, BL
+  return ordenarPuntos(bestPts);
+}
+
+function ordenarPuntos(pts) {
+  const sorted = pts.slice().sort((a,b) => a.x + a.y - (b.x + b.y));
+  const tl = sorted[0];
+  const br = sorted[3];
+  const otros = [sorted[1], sorted[2]];
+  const tr = otros[0].y < otros[1].y ? otros[0] : otros[1];
+  const bl = otros[0].y < otros[1].y ? otros[1] : otros[0];
+  return [tl, tr, br, bl];
+}
+
+function prepararCanvas(img) {
+  const c = document.getElementById('offscreen');
+  c.width  = img.naturalWidth  || img.width;
+  c.height = img.naturalHeight || img.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  return c;
+}
+
+// ── CROP MODAL ──
+function abrirCrop(img, pts, originalUrl) {
+  cropImg    = img;
+  cropCanvas = document.getElementById('cropCanvas');
+  cropCtx    = cropCanvas.getContext('2d');
+
+  const maxW = window.innerWidth  - 32;
+  const maxH = window.innerHeight - 200;
+  canvasScale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
+
+  cropCanvas.width  = img.naturalWidth  * canvasScale;
+  cropCanvas.height = img.naturalHeight * canvasScale;
+
+  cropPoints = pts.map(p => ({ x: p.x * canvasScale, y: p.y * canvasScale }));
+
+  document.getElementById('cropOverlay').classList.add('open');
+  drawCrop();
+  setupCropEvents();
+}
+
+function drawCrop() {
+  cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+  cropCtx.drawImage(cropImg, 0, 0, cropCanvas.width, cropCanvas.height);
+
+  // Overlay oscuro fuera del polígono
+  cropCtx.save();
+  cropCtx.fillStyle = 'rgba(0,0,0,0.5)';
+  cropCtx.fillRect(0, 0, cropCanvas.width, cropCanvas.height);
+  cropCtx.globalCompositeOperation = 'destination-out';
+  cropCtx.beginPath();
+  cropCtx.moveTo(cropPoints[0].x, cropPoints[0].y);
+  cropPoints.forEach(p => cropCtx.lineTo(p.x, p.y));
+  cropCtx.closePath();
+  cropCtx.fill();
+  cropCtx.restore();
+
+  // Borde del polígono
+  cropCtx.strokeStyle = '#38BDF8';
+  cropCtx.lineWidth   = 2;
+  cropCtx.beginPath();
+  cropCtx.moveTo(cropPoints[0].x, cropPoints[0].y);
+  cropPoints.forEach(p => cropCtx.lineTo(p.x, p.y));
+  cropCtx.closePath();
+  cropCtx.stroke();
+
+  // Esquinas
+  cropPoints.forEach((p, i) => {
+    cropCtx.beginPath();
+    cropCtx.arc(p.x, p.y, 14, 0, Math.PI * 2);
+    cropCtx.fillStyle = i === dragIdx ? '#818CF8' : '#38BDF8';
+    cropCtx.fill();
+    cropCtx.strokeStyle = '#fff';
+    cropCtx.lineWidth = 2;
+    cropCtx.stroke();
   });
+}
+
+function setupCropEvents() {
+  cropCanvas.ontouchstart = e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    const r = cropCanvas.getBoundingClientRect();
+    const x = t.clientX - r.left;
+    const y = t.clientY - r.top;
+    dragIdx = cropPoints.findIndex(p => Math.hypot(p.x-x, p.y-y) < 30);
+  };
+  cropCanvas.ontouchmove = e => {
+    e.preventDefault();
+    if (dragIdx < 0) return;
+    const t = e.touches[0];
+    const r = cropCanvas.getBoundingClientRect();
+    cropPoints[dragIdx] = {
+      x: Math.max(0, Math.min(cropCanvas.width,  t.clientX - r.left)),
+      y: Math.max(0, Math.min(cropCanvas.height, t.clientY - r.top)),
+    };
+    drawCrop();
+  };
+  cropCanvas.ontouchend = () => { dragIdx = -1; drawCrop(); };
+
+  // Mouse (desktop)
+  cropCanvas.onmousedown = e => {
+    const r = cropCanvas.getBoundingClientRect();
+    dragIdx = cropPoints.findIndex(p => Math.hypot(p.x-(e.clientX-r.left), p.y-(e.clientY-r.top)) < 20);
+  };
+  cropCanvas.onmousemove = e => {
+    if (dragIdx < 0) return;
+    const r = cropCanvas.getBoundingClientRect();
+    cropPoints[dragIdx] = { x: e.clientX-r.left, y: e.clientY-r.top };
+    drawCrop();
+  };
+  cropCanvas.onmouseup = () => { dragIdx = -1; };
+}
+
+async function aplicarCrop() {
+  setLoading(true, 'Aplicando recorte...');
+  document.getElementById('cropOverlay').classList.remove('open');
+
+  try {
+    const srcW = cropImg.naturalWidth;
+    const srcH = cropImg.naturalHeight;
+    const pts  = cropPoints.map(p => ({ x: p.x / canvasScale, y: p.y / canvasScale }));
+
+    // Tamaño destino A4 proporcional
+    const w = Math.round(Math.hypot(pts[1].x-pts[0].x, pts[1].y-pts[0].y));
+    const h = Math.round(Math.hypot(pts[3].x-pts[0].x, pts[3].y-pts[0].y));
+
+    const srcMat = cv.imread(prepararCanvas(cropImg));
+    const dstMat = new cv.Mat();
+
+    const srcPts = cv.matFromArray(4, 1, cv.CV_32FC2, [
+      pts[0].x, pts[0].y,
+      pts[1].x, pts[1].y,
+      pts[2].x, pts[2].y,
+      pts[3].x, pts[3].y,
+    ]);
+    const dstPts = cv.matFromArray(4, 1, cv.CV_32FC2, [
+      0, 0, w, 0, w, h, 0, h,
+    ]);
+
+    const M = cv.getPerspectiveTransform(srcPts, dstPts);
+    cv.warpPerspective(srcMat, dstMat, M, new cv.Size(w, h));
+
+    const out = document.getElementById('offscreen');
+    out.width = w; out.height = h;
+    cv.imshow(out, dstMat);
+    const dataUrl = out.toDataURL('image/jpeg', 0.92);
+
+    srcMat.delete(); dstMat.delete(); srcPts.delete(); dstPts.delete(); M.delete();
+
+    agregarPagina(dataUrl, true);
+  } catch(e) {
+    console.error(e);
+    const dataUrl = await fileToDataUrl(pendingFile);
+    agregarPagina(dataUrl, false);
+  }
+
+  setLoading(false);
+}
+
+function saltarCrop() {
+  document.getElementById('cropOverlay').classList.remove('open');
+  fileToDataUrl(pendingFile).then(url => agregarPagina(url, false));
+}
+
+function agregarPagina(dataUrl, scanned) {
+  paginas.push({ dataUrl, scanned });
+  pdfBlob = null;
+  renderPaginas();
+  actualizarBotones();
+  toast(scanned ? '✅ Página recortada y agregada' : '✅ Página agregada');
 }
 
 // ── RENDER ──
@@ -381,44 +561,29 @@ function renderPaginas() {
   const grid  = document.getElementById('pagesGrid');
   const empty = document.getElementById('emptyState');
   const sb    = document.getElementById('statusBar');
-  const count = document.getElementById('pageCount');
+  document.getElementById('pageCount').textContent = paginas.length;
 
   if (!paginas.length) {
-    grid.style.display  = 'none';
-    empty.style.display = 'flex';
-    sb.style.display    = 'none';
-    return;
+    grid.style.display = 'none'; empty.style.display = 'flex'; sb.style.display = 'none'; return;
   }
-
-  empty.style.display = 'none';
-  grid.style.display  = 'grid';
-  sb.style.display    = 'flex';
-  count.textContent   = paginas.length;
-
-  grid.innerHTML = paginas.map((p, i) => `
+  empty.style.display = 'none'; grid.style.display = 'grid'; sb.style.display = 'flex';
+  grid.innerHTML = paginas.map((p,i) => `
     <div class="page-item">
       <img src="${p.dataUrl}" alt="Página ${i+1}"/>
       <div class="page-num">${i+1}</div>
       <button class="page-del" onclick="eliminarPagina(${i})">✕</button>
+      ${p.scanned ? '<div class="page-scan-badge">✓ Recortada</div>' : ''}
     </div>
   `).join('');
 }
 
 function eliminarPagina(i) {
-  paginas.splice(i, 1);
-  pdfBlob = null;
-  renderPaginas();
-  actualizarBotones();
+  paginas.splice(i,1); pdfBlob=null; renderPaginas(); actualizarBotones();
 }
-
 function limpiarTodo() {
   if (!confirm('¿Eliminar todas las páginas?')) return;
-  paginas = [];
-  pdfBlob = null;
-  renderPaginas();
-  actualizarBotones();
+  paginas=[]; pdfBlob=null; renderPaginas(); actualizarBotones();
 }
-
 function actualizarBotones() {
   const tiene = paginas.length > 0;
   document.getElementById('btnPDF').disabled    = !tiene;
@@ -430,156 +595,96 @@ async function generarPDF() {
   if (!paginas.length) return;
   toast('Generando PDF...', 60000);
   mostrarProgreso(true);
-
   try {
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-    for (let i = 0; i < paginas.length; i++) {
-      setProgreso((i / paginas.length) * 100);
-      if (i > 0) pdf.addPage();
-
-      const img   = await cargarImagen(paginas[i].dataUrl);
-      const ratio = img.width / img.height;
-      const pw    = 210, ph = 297;
-      let w = pw, h = pw / ratio;
-      if (h > ph) { h = ph; w = ph * ratio; }
-      const x = (pw - w) / 2;
-      const y = (ph - h) / 2;
-
-      pdf.addImage(paginas[i].dataUrl, 'JPEG', x, y, w, h, '', 'FAST');
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    for (let i=0; i<paginas.length; i++) {
+      setProgreso((i/paginas.length)*100);
+      if (i>0) pdf.addPage();
+      const img = await cargarImagen(paginas[i].dataUrl);
+      const ratio = img.width/img.height;
+      const pw=210, ph=297;
+      let w=pw, h=pw/ratio;
+      if (h>ph) { h=ph; w=ph*ratio; }
+      pdf.addImage(paginas[i].dataUrl,'JPEG',(pw-w)/2,(ph-h)/2,w,h,'','FAST');
     }
-
     setProgreso(100);
     pdfBlob = pdf.output('blob');
-
-    // Descargar
-    const nombre = `scan_${formatFecha()}.pdf`;
     const url = URL.createObjectURL(pdfBlob);
     const a = document.createElement('a');
-    a.href = url; a.download = nombre;
-    a.click();
+    a.href=url; a.download=`scan_${formatFecha()}.pdf`; a.click();
     URL.revokeObjectURL(url);
-
     toast('✅ PDF guardado');
     if (driveToken) document.getElementById('btnUpload').disabled = false;
-  } catch(e) {
-    toast('Error al generar PDF');
-    console.error(e);
-  } finally {
-    mostrarProgreso(false);
-    setProgreso(0);
-  }
-}
-
-function cargarImagen(src) {
-  return new Promise((res, rej) => {
-    const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = rej;
-    img.src = src;
-  });
+  } catch(e) { toast('Error al generar PDF'); console.error(e); }
+  finally { mostrarProgreso(false); setProgreso(0); }
 }
 
 // ── GOOGLE DRIVE ──
 function initGoogleDrive() {
   gapi.load('client:auth2', async () => {
-    await gapi.client.init({
-      clientId: GCAL_CLIENT_ID,
-      scope: DRIVE_SCOPES,
-    });
+    await gapi.client.init({ clientId: GCAL_CLIENT_ID, scope: DRIVE_SCOPES });
     const auth = gapi.auth2.getAuthInstance();
     if (auth.isSignedIn.get()) {
       driveToken = auth.currentUser.get().getAuthResponse().access_token;
       actualizarEstadoDrive(true);
     }
     auth.isSignedIn.listen(signed => {
-      if (signed) {
-        driveToken = auth.currentUser.get().getAuthResponse().access_token;
-        actualizarEstadoDrive(true);
-      } else {
-        driveToken = null;
-        actualizarEstadoDrive(false);
-      }
+      driveToken = signed ? auth.currentUser.get().getAuthResponse().access_token : null;
+      actualizarEstadoDrive(signed);
     });
   });
 }
-
-function actualizarEstadoDrive(conectado) {
-  const btn = document.getElementById('btnDrive');
-  const lbl = document.getElementById('driveLabel');
-  if (conectado) {
-    btn.classList.add('connected');
-    lbl.textContent = '✓ Drive';
-  } else {
-    btn.classList.remove('connected');
-    lbl.textContent = 'Drive';
-  }
+function actualizarEstadoDrive(ok) {
+  document.getElementById('btnDrive').classList.toggle('connected', ok);
+  document.getElementById('driveLabel').textContent = ok ? '✓ Drive' : '☁ Drive';
   actualizarBotones();
 }
-
 async function conectarDrive() {
-  if (!window.gapi?.auth2) { toast('Cargando...'); setTimeout(conectarDrive, 1500); return; }
+  if (!window.gapi?.auth2) { toast('Cargando...'); setTimeout(conectarDrive,1500); return; }
   const auth = gapi.auth2.getAuthInstance();
-  if (auth.isSignedIn.get()) {
-    if (confirm('¿Desconectar Google Drive?')) await auth.signOut();
-  } else {
-    try { await auth.signIn(); toast('✅ Drive conectado'); }
-    catch(e) { toast('Error al conectar Drive'); }
-  }
+  if (auth.isSignedIn.get()) { if (confirm('¿Desconectar Drive?')) await auth.signOut(); }
+  else { try { await auth.signIn(); toast('✅ Drive conectado'); } catch(e) { toast('Error al conectar'); } }
 }
-
 async function subirDrive() {
   if (!driveToken) { toast('Conectá Drive primero'); return; }
-  if (!pdfBlob) {
-    toast('Generá el PDF primero');
-    return;
-  }
-
+  if (!pdfBlob)    { toast('Generá el PDF primero'); return; }
   toast('Subiendo a Drive...', 60000);
   mostrarProgreso(true);
-
   try {
     const nombre = `scan_${formatFecha()}.pdf`;
     const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify({
-      name: nombre,
-      mimeType: 'application/pdf',
-    })], { type: 'application/json' }));
+    form.append('metadata', new Blob([JSON.stringify({name:nombre,mimeType:'application/pdf'})],{type:'application/json'}));
     form.append('file', pdfBlob, nombre);
-
-    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${driveToken}` },
-      body: form,
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+      method:'POST', headers:{Authorization:`Bearer ${driveToken}`}, body:form
     });
-
     if (!res.ok) throw new Error(await res.text());
     setProgreso(100);
     toast('✅ PDF subido a Google Drive');
-  } catch(e) {
-    toast('Error al subir a Drive');
-    console.error(e);
-  } finally {
-    mostrarProgreso(false);
-    setProgreso(0);
-  }
+  } catch(e) { toast('Error al subir'); console.error(e); }
+  finally { mostrarProgreso(false); setProgreso(0); }
 }
 
 // ── HELPERS ──
-function mostrarProgreso(show) {
-  document.getElementById('progressBar').style.display = show ? 'block' : 'none';
+function fileToDataUrl(file) {
+  return new Promise(res => { const r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(file); });
 }
-function setProgreso(pct) {
-  document.getElementById('progressFill').style.width = pct + '%';
+function cargarImagen(src) {
+  return new Promise((res,rej) => { const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=src; });
 }
+function mostrarProgreso(show) { document.getElementById('progressBar').style.display=show?'block':'none'; }
+function setProgreso(pct) { document.getElementById('progressFill').style.width=pct+'%'; }
 function formatFecha() {
-  const d = new Date();
+  const d=new Date();
   return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
 }
-
 function gapiLoaded() { initGoogleDrive(); }
 </script>
+
+<!-- OpenCV -->
+<script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="cvReady=true;console.log('OpenCV listo')"></script>
+<!-- Google API -->
 <script src="https://apis.google.com/js/api.js?onload=gapiLoaded"></script>
 </body>
 </html>
