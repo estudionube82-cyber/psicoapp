@@ -29,7 +29,7 @@
 
     /* ── RESPONSIVE WRAPPER ── */
     .page-wrap {
-      max-width: 720px;
+      max-width: 430px;
       margin: 0 auto;
     }
 
@@ -70,6 +70,16 @@
       position: sticky;
       top: 0;
       z-index: 50;
+      max-width: 430px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .header-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--blanco);
+      border-bottom: 1px solid #eef0f3;
     }
     .header-left {
       display: flex;
@@ -373,79 +383,57 @@
     .empty-icon { font-size: 36px; margin-bottom: 8px; }
     .empty-txt { font-size: 13px; }
 
-    /* ── NAV BOTTOM ── */
-    .nav-bottom {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--blanco);
-      border-top: 1px solid #eef0f3;
-      display: flex;
-      z-index: 100;
-      padding-bottom: env(safe-area-inset-bottom, 0);
+    /* ── NAV + DRAWER (idéntico a agenda) ── */
+    .app-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; height: 64px;
+      background: #fff; border-top: 1.5px solid #E8E4DD;
+      display: flex; align-items: center;
+      z-index: 2147483647; box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
     }
-    .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 4px 8px;
-      text-decoration: none;
-      color: var(--gris-texto);
-      font-size: 10px;
-      font-weight: 500;
-      gap: 3px;
-      border: none;
-      background: none;
-      cursor: pointer;
+    .app-nav a, .app-nav button.nav-menu-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 2px; text-decoration: none;
+      color: #8A8FA8; padding: 4px 0; background: none; border: none; cursor: pointer;
     }
-    .nav-item.activo { color: var(--verde-oscuro); }
-    .nav-icon { font-size: 22px; }
-
-    /* ── HAMBURGUESA ── */
-    .drawer-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 200;
+    .app-nav a .ni, .app-nav button.nav-menu-btn .ni { font-size: 22px; line-height: 1; display: block; }
+    .app-nav a .nl, .app-nav button.nav-menu-btn .nl { font-size: 10px; font-weight: 700; display: block; }
+    .app-nav a.on .nl { color: #2D6A4F; }
+    .menu-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 9998; backdrop-filter: blur(2px);
     }
-    .drawer-overlay.open { display: block; }
-    .drawer {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--blanco);
-      border-radius: 20px 20px 0 0;
-      padding: 20px;
-      z-index: 201;
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
+    .menu-overlay.open { display: block; }
+    .side-drawer {
+      position: fixed; top: 0; left: -280px; width: 280px; height: 100vh;
+      background: #fff; z-index: 9999;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+      transition: left 0.3s cubic-bezier(0.4,0,0.2,1);
+      display: flex; flex-direction: column; overflow-y: auto;
     }
-    .drawer.open { transform: translateY(0); }
-    .drawer-handle {
-      width: 40px; height: 4px;
-      background: #ddd;
-      border-radius: 2px;
-      margin: 0 auto 20px;
+    .side-drawer.open { left: 0; }
+    .drawer-header {
+      background: linear-gradient(135deg, #2D6A4F 0%, #3A7D5F 50%, #F4A261 100%);
+      padding: 48px 20px 24px; display: flex; align-items: center; gap: 12px;
     }
-    .drawer-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+    .drawer-header img { width: 48px; height: 48px; object-fit: contain; }
+    .drawer-logo-txt { font-size: 22px; font-weight: 800; color: white; font-family: serif; }
+    .drawer-logo-txt span { color: #FFD580; }
+    .drawer-tagline { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; letter-spacing: 0.5px; }
+    .drawer-section-title {
+      font-size: 10px; font-weight: 800; color: #8A8FA8;
+      letter-spacing: 1.5px; text-transform: uppercase; padding: 16px 20px 6px;
     }
     .drawer-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 14px 6px;
-      border-radius: 12px;
-      text-decoration: none;
-      color: var(--texto);
-      background: var(--gris-fondo);
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 20px; text-decoration: none; color: #1A1A2E;
+      font-size: 15px; font-weight: 600; transition: background 0.15s;
+      border-left: 3px solid transparent;
     }
-    .drawer-icon { font-size: 28px; }
-    .drawer-label { font-size: 12px; font-weight: 600; }
+    .drawer-item:hover { background: #F4F1ED; }
+    .drawer-item.active { background: #E8F5EE; color: #2D6A4F; border-left-color: #2D6A4F; }
+    .drawer-item .di { font-size: 20px; width: 28px; text-align: center; }
+    .drawer-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid #E8E4DD; }
 
     .skeleton {
       background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -462,6 +450,7 @@
 <body>
 
 <!-- HEADER -->
+<div class="header-wrap">
 <header class="header">
   <div class="header-left">
     <img src="logo-psicoapp.png" alt="PsicoApp" class="header-logo" onerror="this.style.display='none'">
@@ -480,6 +469,7 @@
     </button>
   </div>
 </header>
+</div>
 
 <div class="page-wrap">
 
@@ -584,60 +574,39 @@
 
 </div><!-- /page-wrap -->
 
-<!-- NAV BOTTOM -->
-<nav class="nav-bottom">
-  <a class="nav-item activo" href="psicoapp-index.html">
-    <span class="nav-icon">🏠</span>Inicio
-  </a>
-  <a class="nav-item" href="psicoapp-agenda.html">
-    <span class="nav-icon">📅</span>Agenda
-  </a>
-  <a class="nav-item" href="psicoapp-pacientes.html">
-    <span class="nav-icon">👥</span>Pacientes
-  </a>
-  <a class="nav-item" href="psicoapp-whatsapp.html">
-    <span class="nav-icon">💬</span>WhatsApp
-  </a>
-  <button class="nav-item" onclick="abrirDrawer()">
-    <span class="nav-icon">☰</span>Más
-  </button>
-</nav>
-
-<!-- DRAWER -->
-<div class="drawer-overlay" id="drawer-overlay" onclick="cerrarDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-handle"></div>
-  <div class="drawer-grid">
-    <a href="psicoapp-pagos.html" class="drawer-item">
-      <span class="drawer-icon">💰</span>
-      <span class="drawer-label">Pagos</span>
-    </a>
-    <a href="psicoapp-pericias.html" class="drawer-item">
-      <span class="drawer-icon">📋</span>
-      <span class="drawer-label">Pericias</span>
-    </a>
-    <a href="psicoapp-historia.html" class="drawer-item">
-      <span class="drawer-icon">🧠</span>
-      <span class="drawer-label">Historia</span>
-    </a>
-    <a href="psicoapp-consentimiento.html" class="drawer-item">
-      <span class="drawer-icon">✍️</span>
-      <span class="drawer-label">Consentim.</span>
-    </a>
-    <a href="psicoapp-estadisticas.html" class="drawer-item">
-      <span class="drawer-icon">📊</span>
-      <span class="drawer-label">Estadísticas</span>
-    </a>
-    <a href="psicoapp-perfil.html" class="drawer-item">
-      <span class="drawer-icon">👤</span>
-      <span class="drawer-label">Perfil</span>
-    </a>
-    <a href="psicoapp-cuenta.html" class="drawer-item">
-      <span class="drawer-icon">⚙️</span>
-      <span class="drawer-label">Cuenta</span>
-    </a>
+<div class="menu-overlay" id="menuOverlay" onclick="closeDrawer()"></div>
+<div class="side-drawer" id="sideDrawer">
+  <div class="drawer-header">
+    <img src="/logo-psicoapp.png" alt="PsicoApp">
+    <div>
+      <div class="drawer-logo-txt">Psico<span>App</span></div>
+      <div class="drawer-tagline">Gestión para psicólogos</div>
+    </div>
   </div>
+  <div class="drawer-section-title">Principal</div>
+  <a href="psicoapp-index.html" class="drawer-item active"><span class="di">🏠</span>Inicio</a>
+  <a href="psicoapp-agenda.html" class="drawer-item"><span class="di">📅</span>Agenda</a>
+  <a href="psicoapp-pacientes.html" class="drawer-item"><span class="di">👥</span>Pacientes</a>
+  <a href="psicoapp-whatsapp.html" class="drawer-item"><span class="di">💬</span>WhatsApp</a>
+  <a href="psicoapp-cuenta.html" class="drawer-item"><span class="di">👤</span>Mi Cuenta</a>
+  <div class="drawer-section-title">Más módulos</div>
+  <a href="psicoapp-pagos.html" class="drawer-item"><span class="di">💰</span>Pagos</a>
+  <a href="psicoapp-pericias.html" class="drawer-item"><span class="di">⚖️</span>Pericias</a>
+  <a href="psicoapp-historia.html" class="drawer-item"><span class="di">🧠</span>Historia Clínica</a>
+  <a href="psicoapp-consentimiento.html" class="drawer-item"><span class="di">✍️</span>Consentimiento</a>
+  <a href="psicoapp-estadisticas.html" class="drawer-item"><span class="di">📊</span>Estadísticas</a>
+  <a href="psicoapp-perfil.html" class="drawer-item"><span class="di">⚙️</span>Mi Perfil</a>
+  <div class="drawer-footer"></div>
 </div>
+
+<nav class="app-nav">
+  <a href="psicoapp-index.html" class="on"><span class="ni">🏠</span><span class="nl">Inicio</span></a>
+  <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
+  <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
+  <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-cuenta.html"><span class="ni">👤</span><span class="nl">Cuenta</span></a>
+  <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
+</nav>
 
 <script>
   const SUPABASE_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
@@ -903,13 +872,13 @@
     document.getElementById('sem-facturado').textContent = formatPeso(totalSem);
   }
 
-  function abrirDrawer() {
-    document.getElementById('drawer').classList.add('open');
-    document.getElementById('drawer-overlay').classList.add('open');
+  function toggleDrawer() {
+    document.getElementById('sideDrawer').classList.toggle('open');
+    document.getElementById('menuOverlay').classList.toggle('open');
   }
-  function cerrarDrawer() {
-    document.getElementById('drawer').classList.remove('open');
-    document.getElementById('drawer-overlay').classList.remove('open');
+  function closeDrawer() {
+    document.getElementById('sideDrawer').classList.remove('open');
+    document.getElementById('menuOverlay').classList.remove('open');
   }
 
   cargarDashboard();
