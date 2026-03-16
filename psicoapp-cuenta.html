@@ -403,11 +403,12 @@ body {
         </div>
       </div>
       <div class="plan-features">
-        <div class="feat">✅ <span>Agenda completa</span></div>
-        <div class="feat">✅ <span>Gestión de pacientes</span></div>
-        <div class="feat">✅ <span>WhatsApp automático</span></div>
-        <div class="feat">✅ <span>Pagos y pericias</span></div>
-        <div class="feat">✅ <span>Todas las funciones por 15 días</span></div>
+        <div class="feat">✅ <span>Hasta 5 pacientes</span></div>
+        <div class="feat">✅ <span>Agenda básica</span></div>
+        <div class="feat">✅ <span>Historia clínica</span></div>
+        <div class="feat disabled">🔒 <span>WhatsApp automático</span></div>
+        <div class="feat disabled">🔒 <span>Informe con IA</span></div>
+        <div class="feat disabled">🔒 <span>Scanner de documentos</span></div>
       </div>
       <button class="plan-btn btn-current">✓ Plan actual</button>
     </div>
@@ -420,18 +421,19 @@ body {
           <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Para profesionales activos</div>
         </div>
         <div class="plan-price">
-          <div class="plan-amount">$12.500</div>
+          <div class="plan-amount">$15.000</div>
           <div class="plan-period">ARS / mes</div>
         </div>
       </div>
       <div class="plan-features">
-        <div class="feat">✅ <span>Todo lo del Free Trial</span></div>
         <div class="feat">✅ <span>Pacientes ilimitados</span></div>
-        <div class="feat">✅ <span>Recordatorios automáticos</span></div>
+        <div class="feat">✅ <span>Agenda completa</span></div>
+        <div class="feat">✅ <span>50 WhatsApp/mes incluidos</span></div>
         <div class="feat">✅ <span>Historial de pagos completo</span></div>
-        <div class="feat">✅ <span>Hasta 10 pericias activas</span></div>
-        <div class="feat disabled">🔒 <span>Estadísticas avanzadas</span></div>
-        <div class="feat disabled">🔒 <span>Bot de procuración de pericias</span></div>
+        <div class="feat">✅ <span>Historia clínica</span></div>
+        <div class="feat disabled">🔒 <span>Pericias judiciales</span></div>
+        <div class="feat disabled">🔒 <span>Informe con IA</span></div>
+        <div class="feat disabled">🔒 <span>Scanner de documentos</span></div>
       </div>
       <button class="plan-btn btn-upgrade" onclick="abrirModal('pro')">Suscribirme a Pro →</button>
     </div>
@@ -445,17 +447,17 @@ body {
           <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Para estudios y clínicas</div>
         </div>
         <div class="plan-price">
-          <div class="plan-amount" style="color:#E76F51">$18.000</div>
+          <div class="plan-amount" style="color:#E76F51">$20.000</div>
           <div class="plan-period">ARS / mes</div>
         </div>
       </div>
       <div class="plan-features">
         <div class="feat">✅ <span>Todo lo del Pro</span></div>
-        <div class="feat">✅ <span>Pericias ilimitadas</span></div>
-        <div class="feat">✅ <span>Estadísticas avanzadas</span></div>
-        <div class="feat">✅ <span>Bot de procuración de pericias</span></div>
+        <div class="feat">✅ <span>WhatsApp ilimitados</span></div>
+        <div class="feat">✅ <span>Pericias judiciales</span></div>
+        <div class="feat">✅ <span>🤖 Informe con IA</span></div>
+        <div class="feat">✅ <span>📄 Scanner de documentos</span></div>
         <div class="feat">✅ <span>Soporte prioritario</span></div>
-        <div class="feat">✅ <span>Múltiples profesionales (próx.)</span></div>
       </div>
       <button class="plan-btn btn-accent" onclick="abrirModal('max')">Suscribirme a Max →</button>
     </div>
@@ -492,7 +494,7 @@ body {
         <div class="info-icon">📱</div>
         <div>
           <div class="info-label">WhatsApp</div>
-          <div class="info-sub">Sandbox Twilio activo</div>
+          <div class="info-sub">Número +54 9 2346 521129 activo</div>
         </div>
       </div>
       <div class="info-right" style="color:var(--primary)">✅ Activo</div>
@@ -522,7 +524,7 @@ body {
     <div class="modal-plan-preview" id="modalPreview"></div>
     <!-- Precio destacado -->
     <div id="modalPrecioWrap" style="text-align:center;margin-bottom:16px">
-      <div id="modalPrecio" style="font-size:32px;font-weight:800;color:var(--primary)">$12.500</div>
+      <div id="modalPrecio" style="font-size:32px;font-weight:800;color:var(--primary)">$15.000</div>
       <div style="font-size:13px;color:var(--text-muted)">ARS / mes · renovación mensual</div>
     </div>
 
@@ -574,6 +576,7 @@ body {
   <a href="psicoapp-consentimiento.html" class="drawer-item" onclick="closeDrawer()"><span class="di">✍️</span>Consentimiento</a>
   <a href="psicoapp-estadisticas.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📊</span>Estadísticas</a>
   <a href="psicoapp-perfil.html" class="drawer-item" onclick="closeDrawer()"><span class="di">⚙️</span>Mi Perfil</a>
+  <a href="scanner.html" class="drawer-item" onclick="closeDrawer()"><span class="di">📄</span>Scanner ⚡ Max</a>
 
 
   <div class="drawer-footer">
@@ -679,13 +682,13 @@ const planesInfo = {
 // 3. Max: título "PsicoApp Plan Max", precio $15000, sin límite de usos
 // 4. Copiá el link (formato: https://mpago.la/XXXXXX) y pegalo acá
 const MP_LINKS = {
-  pro: 'https://mpago.la/21qpD68',   // ← Plan Pro $12.500/mes
-  max: 'https://mpago.la/2una14K',   // ← Plan Max $18.000/mes
+  pro: 'https://mpago.la/21qpD68',   // ← Plan Pro $15.000/mes
+  max: 'https://mpago.la/2una14K',   // ← Plan Max $20.000/mes
 };
-const PRECIOS  = { pro: '$12.500', max: '$18.000' };
+const PRECIOS  = { pro: '$15.000', max: '$20.000' };
 const WA_MSGS  = {
-  pro: 'Hola%2C%20quiero%20activar%20el%20plan%20*Pro*%20de%20PsicoApp%20(%2412.500%2Fmes)',
-  max: 'Hola%2C%20quiero%20activar%20el%20plan%20*Max*%20de%20PsicoApp%20(%2418.000%2Fmes)',
+  pro: 'Hola%2C%20quiero%20activar%20el%20plan%20*Pro*%20de%20PsicoApp%20(%2415.000%2Fmes%20-%2050%20WA%20incluidos)',
+  max: 'Hola%2C%20quiero%20activar%20el%20plan%20*Max*%20de%20PsicoApp%20(%2420.000%2Fmes)',
 };
 let planSeleccionado = 'pro';
 
