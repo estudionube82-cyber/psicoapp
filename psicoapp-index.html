@@ -729,7 +729,6 @@
   }
 
   async function cargarDashboard() {
-    try {
     const hoy = new Date();
     const hoyStr = hoy.toISOString().split('T')[0];
 
@@ -753,15 +752,15 @@
     userId = user.id;
 
     // Perfil
-    const perfRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=nombre_completo,titulo,foto_url`, {
+    const perfRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
     });
     if (perfRes.ok) {
       const perfs = await perfRes.json();
       if (perfs && perfs.length > 0) {
         const p = perfs[0];
-        const nombre = p.nombre_completo || '';
-        const titulo = p.titulo || '';
+        const nombre = p['nombre completo'] || p.nombre_completo || p.nombre || '';
+        const titulo = p['título'] || p.titulo || '';
         const nombreCorto = nombre.split(' ')[0] || 'Doc';
         document.getElementById('hero-titulo').textContent = `${horaActual()}, ${nombreCorto} 👋`;
         document.getElementById('saludo').textContent = nombre ? `${titulo} ${nombre}`.trim() : '';
@@ -773,19 +772,12 @@
       }
     }
 
-    // Turnos HOY — join con pacientes para obtener el nombre
+    // Turnos HOY
     const turnRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/turnos?user_id=eq.${userId}&fecha=eq.${hoyStr}&order=hora.asc&select=*,pacientes(nombre,apellido)`,
+      `${SUPABASE_URL}/rest/v1/turnos?user_id=eq.${userId}&fecha=eq.${hoyStr}&order=hora.asc&select=*`,
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
     );
-    let turnos = turnRes.ok ? await turnRes.json() : [];
-    // Normalizar nombre del paciente desde join o columna directa
-    turnos = turnos.map(t => ({
-      ...t,
-      paciente_nombre: t.paciente_nombre ||
-        (t.pacientes ? `${t.pacientes.apellido || ''} ${t.pacientes.nombre || ''}`.trim() : null) ||
-        t.descripcion || 'Turno'
-    }));
+    const turnos = turnRes.ok ? await turnRes.json() : [];
     document.getElementById('stat-hoy').textContent = turnos.length;
     renderTurnosHoy(turnos);
 
@@ -818,17 +810,6 @@
 
     // Impacto semanal
     cargarSemana(userId, token, hoy);
-    } catch(err) {
-      console.error('Error cargando dashboard:', err);
-      // Mostrar valores 0 en lugar de dejar "cargando"
-      ['stat-hoy','stat-pacientes','stat-pericias'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el && el.textContent === '—') el.textContent = '0';
-      });
-      const statMes = document.getElementById('stat-mes');
-      if (statMes && statMes.textContent === '—') statMes.textContent = '$0';
-      renderTurnosHoy([]);
-    }
   }
 
   function renderTurnosHoy(turnos) {
@@ -874,16 +855,10 @@
     const sabadoStr = sabado.toISOString().split('T')[0];
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/turnos?user_id=eq.${userId}&fecha=gte.${lunesStr}&fecha=lte.${sabadoStr}&select=fecha,estado,paciente_id,paciente_nombre,pacientes(nombre,apellido)`,
+      `${SUPABASE_URL}/rest/v1/turnos?user_id=eq.${userId}&fecha=gte.${lunesStr}&fecha=lte.${sabadoStr}&select=fecha,estado,paciente_nombre`,
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
     );
-    let semTurnos = res.ok ? await res.json() : [];
-    semTurnos = semTurnos.map(t => ({
-      ...t,
-      paciente_nombre: t.paciente_nombre ||
-        (t.pacientes ? `${t.pacientes.apellido || ''} ${t.pacientes.nombre || ''}`.trim() : null) ||
-        String(t.paciente_id || '')
-    }));
+    const semTurnos = res.ok ? await res.json() : [];
 
     // Agrupar por día
     const porDia = {};
