@@ -64,6 +64,24 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 .app-nav a { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; text-decoration:none; color:#8A8FA8; padding:4px 0; }
 .app-nav a .ni { font-size:22px; line-height:1; display:block; }
 .app-nav a .nl { font-size:10px; font-weight:700; display:block; }
+.nav-menu-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; background:none; border:none; color:#8A8FA8; padding:4px 0; cursor:pointer; font-family:inherit; }
+.nav-menu-btn .ni { font-size:22px; line-height:1; display:block; }
+.nav-menu-btn .nl { font-size:10px; font-weight:700; display:block; }
+.menu-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:300; }
+.menu-overlay.open { display:block; }
+.side-drawer { position:fixed; top:0; right:-280px; width:270px; height:100vh; background:#fff; z-index:400; transition:right .28s cubic-bezier(.4,0,.2,1); box-shadow:-4px 0 24px rgba(0,0,0,0.13); display:flex; flex-direction:column; overflow-y:auto; }
+.side-drawer.open { right:0; }
+.drawer-header { display:flex; align-items:center; gap:12px; padding:22px 18px 14px; border-bottom:1px solid #E8E4DD; }
+.drawer-header img { width:36px; height:36px; border-radius:10px; }
+.drawer-logo-txt { font-size:17px; font-weight:800; color:#1A1A2E; }
+.drawer-logo-txt span { color:#F4A261; }
+.drawer-tagline { font-size:11px; color:#8A8FA8; margin-top:1px; }
+.drawer-section-title { font-size:10px; font-weight:800; color:#8A8FA8; letter-spacing:.08em; text-transform:uppercase; padding:14px 18px 4px; }
+.drawer-item { display:flex; align-items:center; gap:10px; padding:11px 18px; text-decoration:none; color:#1A1A2E; font-size:14px; font-weight:600; border-radius:0; transition:background .15s; }
+.drawer-item:hover, .drawer-item.active { background:#E8F5EE; color:#2D6A4F; }
+.drawer-item .di { font-size:18px; }
+.drawer-footer { margin-top:auto; padding:14px 18px; border-top:1px solid #E8E4DD; }
+.drawer-logout { width:100%; padding:10px; background:none; border:1.5px solid #e74c3c; color:#e74c3c; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; }
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2D6A4F">
