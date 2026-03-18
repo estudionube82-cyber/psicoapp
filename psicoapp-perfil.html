@@ -122,6 +122,18 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
     </div>
 
     <div class="field">
+      <div class="field-label">Matrícula Provincial</div>
+      <input class="field-input" id="f-matricula-prov" type="text" placeholder="Ej: 30.111">
+      <div class="field-hint">Aparece en los informes clínicos como M.P.</div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Matrícula Nacional</div>
+      <input class="field-input" id="f-matricula-nac" type="text" placeholder="Ej: 38.012">
+      <div class="field-hint">Aparece en los informes clínicos como M.N.</div>
+    </div>
+
+    <div class="field">
       <div class="field-label">Dirección del consultorio</div>
       <input class="field-input" id="f-direccion" type="text" placeholder="Ej: Rivadavia 450, Chivilcoy">
     </div>
@@ -267,7 +279,7 @@ async function cargarPerfil() {
   // intentar leer de profiles
   const { data } = await sb
     .from('profiles')
-    .select('titulo, nombre_completo, especialidad, direccion, telefono_profesional, valor_sesion, foto_url')
+    .select('titulo, nombre_completo, especialidad, direccion, telefono_profesional, valor_sesion, foto_url, matricula_provincial, matricula_nacional')
     .eq('id', userId)
     .maybeSingle();
 
@@ -283,6 +295,8 @@ async function cargarPerfil() {
   document.getElementById('f-direccion').value   = direccion;
   document.getElementById('f-telefono').value    = telefono;
   document.getElementById('f-valor-sesion').value = data?.valor_sesion || '';
+  document.getElementById('f-matricula-prov').value = data?.matricula_provincial || '';
+  document.getElementById('f-matricula-nac').value  = data?.matricula_nacional || '';
 
   actualizarPreview();
 
@@ -314,7 +328,10 @@ async function subirFoto(input) {
   const ext = file.name.split('.').pop();
   const path = `avatars/${session.user.id}.${ext}`;
   const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
-  if (upErr) { document.getElementById('fotoStatus').textContent = '❌ Error al subir'; return; }
+  if (upErr) { 
+    document.getElementById('fotoStatus').textContent = '❌ ' + upErr.message; 
+    return; 
+  }
   const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
   const fotoUrl = urlData.publicUrl + '?t=' + Date.now();
   const { error: dbErr } = await sb.from('profiles').upsert({ id: session.user.id, foto_url: fotoUrl, updated_at: new Date().toISOString() });
@@ -339,6 +356,8 @@ async function guardarPerfil() {
     direccion:            document.getElementById('f-direccion').value.trim(),
     telefono_profesional: document.getElementById('f-telefono').value.trim(),
     valor_sesion:         parseFloat(document.getElementById('f-valor-sesion').value) || null,
+    matricula_provincial: document.getElementById('f-matricula-prov').value.trim(),
+    matricula_nacional:   document.getElementById('f-matricula-nac').value.trim(),
     updated_at:           new Date().toISOString(),
   });
 
