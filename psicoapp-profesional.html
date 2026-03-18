@@ -404,7 +404,7 @@
     // Mostrar skeleton mientras carga
     app.innerHTML = renderSkeleton();
 
-    let query = sb.from('perfiles').select('*');
+    let query = sb.from('profiles').select('*');
 
     if (userId) {
       query = query.eq('id', userId);
