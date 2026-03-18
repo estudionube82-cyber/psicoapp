@@ -327,7 +327,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
           <textarea class="form-textarea" id="informeObservaciones" placeholder="Indicaciones especiales, énfasis en algún aspecto, etc." style="min-height:60px;"></textarea>
         </div>
 
-        <button class="btn-generar-ia" id="btnGenerarInforme" onclick="generarInformeIA()">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label" style="margin-bottom:6px;display:block;">Firma digital (opcional)</label>
+          <div id="firmaPreviewWrap" style="display:none;margin-bottom:8px;">
+            <img id="firmaPreview" style="max-height:60px;border:1px solid var(--border);border-radius:8px;padding:4px;background:white;" />
+            <button onclick="borrarFirma()" style="background:none;border:none;color:var(--danger,#e74c3c);font-size:12px;cursor:pointer;margin-left:8px;">✕ Quitar</button>
+          </div>
+          <label style="display:inline-block;background:var(--primary-light);color:var(--primary);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;">
+            🖊️ Subir imagen de firma
+            <input type="file" id="firmaInput" accept="image/*" style="display:none;" onchange="cargarFirma(this)">
+          </label>
+          <p style="font-size:11px;color:var(--muted);margin-top:4px;">Se incluirá automáticamente al exportar PDF</p>
+        </div>
+
           ✨ Generar Informe con IA
         </button>
       </div>
@@ -339,7 +351,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
           <span>La IA está redactando el informe…</span>
         </div>
         <div class="informe-output" id="informeOutput"></div>
-        <button class="btn-copiar" style="margin-top:10px;" onclick="copiarInforme()">📋 Copiar texto</button>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn-copiar" style="flex:1;min-width:120px;" onclick="copiarInforme()">📋 Copiar</button>
+          <button class="btn-copiar" style="flex:1;min-width:120px;" onclick="imprimirInforme()">🖨️ Imprimir</button>
+          <button class="btn-copiar" style="flex:1;min-width:120px;" onclick="exportarPDF()">📄 Exportar PDF</button>
+          <button class="btn-copiar" style="flex:1;min-width:120px;background:#25D366;color:white;" onclick="compartirWhatsApp()">📱 WhatsApp</button>
+        </div>
       </div>
     </div>
   </div>
@@ -949,8 +966,9 @@ let tipoInformeSeleccionado = 'clinico';
 
 function selTipoInforme(tipo){
   tipoInformeSeleccionado = tipo;
-  ['clinico','juzgado','obrasocial'].forEach(t=>{
-    document.getElementById('btnTipo'+t.charAt(0).toUpperCase()+t.slice(1))?.classList.toggle('sel',t===tipo);
+  const idMap = { clinico: 'btnTipoClinico', juzgado: 'btnTipoJuzgado', obrasocial: 'btnTipoObraSocial' };
+  Object.entries(idMap).forEach(([t, id])=>{
+    document.getElementById(id)?.classList.toggle('sel', t===tipo);
   });
 }
 
@@ -1004,61 +1022,86 @@ async function generarInformeIA(){
     const hoy = new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
     const ciudad = 'Chivilcoy (Bs. As.)';
 
-    // Construir prompt según tipo
-    let promptTipo = '';
+    // Matrículas bien formateadas
+    const mpStr = matriculaProv ? `M.P. ${matriculaProv}` : '';
+    const mnStr = matriculaNac ? `M.N. ${matriculaNac}` : '';
+    const matriculasStr = [mpStr, mnStr].filter(Boolean).join('; ') || '(completar matrícula)';
+    const encabezadoProfesional = `${nombreProfesional}, ${titulo} (${matriculasStr}; Colegio de Psicólogos de la Provincia de Buenos Aires – Distrito VII)`;
+
+    // Filtrar datos vacíos
+    const datosClinicosArr = [
+      info.motivo_consulta ? `Motivo de consulta: ${info.motivo_consulta}` : null,
+      info.antecedentes ? `Antecedentes: ${info.antecedentes}` : null,
+      (info.diagnostico_principal||diagsOrdenados[0]) ? `Diagnóstico: ${info.diagnostico_principal||diagsOrdenados[0]}` : null,
+      info.medicacion ? `Medicación: ${info.medicacion}` : null,
+      info.enfoque_terapeutico ? `Enfoque terapéutico: ${info.enfoque_terapeutico}` : null,
+      info.objetivos ? `Objetivos: ${info.objetivos}` : null,
+      info.notas_generales ? `Notas generales: ${info.notas_generales}` : null,
+    ].filter(Boolean);
+    const datosClinicosStr = datosClinicosArr.join('\n') || 'Tratamiento en etapa inicial de evaluación.';
+
+    // Construir instrucciones según tipo
+    let instruccionesTipo = '';
     if(tipoInformeSeleccionado === 'juzgado'){
-      promptTipo = `Redactalo en formato judicial argentino, dirigido a ${destinatario||'el Juzgado'}. Incluí número de expediente si lo mencionan las observaciones. Usá lenguaje técnico-legal apropiado para la Provincia de Buenos Aires. Solicitá dispensa del secreto profesional según art. 6 inc. c de la Ley 10.306 y art. 12 del Código de Ética del Colegio de Psicólogos PBA.`;
+      instruccionesTipo = `TIPO: Informe para Juzgado — ${destinatario||'Juzgado Civil'}.
+FORMATO OBLIGATORIO (seguí este modelo exacto de estructura):
+1. Primera línea: "${ciudad}, ${hoy}.-"
+2. Línea en blanco, luego: "Al ${destinatario||'Juzgado Civil'}\nSr/a. Juez/a:"
+3. Párrafo de presentación: "[Nombre profesional con título y matrículas], en mi carácter de psicoterapeuta de [paciente], solicitando previamente se dispense al suscripto de guardar secreto profesional conforme el art. 6 inc. c de la Ley 10.306 y art. 12 del Código de Ética del Colegio de Psicólogos PBA, a V.S. informo:"
+4. Párrafos del cuerpo: inicio del tratamiento y antigüedad, motivo de consulta, evolución, estado actual
+5. Cierre: "Atento a que se ha dado respuesta al requerimiento efectuado, no tengo más que informar a V.S. Se solicita el resguardo y privacidad del presente informe. Sin más, saludo a V.S. atentamente."
+6. Firma`;
     } else if(tipoInformeSeleccionado === 'obrasocial'){
-      promptTipo = `Redactalo para ${destinatario||'obra social/prepaga'}. Debe incluir diagnóstico CIE-11/DSM-5, tratamiento indicado, frecuencia de sesiones y justificación de la continuidad del tratamiento. Formato claro y conciso.`;
+      instruccionesTipo = `TIPO: Informe para Obra Social/Prepaga — ${destinatario||'A quien corresponda'}.
+FORMATO:
+1. "${ciudad}, ${hoy}.-"
+2. "A ${destinatario||'quien corresponda'}:"
+3. Presentación del profesional
+4. Identificación del paciente con diagnóstico CIE-11 o DSM-5
+5. Descripción del tratamiento: inicio, frecuencia de sesiones, enfoque utilizado
+6. Justificación de la necesidad de continuar el tratamiento
+7. Cierre formal y firma`;
     } else {
-      promptTipo = `Redactalo como informe clínico general, ${destinatario?'dirigido a '+destinatario:'para uso del propio paciente o institución que lo requiera'}. Tono profesional pero accesible.`;
+      instruccionesTipo = `TIPO: Informe Clínico General — ${destinatario?'dirigido a '+destinatario:'para uso institucional o del paciente'}.
+FORMATO:
+1. "${ciudad}, ${hoy}.-"
+2. "${destinatario?'A '+destinatario+':':'A quien corresponda:'}"
+3. Presentación del profesional
+4. Cuerpo: inicio del tratamiento, motivo de consulta, evolución, estado actual
+5. Cierre formal y firma`;
     }
 
-    const prompt = `Sos un psicólogo clínico argentino con experiencia en redacción de informes profesionales. Generá un informe clínico formal y completo basado en los siguientes datos reales de un paciente en tratamiento.
+    const prompt = `Sos un psicólogo clínico argentino experto en redacción de informes para juzgados, obras sociales e instituciones. Generá un informe profesional real basado en los datos provistos.
 
-DATOS DEL PROFESIONAL:
-- Nombre: ${nombreProfesional}
-- Título: ${titulo}
-- Matrícula Provincial: ${matriculaProv||'(completar)'}
-- Matrícula Nacional: ${matriculaNac||'(completar)'}
-- Ciudad: ${ciudad}
-- Fecha: ${hoy}
+PROFESIONAL: ${encabezadoProfesional}
 
-DATOS DEL PACIENTE:
-- Nombre completo: ${pac.nombre} ${pac.apellido}
-- Teléfono: ${pac.telefono||'no registrado'}
+PACIENTE: ${pac.nombre} ${pac.apellido}
 
-HISTORIA CLÍNICA:
-- Motivo de consulta: ${info.motivo_consulta||'no registrado'}
-- Antecedentes: ${info.antecedentes||'no registrados'}
-- Diagnóstico principal: ${info.diagnostico_principal||diagsOrdenados[0]||'en evaluación'}
-- Medicación: ${info.medicacion||'no registrada'}
-- Enfoque terapéutico: ${info.enfoque_terapeutico||'no especificado'}
-- Objetivos terapéuticos: ${info.objetivos||'no especificados'}
-- Notas generales: ${info.notas_generales||'ninguna'}
+DATOS CLÍNICOS:
+${datosClinicosStr}
 
-ESTADÍSTICAS DEL TRATAMIENTO:
-- Total de sesiones realizadas: ${totalSesiones}
+TRATAMIENTO:
+- Sesiones realizadas: ${totalSesiones}
 - Primera sesión: ${primeraFecha}
 - Última sesión: ${ultimaFecha}
-- Estado de ánimo promedio: ${moodPromDesc||'no registrado'}
-- Diagnósticos frecuentes en sesiones: ${diagsOrdenados.join(', ')||'no registrados'}
+${moodPromDesc ? `- Estado de ánimo observado: ${moodPromDesc}` : ''}
+${diagsOrdenados.length ? `- Diagnósticos trabajados: ${diagsOrdenados.join(', ')}` : ''}
 
-RESUMEN DE ÚLTIMAS SESIONES:
-${notasResumen||'Sin notas registradas'}
+NOTAS DE SESIONES RECIENTES:
+${notasResumen || 'Tratamiento en curso.'}
 
-TIPO DE INFORME: ${promptTipo}
+${observaciones ? 'INSTRUCCIONES DEL PROFESIONAL: '+observaciones : ''}
 
-${observaciones?'OBSERVACIONES ESPECIALES: '+observaciones:''}
+${instruccionesTipo}
 
-INSTRUCCIONES DE REDACCIÓN:
-- Escribí el informe completo, listo para imprimir y firmar
-- Usá lenguaje técnico profesional apropiado para psicología clínica argentina
-- Seguí el formato estándar: encabezado con lugar y fecha, identificación del profesional, cuerpo del informe con párrafos bien desarrollados, cierre formal y firma
-- NO uses placeholder como [nombre] ni dejes espacios en blanco — usá los datos reales provistos
-- Si algún dato no está disponible, redactalo de manera que fluya naturalmente sin mencionar que falta
-- El informe debe tener entre 300 y 500 palabras en el cuerpo principal
-- Terminá con la firma del profesional con nombre, título y matrículas`;
+REGLAS CRÍTICAS:
+- Redactá en primera persona del profesional ("quien suscribe", "el suscripto")
+- Párrafos corridos y fluidos — PROHIBIDO usar títulos en negrita, bullets o subtítulos de sección
+- Lenguaje técnico-clínico argentino, preciso y sin relleno
+- Si un dato no está disponible, omitilo — NUNCA escribas "no registrado" ni menciones ausencia de datos
+- NO integrés el teléfono del paciente en el informe
+- El texto debe verse exactamente como un informe que un psicólogo firmaría y presentaría hoy
+- Terminá con firma: nombre completo, título, M.P. y M.N.`;
 
     const response = await fetch(SUPA_URL + '/functions/v1/generar-informe', {
       method: 'POST',
@@ -1090,6 +1133,127 @@ INSTRUCCIONES DE REDACCIÓN:
 function copiarInforme(){
   const texto = document.getElementById('informeOutput').textContent;
   navigator.clipboard.writeText(texto).then(()=>showToast('✅ Copiado al portapapeles'));
+}
+
+// ===== FIRMA DIGITAL =====
+let firmaDataURL = null;
+
+function cargarFirma(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    firmaDataURL = e.target.result;
+    document.getElementById('firmaPreview').src = firmaDataURL;
+    document.getElementById('firmaPreviewWrap').style.display = 'block';
+    showToast('✅ Firma cargada');
+  };
+  reader.readAsDataURL(file);
+}
+
+function borrarFirma(){
+  firmaDataURL = null;
+  document.getElementById('firmaPreviewWrap').style.display = 'none';
+  document.getElementById('firmaInput').value = '';
+}
+
+// ===== IMPRIMIR =====
+function imprimirInforme(){
+  const texto = document.getElementById('informeOutput').textContent;
+  if(!texto.trim()){ showToast('⚠️ Primero generá el informe'); return; }
+
+  const firmaHtml = firmaDataURL
+    ? `<div style="margin-top:30px;"><img src="${firmaDataURL}" style="max-height:70px;display:block;margin-bottom:4px;" /></div>`
+    : '';
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <style>
+      body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.8;
+             margin: 2.5cm 3cm; color: #000; }
+      pre { white-space: pre-wrap; font-family: inherit; font-size: inherit; }
+      @media print { body { margin: 2cm; } }
+    </style></head><body>
+    <pre>${texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+    ${firmaHtml}
+    <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ===== EXPORTAR PDF =====
+async function exportarPDF(){
+  const texto = document.getElementById('informeOutput').textContent;
+  if(!texto.trim()){ showToast('⚠️ Primero generá el informe'); return; }
+
+  showToast('⏳ Generando PDF...');
+
+  // Cargar jsPDF dinámicamente
+  if(!window.jspdf){
+    await new Promise((res,rej)=>{
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+
+  const marginLeft = 25;
+  const marginRight = 25;
+  const marginTop = 25;
+  const pageWidth = 210;
+  const maxWidth = pageWidth - marginLeft - marginRight;
+  let y = marginTop;
+
+  doc.setFont('times', 'normal');
+  doc.setFontSize(12);
+
+  const lineas = texto.split('\n');
+  for(const linea of lineas){
+    const partes = doc.splitTextToSize(linea || ' ', maxWidth);
+    for(const parte of partes){
+      if(y > 265){
+        doc.addPage();
+        y = marginTop;
+      }
+      doc.text(parte, marginLeft, y);
+      y += 7;
+    }
+    y += 1; // espacio entre párrafos
+  }
+
+  // Agregar firma si existe
+  if(firmaDataURL){
+    if(y > 240){ doc.addPage(); y = marginTop; }
+    y += 5;
+    try {
+      doc.addImage(firmaDataURL, 'PNG', marginLeft, y, 50, 20);
+      y += 25;
+    } catch(e){ /* imagen no válida */ }
+  }
+
+  const nombrePac = pacienteActual ? `${pacienteActual.nombre}_${pacienteActual.apellido}` : 'informe';
+  const fecha = new Date().toISOString().slice(0,10);
+  doc.save(`informe_${nombrePac}_${fecha}.pdf`);
+  showToast('✅ PDF descargado');
+}
+
+// ===== COMPARTIR POR WHATSAPP =====
+function compartirWhatsApp(){
+  const texto = document.getElementById('informeOutput').textContent;
+  if(!texto.trim()){ showToast('⚠️ Primero generá el informe'); return; }
+
+  const telefono = pacienteActual?.telefono?.replace(/\D/g,'') || '';
+  const mensaje = encodeURIComponent(texto.slice(0, 1500) + (texto.length > 1500 ? '\n\n[Informe continúa — exportá el PDF para la versión completa]' : ''));
+
+  const url = telefono
+    ? `https://wa.me/549${telefono}?text=${mensaje}`
+    : `https://wa.me/?text=${mensaje}`;
+
+  window.open(url, '_blank');
 }
 </script>
 </body>
