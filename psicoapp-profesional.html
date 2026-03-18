@@ -404,7 +404,7 @@
     // Mostrar skeleton mientras carga
     app.innerHTML = renderSkeleton();
 
-    let query = sb.from('profiles').select('*');
+    let query = sb.from('perfiles').select('*');
 
     if (userId) {
       query = query.eq('id', userId);
@@ -429,12 +429,12 @@
   function renderPerfil(p) {
     const app = document.getElementById('app');
 
-    const nombre = p.nombre || 'Profesional';
+    const nombre = p['nombre completo'] || p.nombre || 'Profesional';
     const iniciales = nombre.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
     const titulo = p.titulo || p.especialidad || 'Lic. en Psicología';
     const email = p.email || '';
-    const telefono = p.whatsapp || p.telefono || '';
-    const ciudad = p.ciudad || 'Argentina';
+    const telefono = p['teléfono profesional'] || p.whatsapp || p.telefono || '';
+    const ciudad = p.ciudad || p['dirección'] || 'Argentina';
     const matriculaP = p.matricula_provincial || '';
     const matriculaN = p.matricula_nacional || '';
     const foto = p.foto_url || '';
