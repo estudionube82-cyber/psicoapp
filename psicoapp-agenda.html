@@ -1046,7 +1046,12 @@ _Psicoapp_`;
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ to: tel, message: mensaje }),
+      body: JSON.stringify({
+        to: tel,
+        nombre: pac.nombre,
+        fecha: fechaLinda,
+        hora: horaStr,
+      }),
     });
   } catch(e) {
     console.log('WhatsApp no enviado:', e.message);
