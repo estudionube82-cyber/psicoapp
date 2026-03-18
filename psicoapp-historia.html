@@ -191,6 +191,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 .stat-card{background:var(--surface);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--sh);}
 .stat-num{font-size:22px;font-weight:800;color:var(--primary);}
 .stat-label{font-size:10px;color:var(--muted);font-weight:600;margin-top:2px;}
+
+/* INFORME IA */
+.informe-section{padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+.informe-card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--sh);}
+.informe-card-title{font-size:13px;font-weight:800;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.btn-generar-ia{width:100%;background:linear-gradient(135deg,#2D6A4F,#1976D2);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-generar-ia:disabled{opacity:0.6;cursor:not-allowed;}
+.informe-output{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;min-height:200px;font-family:'DM Sans',sans-serif;}
+.informe-output.generando{color:var(--muted);font-style:italic;}
+.btn-copiar{background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;}
+.informe-tipo-btns{display:flex;gap:8px;margin-bottom:4px;}
+.informe-tipo-btn{flex:1;padding:9px;border-radius:11px;border:2px solid var(--border);background:var(--surface);font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;color:var(--muted);}
+.informe-tipo-btn.sel{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+.informe-destino-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;}
+.informe-destino-input:focus{border-color:var(--primary);}
+.ia-loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;padding:20px 0;}
+.ia-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);animation:iaPulse 1.2s infinite;}
+.ia-dot:nth-child(2){animation-delay:0.2s;}
+.ia-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes iaPulse{0%,80%,100%{opacity:0.3;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -283,45 +303,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 
   <!-- TAB: INFORME IA -->
   <div class="detail-view" id="dtInforme">
-    <div style="padding:16px">
-      <div style="background:#EDF7F1;border-radius:14px;padding:16px;margin-bottom:14px;">
-        <div style="font-size:.85rem;font-weight:700;color:#2D6A4F;margin-bottom:4px;">🤖 Informe generado por IA</div>
-        <div style="font-size:.78rem;color:#5A8A72;line-height:1.5;">La IA lee todas las sesiones e info clínica del paciente y genera un informe formal listo para revisar, editar y compartir.</div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
-        <div>
-          <label style="font-size:.78rem;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;">Destinatario</label>
-          <input id="inf-destinatario" class="form-input" type="text" placeholder="A quien corresponda" value="A quien corresponda" />
-        </div>
-        <div>
-          <label style="font-size:.78rem;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;">Tipo de informe</label>
-          <select id="inf-tipo" class="form-select">
-            <option value="evolución">Informe de evolución</option>
-            <option value="alta">Informe de alta</option>
-            <option value="pericial">Informe pericial</option>
-            <option value="obra_social">Para obra social / prepaga</option>
-            <option value="judicial">Para juzgado</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:.78rem;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;">Lugar y fecha</label>
-          <input id="inf-lugar" class="form-input" type="text" placeholder="Chivilcoy, 15 de marzo de 2026" />
-        </div>
-      </div>
-      <button id="btnGenerarInforme" onclick="generarInformeIA()" style="width:100%;background:linear-gradient(135deg,#2D6A4F,#40916C);color:#fff;border:none;border-radius:12px;padding:14px;font-family:DM Sans,sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(45,106,79,.3);">
-        <span id="btnInformeSpinner" style="display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite"></span>
-        <span id="btnInformeLbl">✨ Generar informe</span>
-      </button>
-      <div id="inf-resultado" style="display:none;margin-top:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-size:.85rem;font-weight:700;color:#2D6A4F;">Informe generado</div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="copiarInforme()" style="background:#E8F5EE;color:#2D6A4F;border:none;border-radius:8px;padding:6px 12px;font-size:.75rem;font-weight:700;cursor:pointer;">📋 Copiar</button>
-            <button onclick="compartirInforme()" style="background:#E8F5EE;color:#2D6A4F;border:none;border-radius:8px;padding:6px 12px;font-size:.75rem;font-weight:700;cursor:pointer;">↗ Compartir</button>
+    <div class="informe-section">
+      <div class="informe-card">
+        <div class="informe-card-title">🤖 Generador de Informe Clínico con IA</div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;">La IA va a recolectar todos los datos del paciente, las sesiones registradas y la historia clínica para generar un informe profesional listo para entregar.</p>
+
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" style="margin-bottom:6px;display:block;">Tipo de informe</label>
+          <div class="informe-tipo-btns">
+            <button class="informe-tipo-btn sel" id="btnTipoClinico" onclick="selTipoInforme('clinico')">🏥 Clínico</button>
+            <button class="informe-tipo-btn" id="btnTipoJuzgado" onclick="selTipoInforme('juzgado')">⚖️ Para Juzgado</button>
+            <button class="informe-tipo-btn" id="btnTipoObraSocial" onclick="selTipoInforme('obrasocial')">📋 Obra Social</button>
           </div>
         </div>
-        <textarea id="inf-texto" style="width:100%;min-height:400px;background:#FAFAF8;border:1.5px solid #E8E4DD;border-radius:12px;padding:14px;font-family:DM Sans,sans-serif;font-size:.85rem;line-height:1.7;color:#1A1A2E;resize:vertical;outline:none;" spellcheck="false"></textarea>
-        <div style="font-size:.72rem;color:#8A8FA8;margin-top:8px;text-align:center;">Revisá y editá el texto antes de compartir</div>
+
+        <div class="form-group" style="margin-bottom:12px;" id="destinatarioWrap">
+          <label class="form-label" style="margin-bottom:6px;display:block;">Destinatario (opcional)</label>
+          <input class="informe-destino-input" id="informeDestinatario" type="text" placeholder="Ej: Juzgado Civil N° 86, OSDE, etc.">
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label" style="margin-bottom:6px;display:block;">Observaciones para la IA (opcional)</label>
+          <textarea class="form-textarea" id="informeObservaciones" placeholder="Indicaciones especiales, énfasis en algún aspecto, etc." style="min-height:60px;"></textarea>
+        </div>
+
+        <button class="btn-generar-ia" id="btnGenerarInforme" onclick="generarInformeIA()">
+          ✨ Generar Informe con IA
+        </button>
+      </div>
+
+      <div class="informe-card" id="informeResultadoCard" style="display:none;">
+        <div class="informe-card-title">📄 Informe generado</div>
+        <div id="iaLoadingIndicator" class="ia-loading" style="display:none;">
+          <div class="ia-dot"></div><div class="ia-dot"></div><div class="ia-dot"></div>
+          <span>La IA está redactando el informe…</span>
+        </div>
+        <div class="informe-output" id="informeOutput"></div>
+        <button class="btn-copiar" style="margin-top:10px;" onclick="copiarInforme()">📋 Copiar texto</button>
       </div>
     </div>
   </div>
@@ -630,120 +648,13 @@ function volverALista(){
 }
 
 function switchDetailTab(tab){
-  document.querySelectorAll('.detail-tab').forEach((t,i)=>t.classList.toggle('active',(tab==='sesiones'&&i===0)||(tab==='info'&&i===1)||(tab==='informe'&&i===2)));
+  document.querySelectorAll('.detail-tab').forEach((t,i)=>{
+    t.classList.toggle('active',
+      (tab==='sesiones'&&i===0)||(tab==='info'&&i===1)||(tab==='informe'&&i===2));
+  });
   document.querySelectorAll('.detail-view').forEach(v=>v.classList.remove('active'));
   const map = {sesiones:'dtSesiones',info:'dtInfo',informe:'dtInforme'};
-  document.getElementById(map[tab]||'dtSesiones').classList.add('active');
-}
-
-// ── INFORME CON IA ──
-async function generarInformeIA(){
-  const btn = document.getElementById('btnGenerarInforme');
-  const lbl = document.getElementById('btnInformeLbl');
-  const spin = document.getElementById('btnInformeSpinner');
-  btn.disabled=true; spin.style.display='block'; lbl.textContent='Generando...';
-
-  try {
-    // Obtener datos
-    const pac = pacienteActual;
-    const sesiones = sesionesActuales;
-    const info = infoClinicaActual || {};
-    const tipo = document.getElementById('inf-tipo').value;
-    const dest = document.getElementById('inf-destinatario').value || 'A quien corresponda';
-    const lugar = document.getElementById('inf-lugar').value || '';
-
-    // Obtener perfil del profesional
-    const { data: perfil } = await sb.from('profiles')
-      .select('nombre_completo,titulo,matricula,especialidad,direccion')
-      .eq('id', userId).maybeSingle();
-
-    const nombreProf = `${perfil?.titulo||'Lic.'} ${perfil?.nombre_completo||''}`.trim();
-    const matricula = perfil?.matricula ? `Mat. N° ${perfil.matricula}` : '';
-    const direccion = perfil?.direccion || '';
-
-    // Construir contexto para la IA
-    const sesionesTexto = sesiones.slice(0,20).map(s => {
-      const diags = s.diagnosticos ? JSON.parse(s.diagnosticos) : [];
-      return `- Sesión ${s.numero_sesion||'—'} (${s.fecha||''}): ${s.motivo||''} ${s.notas?'| Notas: '+s.notas:''} ${diags.length?'| Diag: '+diags.join(', '):''}`;
-    }).join('\n');
-
-    const contexto = `
-Paciente: ${pac.nombre} ${pac.apellido}
-Motivo de consulta: ${info.motivo_consulta||'No registrado'}
-Antecedentes: ${info.antecedentes||'No registrado'}
-Diagnóstico principal: ${info.diagnostico_principal||'No registrado'}
-Medicación: ${info.medicacion||'No registrada'}
-Enfoque terapéutico: ${info.enfoque_terapeutico||'No registrado'}
-Objetivos terapéuticos: ${info.objetivos||'No registrado'}
-Total de sesiones registradas: ${sesiones.length}
-Resumen de sesiones:
-${sesionesTexto}
-    `.trim();
-
-    const tipoLabel = {evolución:'Informe de evolución psicológica',alta:'Informe de alta psicológica',pericial:'Informe pericial psicológico',obra_social:'Informe para obra social / prepaga',judicial:'Informe psicológico para juzgado'}[tipo]||'Informe psicológico';
-
-    const prompt = `Sos un psicólogo clínico redactando un informe profesional formal en español argentino.
-
-Generá un "${tipoLabel}" con la siguiente información del paciente y sus sesiones clínicas:
-
-${contexto}
-
-El informe debe tener esta estructura:
-1. Encabezado con lugar, fecha: "${lugar}"
-2. Dirigido a: "${dest}"
-3. Título del informe
-4. Datos del paciente (nombre, y período de atención)
-5. Motivo de consulta
-6. Evolución del tratamiento (basado en las sesiones)
-7. Estado actual
-8. Conclusiones y recomendaciones
-9. Firma: "${nombreProf}" ${matricula} ${direccion}
-
-Estilo: formal, clínico, técnico pero comprensible. Sin mencionar que fue generado por IA. Extensión: 300-500 palabras.`;
-
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await resp.json();
-    const texto = data.content?.[0]?.text || 'Error al generar el informe.';
-
-    document.getElementById('inf-texto').value = texto;
-    document.getElementById('inf-resultado').style.display = 'block';
-    document.getElementById('inf-resultado').scrollIntoView({behavior:'smooth'});
-
-  } catch(e) {
-    showToast('❌ Error al generar informe: '+e.message);
-    console.error(e);
-  } finally {
-    btn.disabled=false; spin.style.display='none'; lbl.textContent='✨ Generar informe';
-  }
-}
-
-function copiarInforme(){
-  const txt = document.getElementById('inf-texto').value;
-  navigator.clipboard.writeText(txt).then(()=>showToast('✅ Copiado al portapapeles'));
-}
-
-async function compartirInforme(){
-  const txt = document.getElementById('inf-texto').value;
-  const pac = pacienteActual;
-  const nombre = `informe_${pac.apellido}_${pac.nombre}.txt`.replace(/\s/g,'_').toLowerCase();
-  if(navigator.canShare){
-    try{
-      await navigator.share({title:'Informe psicológico',text:txt});
-    }catch(e){if(e.name!=='AbortError')copiarInforme();}
-  } else {
-    const a=document.createElement('a');
-    a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
-    a.download=nombre; a.click();
-  }
+  document.getElementById(map[tab]).classList.add('active');
 }
 
 // ---- SESIONES ----
@@ -1031,6 +942,155 @@ async function guardarInfoClinica(){
 // Cerrar modales al tocar afuera
 document.getElementById('modalSesion').addEventListener('click',e=>{if(e.target===e.currentTarget)cerrarModalSesion();});
 document.getElementById('modalInfo').addEventListener('click',e=>{if(e.target===e.currentTarget)cerrarModalInfo();});
+
+// ---- INFORME IA ----
+// API key movida a variable de entorno en Supabase (OPENAI_API_KEY)
+let tipoInformeSeleccionado = 'clinico';
+
+function selTipoInforme(tipo){
+  tipoInformeSeleccionado = tipo;
+  ['clinico','juzgado','obrasocial'].forEach(t=>{
+    document.getElementById('btnTipo'+t.charAt(0).toUpperCase()+t.slice(1))?.classList.toggle('sel',t===tipo);
+  });
+}
+
+async function generarInformeIA(){
+  const btn = document.getElementById('btnGenerarInforme');
+  const resultCard = document.getElementById('informeResultadoCard');
+  const output = document.getElementById('informeOutput');
+  const loadingInd = document.getElementById('iaLoadingIndicator');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Generando…';
+  resultCard.style.display = 'block';
+  loadingInd.style.display = 'flex';
+  output.textContent = '';
+
+  try {
+    // Recolectar datos del paciente
+    const pac = pacienteActual;
+    const info = infoClinicaActual || {};
+    const sesiones = sesionesActuales.filter(s=>s.estado==='realizada').sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+
+    // Calcular estadísticas del tratamiento
+    const totalSesiones = sesiones.length;
+    const primeraFecha = sesiones.length ? formatFecha(sesiones[0].fecha) : 'sin registros';
+    const ultimaFecha = sesiones.length ? formatFecha(sesiones[sesiones.length-1].fecha) : 'sin registros';
+
+    // Promediar estado de ánimo
+    const moodsNums = sesiones.filter(s=>s.estado_animo).map(s=>s.estado_animo);
+    const moodProm = moodsNums.length ? (moodsNums.reduce((a,b)=>a+b,0)/moodsNums.length).toFixed(1) : null;
+    const moodDesc = {1:'muy bajo',2:'bajo',3:'regular',4:'bueno',5:'muy bueno'};
+    const moodPromDesc = moodProm ? moodDesc[Math.round(parseFloat(moodProm))] : null;
+
+    // Diagnósticos más frecuentes
+    const todosLosDiags = sesiones.flatMap(s=>s.diagnosticos?JSON.parse(s.diagnosticos):[]);
+    const diagCount = {};
+    todosLosDiags.forEach(d=>{ diagCount[d]=(diagCount[d]||0)+1; });
+    const diagsOrdenados = Object.entries(diagCount).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([d])=>d);
+
+    // Notas de sesiones (últimas 5)
+    const notasResumen = sesiones.slice(-5).map(s=>`[${formatFecha(s.fecha)}] ${s.motivo||''} ${s.notas||''}`.trim()).filter(Boolean).join('\n');
+
+    // Datos del perfil del psicólogo
+    const { data: perfil } = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
+    const nombreProfesional = perfil?.['nombre completo'] || perfil?.nombre_completo || 'el/la profesional';
+    const matriculaProv = perfil?.matricula_provincial || '';
+    const matriculaNac = perfil?.matricula_nacional || '';
+    const titulo = perfil?.titulo || 'Lic. en Psicología';
+
+    const destinatario = document.getElementById('informeDestinatario').value.trim();
+    const observaciones = document.getElementById('informeObservaciones').value.trim();
+    const hoy = new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
+    const ciudad = 'Chivilcoy (Bs. As.)';
+
+    // Construir prompt según tipo
+    let promptTipo = '';
+    if(tipoInformeSeleccionado === 'juzgado'){
+      promptTipo = `Redactalo en formato judicial argentino, dirigido a ${destinatario||'el Juzgado'}. Incluí número de expediente si lo mencionan las observaciones. Usá lenguaje técnico-legal apropiado para la Provincia de Buenos Aires. Solicitá dispensa del secreto profesional según art. 6 inc. c de la Ley 10.306 y art. 12 del Código de Ética del Colegio de Psicólogos PBA.`;
+    } else if(tipoInformeSeleccionado === 'obrasocial'){
+      promptTipo = `Redactalo para ${destinatario||'obra social/prepaga'}. Debe incluir diagnóstico CIE-11/DSM-5, tratamiento indicado, frecuencia de sesiones y justificación de la continuidad del tratamiento. Formato claro y conciso.`;
+    } else {
+      promptTipo = `Redactalo como informe clínico general, ${destinatario?'dirigido a '+destinatario:'para uso del propio paciente o institución que lo requiera'}. Tono profesional pero accesible.`;
+    }
+
+    const prompt = `Sos un psicólogo clínico argentino con experiencia en redacción de informes profesionales. Generá un informe clínico formal y completo basado en los siguientes datos reales de un paciente en tratamiento.
+
+DATOS DEL PROFESIONAL:
+- Nombre: ${nombreProfesional}
+- Título: ${titulo}
+- Matrícula Provincial: ${matriculaProv||'(completar)'}
+- Matrícula Nacional: ${matriculaNac||'(completar)'}
+- Ciudad: ${ciudad}
+- Fecha: ${hoy}
+
+DATOS DEL PACIENTE:
+- Nombre completo: ${pac.nombre} ${pac.apellido}
+- Teléfono: ${pac.telefono||'no registrado'}
+
+HISTORIA CLÍNICA:
+- Motivo de consulta: ${info.motivo_consulta||'no registrado'}
+- Antecedentes: ${info.antecedentes||'no registrados'}
+- Diagnóstico principal: ${info.diagnostico_principal||diagsOrdenados[0]||'en evaluación'}
+- Medicación: ${info.medicacion||'no registrada'}
+- Enfoque terapéutico: ${info.enfoque_terapeutico||'no especificado'}
+- Objetivos terapéuticos: ${info.objetivos||'no especificados'}
+- Notas generales: ${info.notas_generales||'ninguna'}
+
+ESTADÍSTICAS DEL TRATAMIENTO:
+- Total de sesiones realizadas: ${totalSesiones}
+- Primera sesión: ${primeraFecha}
+- Última sesión: ${ultimaFecha}
+- Estado de ánimo promedio: ${moodPromDesc||'no registrado'}
+- Diagnósticos frecuentes en sesiones: ${diagsOrdenados.join(', ')||'no registrados'}
+
+RESUMEN DE ÚLTIMAS SESIONES:
+${notasResumen||'Sin notas registradas'}
+
+TIPO DE INFORME: ${promptTipo}
+
+${observaciones?'OBSERVACIONES ESPECIALES: '+observaciones:''}
+
+INSTRUCCIONES DE REDACCIÓN:
+- Escribí el informe completo, listo para imprimir y firmar
+- Usá lenguaje técnico profesional apropiado para psicología clínica argentina
+- Seguí el formato estándar: encabezado con lugar y fecha, identificación del profesional, cuerpo del informe con párrafos bien desarrollados, cierre formal y firma
+- NO uses placeholder como [nombre] ni dejes espacios en blanco — usá los datos reales provistos
+- Si algún dato no está disponible, redactalo de manera que fluya naturalmente sin mencionar que falta
+- El informe debe tener entre 300 y 500 palabras en el cuerpo principal
+- Terminá con la firma del profesional con nombre, título y matrículas`;
+
+    const response = await fetch(SUPA_URL + '/functions/v1/generar-informe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPA_KEY
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await response.json();
+    loadingInd.style.display = 'none';
+
+    if(data.error){
+      output.textContent = '❌ Error: ' + data.error;
+    } else {
+      output.textContent = data.texto || 'Sin respuesta';
+    }
+
+  } catch(e) {
+    loadingInd.style.display = 'none';
+    output.textContent = '❌ Error: ' + e.message;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✨ Generar Informe con IA';
+}
+
+function copiarInforme(){
+  const texto = document.getElementById('informeOutput').textContent;
+  navigator.clipboard.writeText(texto).then(()=>showToast('✅ Copiado al portapapeles'));
+}
 </script>
 </body>
 </html>
