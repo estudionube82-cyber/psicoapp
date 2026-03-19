@@ -15,7 +15,7 @@
   --sh:0 2px 8px rgba(0,0,0,0.06); --sh-md:0 4px 20px rgba(0,0,0,0.10); --r:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
 
 /* HEADER */
 .header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--sh);}
@@ -152,6 +152,44 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 .drawer-item .di{font-size:20px;width:28px;text-align:center;}
 .drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
 .drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
+
+/* ── SIDEBAR (hidden mobile) ── */
+.sidebar { display: none; }
+
+/* ── DESKTOP / TABLET 768px+ ── */
+@media (min-width: 768px) {
+  body { display: flex !important; max-width: none !important; margin: 0 !important; padding-bottom: 0 !important; min-height: 100vh; }
+  #app-shell { flex: 1; max-width: none !important; padding-bottom: 0 !important; overflow-y: auto; height: 100vh; min-width: 0; }
+  .app-nav, .unified-bnav, .bottom-nav { display: none !important; }
+  .sidebar {
+    display: flex !important;
+    flex-direction: column;
+    width: 220px;
+    min-width: 220px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    background: #1B4332;
+    padding: 28px 0 20px;
+    z-index: 100;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .sb-logo { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; color: white; padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; display: block; text-decoration: none; }
+  .sb-logo span { color: #52B788; }
+  .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
+  .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; font-weight: 500; transition: background .15s, color .15s; }
+  .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
+  .sb-item.sb-active { background: rgba(82,183,136,0.28); color: white; }
+  .sb-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+  .sb-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,0.3); padding: 14px 23px 5px; }
+  .sb-footer { padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
+  .sb-user { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; }
+  .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
+  .sb-avatar-sb { width: 30px; height: 30px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
+}
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2D6A4F">
@@ -159,6 +197,39 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 <link rel="apple-touch-icon" href="/icon-192.png">
 </head>
 <body>
+
+<!-- SIDEBAR desktop -->
+<aside class="sidebar">
+  <a href="psicoapp-index.html" class="sb-logo">Psico<span>app</span></a>
+  <nav class="sb-nav">
+    <div class="sb-section">Principal</div>
+    <a href="psicoapp-index.html" class="sb-item"><span class="sb-icon">📊</span> Inicio</a>
+    <a href="psicoapp-agenda.html" class="sb-item"><span class="sb-icon">📅</span> Agenda</a>
+    <a href="psicoapp-pacientes.html" class="sb-item"><span class="sb-icon">👥</span> Pacientes</a>
+    <a href="psicoapp-historia.html" class="sb-item"><span class="sb-icon">🧠</span> Historia clínica</a>
+    <div class="sb-section">Gestión</div>
+    <a href="psicoapp-pagos.html" class="sb-item"><span class="sb-icon">💰</span> Pagos</a>
+    <a href="psicoapp-whatsapp.html" class="sb-item sb-active"><span class="sb-icon">💬</span> WhatsApp</a>
+    <a href="psicoapp-pericias.html" class="sb-item"><span class="sb-icon">⚖️</span> Pericias</a>
+    <a href="psicoapp-estadisticas.html" class="sb-item"><span class="sb-icon">📈</span> Estadísticas</a>
+    <div class="sb-section">Clínico</div>
+    <a href="psicoapp-consentimiento.html" class="sb-item"><span class="sb-icon">📋</span> Consentimiento</a>
+    <a href="psicoapp-perfil.html" class="sb-item"><span class="sb-icon">⚙️</span> Perfil</a>
+    <a href="psicoapp-cuenta.html" class="sb-item"><span class="sb-icon">👤</span> Cuenta</a>
+  </nav>
+  <div class="sb-footer">
+    <a href="psicoapp-perfil.html" class="sb-user">
+      <div class="sb-avatar-sb" id="sb-avatar-sb">JG</div>
+      <div style="min-width:0">
+        <div class="sb-user-name" id="sb-user-name">Mi perfil</div>
+        <div class="sb-user-role">PsicoApp</div>
+      </div>
+    </a>
+  </div>
+</aside>
+
+<div id="app-shell">
+
 
 <div class="header">
   <div class="header-top">
@@ -730,6 +801,25 @@ function fmtFechaLinda(f) { if(!f)return''; const[y,m,d]=f.split('-'); return `$
 function fmtFechaCorta(f) { if(!f)return''; const[,m,d]=f.split('-'); return `${d}/${m}`; }
 
 document.getElementById('overlayPac').addEventListener('click', e => { if(e.target.id==='overlayPac') cerrarModalPac(); });
+</script>
+</div>
+
+<script>
+(async () => {
+  try {
+    if (typeof sb === 'undefined') return;
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const { data: p } = await sb.from('perfiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
+    if (p) {
+      const name = [p.titulo, p.nombre, p.apellido].filter(Boolean).join(' ');
+      const el = document.getElementById('sb-user-name');
+      const av = document.getElementById('sb-avatar-sb');
+      if (el) el.textContent = name || 'Mi perfil';
+      if (av && p.nombre && p.apellido) av.textContent = (p.nombre[0]+p.apellido[0]).toUpperCase();
+    }
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>
