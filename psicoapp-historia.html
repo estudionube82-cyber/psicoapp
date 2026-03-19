@@ -1760,26 +1760,7 @@ function imprimirInforme(){
     <pre>${texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
     ${firmaHtml}
     <script>window.onload=()=>{window.print();}<\/script>
-  </div>
-
-<script>
-(async () => {
-  try {
-    if (typeof sb === 'undefined') return;
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) return;
-    const { data: p } = await sb.from('perfiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
-    if (p) {
-      const name = [p.titulo, p.nombre, p.apellido].filter(Boolean).join(' ');
-      const el = document.getElementById('sb-user-name');
-      const av = document.getElementById('sb-avatar-sb');
-      if (el) el.textContent = name || 'Mi perfil';
-      if (av && p.nombre && p.apellido) av.textContent = (p.nombre[0]+p.apellido[0]).toUpperCase();
-    }
-  } catch(e) {}
-})();
-</script>
-</body></html>`);
+  </body></html>`);
   win.document.close();
 }
 
