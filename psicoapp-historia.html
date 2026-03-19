@@ -613,13 +613,33 @@ let userId = null;
 sb.auth.onAuthStateChange((event, session) => {
   if (!session) { window.location.href = 'login.html'; return; }
   userId = session.user.id;
-  // Si viene con ?id= cargar solo ese paciente primero para no quedarse colgado
+  init();
+});
+
+async function init() {
   const paramId = new URLSearchParams(window.location.search).get('id');
   if (paramId) {
-    checkURLParams();
+    // Vino desde pacientes — cargar ese paciente directo, sin mostrar la lista
+    const { data, error } = await sb.from('pacientes')
+      .select('id,nombre,apellido,telefono,activo')
+      .eq('id', paramId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (data) {
+      todosPacientes = [data];
+      abrirDetalle(data, 0);
+      // Cargar el resto en background para búsqueda
+      sb.from('pacientes').select('id,nombre,apellido,telefono,activo')
+        .eq('user_id', userId).eq('activo', true).order('apellido')
+        .then(({ data: todos }) => { if (todos) todosPacientes = todos; });
+    } else {
+      showToast('⚠️ No se encontró el paciente');
+      cargarPacientes();
+    }
+  } else {
+    cargarPacientes();
   }
-  cargarPacientes();
-});
+}
 
 // ---- DRAWER ----
 function toggleDrawer(){document.getElementById('sideDrawer').classList.toggle('open');document.getElementById('menuOverlay').classList.toggle('open');}
@@ -690,7 +710,6 @@ function renderStats(total){
       <div class="stat-card"><div class="stat-num" id="statEste">—</div><div class="stat-label">Este mes</div></div>
     </div>`;
   cargarStatsGlobales();
-  checkURLParams();
 }
 
 async function cargarStatsGlobales(){
