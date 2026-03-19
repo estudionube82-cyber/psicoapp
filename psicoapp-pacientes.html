@@ -435,6 +435,13 @@ body {
       </button>
 
       <div id="panelIA" style="display:none;margin-top:10px;background:#F4F1ED;border-radius:14px;padding:14px;">
+
+        <!-- Próximo turno (se muestra cuando hay turno agendado) -->
+        <div id="proximoTurnoPA" style="display:none;background:white;border-radius:11px;padding:10px 12px;margin-bottom:10px;border-left:3px solid #2D6A4F;">
+          <div style="font-size:11px;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Próximo turno agendado</div>
+          <div id="proximoTurnoTextoPA" style="font-size:13px;font-weight:700;color:#2D6A4F;"></div>
+        </div>
+
         <!-- Tipos de mensaje -->
         <div id="iaOpcionesWrap">
           <div style="font-size:12px;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Tipo de mensaje</div>
@@ -448,10 +455,13 @@ body {
 
         <!-- Input reprogramación -->
         <div id="reprogramarWrapPA" style="display:none;">
-          <div style="font-size:12px;color:#8A8FA8;margin-bottom:6px;">Escribí el cambio:</div>
-          <textarea id="reprogramarInputPA" style="width:100%;background:white;border:1.5px solid #E8E4DD;border-radius:11px;padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;min-height:60px;outline:none;resize:vertical;" placeholder='Ej: "cambiá las 16hs del 2/2 para las 18hs del 3/2"'></textarea>
+          <div id="turnoActualWrapPA" style="display:none;background:#FFFBEB;border-radius:9px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:#92400E;">
+            <strong>Turno actual:</strong> <span id="turnoActualTextoPA"></span>
+          </div>
+          <div style="font-size:12px;color:#8A8FA8;margin-bottom:6px;">¿Cuál es la nueva fecha y hora?</div>
+          <textarea id="reprogramarInputPA" style="width:100%;background:white;border:1.5px solid #E8E4DD;border-radius:11px;padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;min-height:60px;outline:none;resize:vertical;" placeholder='Ej: "mañana a las 18hs" o "el 3/4 a las 10:00"'></textarea>
           <div style="display:flex;gap:8px;margin-top:8px;">
-            <button onclick="procesarReprogramarPA()" style="flex:1;background:#2D6A4F;color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">✨ Generar</button>
+            <button onclick="procesarReprogramarPA()" style="flex:1;background:#2D6A4F;color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">✨ Generar mensaje</button>
             <button onclick="document.getElementById('reprogramarWrapPA').style.display='none';document.getElementById('iaOpcionesWrap').style.display='block';" style="background:#E8E4DD;color:#8A8FA8;border:none;border-radius:11px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;">✕</button>
           </div>
         </div>
@@ -743,6 +753,20 @@ function abrirDetalle(id) {
   }
 
   document.getElementById('overlayDetalle').classList.add('open');
+
+  // Guardar paciente actual para IA
+  pacienteActualPA = p;
+
+  // Reset panel IA
+  document.getElementById('panelIA').style.display = 'none';
+  document.getElementById('btnToggleIA').textContent = '🤖 Mensaje con IA';
+  document.getElementById('iaOpcionesWrap').style.display = 'block';
+  document.getElementById('iaResultadoPA').style.display = 'none';
+  document.getElementById('reprogramarWrapPA').style.display = 'none';
+  document.getElementById('proximoTurnoPA').style.display = 'none';
+
+  // Buscar próximo turno del paciente
+  cargarProximoTurnoPA(p.id);
 }
 
 function fila(icon, label, val) {
@@ -787,6 +811,32 @@ document.getElementById('overlayDetalle').addEventListener('click', e => {
 
 // ---- IA MENSAJES PACIENTES ----
 let pacienteActualPA = null;
+let proximoTurnoData = null;
+
+async function cargarProximoTurnoPA(pacienteId){
+  proximoTurnoData = null;
+  document.getElementById('proximoTurnoPA').style.display = 'none';
+  try {
+    const hoy = new Date().toISOString().split('T')[0];
+    const { data } = await sb
+      .from('turnos')
+      .select('fecha, hora')
+      .eq('paciente_id', pacienteId)
+      .gte('fecha', hoy)
+      .order('fecha', { ascending: true })
+      .order('hora', { ascending: true })
+      .limit(1);
+    if(data && data.length > 0){
+      const t = data[0];
+      const [anio, mes, dia] = t.fecha.split('-');
+      const fechaFormateada = `${dia}/${mes}/${anio}`;
+      const horaFormateada = t.hora ? t.hora.substring(0,5) : '';
+      proximoTurnoData = { fecha: t.fecha, hora: t.hora, fechaFormateada, horaFormateada };
+      document.getElementById('proximoTurnoTextoPA').textContent = `${fechaFormateada} a las ${horaFormateada} hs`;
+      document.getElementById('proximoTurnoPA').style.display = 'block';
+    }
+  } catch(e){ /* sin turno */ }
+}
 
 function togglePanelIA(){
   const panel = document.getElementById('panelIA');
@@ -804,33 +854,48 @@ function togglePanelIA(){
 function mostrarReprogramarIA(){
   document.getElementById('iaOpcionesWrap').style.display = 'none';
   document.getElementById('reprogramarWrapPA').style.display = 'block';
+  if(proximoTurnoData){
+    document.getElementById('turnoActualTextoPA').textContent =
+      `${proximoTurnoData.fechaFormateada} a las ${proximoTurnoData.horaFormateada} hs`;
+    document.getElementById('turnoActualWrapPA').style.display = 'block';
+  } else {
+    document.getElementById('turnoActualWrapPA').style.display = 'none';
+  }
   document.getElementById('reprogramarInputPA').focus();
 }
 
 async function procesarReprogramarPA(){
-  const instruccion = document.getElementById('reprogramarInputPA').value.trim();
-  if(!instruccion){ alert('Escribí el cambio primero'); return; }
-  const nombre = document.getElementById('det-nombre').textContent.split(' ')[0];
-  const prompt = `Sos un psicólogo clínico argentino. Redactá un mensaje de WhatsApp para reprogramar un turno.
+  const nuevaFecha = document.getElementById('reprogramarInputPA').value.trim();
+  if(!nuevaFecha){ alert('Escribí la nueva fecha/hora primero'); return; }
+  const nombre = pacienteActualPA ? pacienteActualPA.nombre : document.getElementById('det-nombre').textContent.split(' ')[0];
+  const turnoActual = proximoTurnoData
+    ? `Turno ACTUAL del paciente: ${proximoTurnoData.fechaFormateada} a las ${proximoTurnoData.horaFormateada} hs.`
+    : 'No hay turno previo registrado.';
+  const prompt = `Sos un psicólogo clínico argentino. Redactá un mensaje de WhatsApp para avisarle a un paciente que su turno fue reprogramado.
 
 PACIENTE: ${nombre}
-INSTRUCCIÓN: ${instruccion}
+${turnoActual}
+NUEVA FECHA/HORA: ${nuevaFecha}
 
 REQUISITOS:
 - Máximo 3-4 líneas
 - Tono empático y profesional
 - Español argentino informal pero respetuoso
-- Incluí los datos del nuevo turno mencionados
-- Sin asteriscos ni markdown`;
+- Mencioná el turno anterior y el nuevo claramente
+- Sin asteriscos ni markdown
+- Listo para copiar y pegar en WhatsApp`;
   document.getElementById('reprogramarWrapPA').style.display = 'none';
   await llamarIAMensaje(prompt);
 }
 
 async function generarMensajePacienteIA(tipo){
-  const nombre = document.getElementById('det-nombre').textContent.split(' ')[0];
+  const nombre = pacienteActualPA ? pacienteActualPA.nombre : document.getElementById('det-nombre').textContent.split(' ')[0];
+  const turnoInfo = proximoTurnoData
+    ? `El próximo turno agendado es el ${proximoTurnoData.fechaFormateada} a las ${proximoTurnoData.horaFormateada} hs.`
+    : '';
   const tipoDesc = {
-    recordatorio: 'recordatorio amigable de su próximo turno de psicología.',
-    ausente: 'mensaje para un paciente que no se presentó sin avisar. Tono comprensivo, sin reproches, invitando a reagendar.',
+    recordatorio: `recordatorio amigable de su próximo turno de psicología. ${turnoInfo}`,
+    ausente: `mensaje para un paciente que no se presentó sin avisar. ${turnoInfo} Tono comprensivo, sin reproches, invitando a reagendar.`,
     seguimiento: 'mensaje de seguimiento entre sesiones preguntando cómo está. Breve, cálido, profesional.'
   };
   const prompt = `Sos un psicólogo clínico argentino. Redactá un ${tipoDesc[tipo]}
@@ -841,6 +906,11 @@ REQUISITOS:
 - Máximo 3-4 líneas
 - Tono empático y profesional
 - Español argentino informal pero respetuoso
+- Sin asteriscos ni markdown
+- Listo para WhatsApp`;
+  await llamarIAMensaje(prompt);
+}
+
 - Sin asteriscos ni markdown
 - Listo para WhatsApp`;
   await llamarIAMensaje(prompt);
