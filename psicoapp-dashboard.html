@@ -25,14 +25,72 @@
   --radius: 16px;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { padding-bottom: 76px !important;
+body {
   font-family: 'DM Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
-  max-width: 430px;
-  margin: 0 auto;
   min-height: 100vh;
-  padding-bottom: 80px;
+}
+
+/* ── MOBILE default ── */
+#app-shell { max-width: 430px; margin: 0 auto; padding-bottom: 80px; }
+.sidebar { display: none; }
+
+/* ── DESKTOP / TABLET 768px+ ── */
+@media (min-width: 768px) {
+  body { display: flex; padding-bottom: 0; }
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 240px;
+    min-width: 240px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    background: #1B4332;
+    padding: 28px 0 20px;
+    z-index: 100;
+    overflow-y: auto;
+  }
+  .sb-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    padding: 0 24px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 12px;
+  }
+  .sb-logo span { color: #52B788; }
+  .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
+  .sb-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background .15s, color .15s;
+  }
+  .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
+  .sb-item.sb-active { background: rgba(82,183,136,0.25); color: white; }
+  .sb-icon { font-size: 18px; width: 24px; text-align: center; }
+  .sb-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,0.3); padding: 14px 26px 6px; }
+  .sb-footer { padding: 16px 12px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
+  .sb-user { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; color: rgba(255,255,255,0.7); cursor: pointer; text-decoration: none; }
+  .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
+  .sb-avatar { width: 32px; height: 32px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }
+  .sb-user-name { font-size: 13px; font-weight: 600; color: white; }
+  .sb-user-role { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+  #app-shell { flex: 1; max-width: none; padding-bottom: 0; overflow-y: auto; height: 100vh; }
+  .app-nav, .unified-bnav, .bottom-nav { display: none !important; }
+  .header { padding: 24px 32px 32px; }
+  .quick-stats { grid-template-columns: repeat(4, 1fr) !important; padding: 20px 24px !important; }
 }
 
 /* ── HEADER ── */
@@ -527,6 +585,55 @@ body { padding-bottom: 76px !important;
 </head>
 <body>
 
+<!-- SIDEBAR (desktop only) -->
+<aside class="sidebar">
+  <div class="sb-logo">Psico<span>app</span></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Principal</div>
+    <a href="psicoapp-index.html" class="sb-item sb-active">
+      <span class="sb-icon">📊</span> Inicio
+    </a>
+    <a href="psicoapp-agenda.html" class="sb-item">
+      <span class="sb-icon">📅</span> Agenda
+    </a>
+    <a href="psicoapp-pacientes.html" class="sb-item">
+      <span class="sb-icon">👥</span> Pacientes
+    </a>
+    <a href="psicoapp-historia.html" class="sb-item">
+      <span class="sb-icon">🧠</span> Historia clínica
+    </a>
+    <div class="sb-section">Gestión</div>
+    <a href="psicoapp-pagos.html" class="sb-item">
+      <span class="sb-icon">💰</span> Pagos
+    </a>
+    <a href="psicoapp-whatsapp.html" class="sb-item">
+      <span class="sb-icon">💬</span> WhatsApp
+    </a>
+    <a href="psicoapp-pericias.html" class="sb-item">
+      <span class="sb-icon">⚖️</span> Pericias
+    </a>
+    <a href="psicoapp-estadisticas.html" class="sb-item">
+      <span class="sb-icon">📈</span> Estadísticas
+    </a>
+    <div class="sb-section">Clínico</div>
+    <a href="psicoapp-consentimiento.html" class="sb-item">
+      <span class="sb-icon">📋</span> Consentimiento
+    </a>
+  </nav>
+  <div class="sb-footer">
+    <a href="psicoapp-perfil.html" class="sb-user">
+      <div class="sb-avatar" id="sb-avatar-initials">JG</div>
+      <div>
+        <div class="sb-user-name" id="sb-user-name">Cargando...</div>
+        <div class="sb-user-role">Psicólogo/a</div>
+      </div>
+    </a>
+  </div>
+</aside>
+
+<!-- APP SHELL (mobile: full page, desktop: right column) -->
+<div id="app-shell">
+
 <!-- HEADER -->
 <div class="header">
   <div class="header-row">
@@ -755,6 +862,8 @@ body { padding-bottom: 76px !important;
 
 
 
+
+</div>
 
 </body>
 
