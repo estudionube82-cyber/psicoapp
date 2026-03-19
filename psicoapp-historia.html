@@ -613,6 +613,11 @@ let userId = null;
 sb.auth.onAuthStateChange((event, session) => {
   if (!session) { window.location.href = 'login.html'; return; }
   userId = session.user.id;
+  // Si viene con ?id= cargar solo ese paciente primero para no quedarse colgado
+  const paramId = new URLSearchParams(window.location.search).get('id');
+  if (paramId) {
+    checkURLParams();
+  }
   cargarPacientes();
 });
 
@@ -640,15 +645,29 @@ function checkURLParams() {
   const params = new URLSearchParams(window.location.search);
   const pacId = params.get('id');
   if (!pacId) return;
-  // Esperar a que carguen los pacientes y abrir el correcto
-  const intentar = setInterval(() => {
-    if (!todosPacientes.length) return;
-    clearInterval(intentar);
+
+  // Si ya tenemos los pacientes, abrir directo
+  if (todosPacientes.length) {
     const pac = todosPacientes.find(p => p.id === pacId);
     const idx = todosPacientes.findIndex(p => p.id === pacId);
-    if (pac) abrirDetalle(pac, idx);
-  }, 200);
-  setTimeout(() => clearInterval(intentar), 5000); // timeout 5s
+    if (pac) { abrirDetalle(pac, idx); return; }
+  }
+
+  // Si no, cargar el paciente directamente por ID sin esperar la lista completa
+  (async () => {
+    const { data } = await sb.from('pacientes')
+      .select('id,nombre,apellido,telefono,activo')
+      .eq('id', pacId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (data) {
+      // Asegurarse de que esté en el array
+      if (!todosPacientes.find(p => p.id === data.id)) todosPacientes.push(data);
+      abrirDetalle(data, 0);
+    } else {
+      showToast('⚠️ No se encontró el paciente');
+    }
+  })();
 }
 
 async function cargarPacientes(){
