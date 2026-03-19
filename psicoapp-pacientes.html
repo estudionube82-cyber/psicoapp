@@ -426,6 +426,56 @@ body {
       <button class="btn-action btn-wp" id="det-wp-btn">💬 WhatsApp</button>
       <button class="btn-action btn-del" onclick="eliminarPaciente()">🗑 Eliminar</button>
     </div>
+
+    <!-- PANEL IA MENSAJES -->
+    <div style="margin-top:12px;">
+      <button onclick="togglePanelIA()" id="btnToggleIA"
+        style="width:100%;background:linear-gradient(135deg,#059669,#10B981);color:white;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        🤖 Mensaje con IA
+      </button>
+
+      <div id="panelIA" style="display:none;margin-top:10px;background:#F4F1ED;border-radius:14px;padding:14px;">
+        <!-- Tipos de mensaje -->
+        <div id="iaOpcionesWrap">
+          <div style="font-size:12px;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Tipo de mensaje</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button onclick="generarMensajePacienteIA('recordatorio')" style="background:#E8F5EE;color:#2D6A4F;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">⏰ Recordatorio de turno</button>
+            <button onclick="generarMensajePacienteIA('ausente')" style="background:#FEE2E2;color:#991B1B;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">❌ Paciente ausente</button>
+            <button onclick="generarMensajePacienteIA('seguimiento')" style="background:#ECFDF5;color:#065F46;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">💚 Seguimiento / Cómo estás</button>
+            <button onclick="mostrarReprogramarIA()" style="background:#FEF3C7;color:#92400E;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">🔄 Reprogramar turno</button>
+          </div>
+        </div>
+
+        <!-- Input reprogramación -->
+        <div id="reprogramarWrapPA" style="display:none;">
+          <div style="font-size:12px;color:#8A8FA8;margin-bottom:6px;">Escribí el cambio:</div>
+          <textarea id="reprogramarInputPA" style="width:100%;background:white;border:1.5px solid #E8E4DD;border-radius:11px;padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;min-height:60px;outline:none;resize:vertical;" placeholder='Ej: "cambiá las 16hs del 2/2 para las 18hs del 3/2"'></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button onclick="procesarReprogramarPA()" style="flex:1;background:#2D6A4F;color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">✨ Generar</button>
+            <button onclick="document.getElementById('reprogramarWrapPA').style.display='none';document.getElementById('iaOpcionesWrap').style.display='block';" style="background:#E8E4DD;color:#8A8FA8;border:none;border-radius:11px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;">✕</button>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="iaLoadingPA" style="display:none;align-items:center;gap:8px;padding:12px 0;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#2D6A4F;animation:iaPulse 1.2s infinite;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#2D6A4F;animation:iaPulse 1.2s infinite;animation-delay:.2s;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#2D6A4F;animation:iaPulse 1.2s infinite;animation-delay:.4s;"></div>
+          <span style="font-size:12px;color:#8A8FA8;">Redactando mensaje…</span>
+        </div>
+
+        <!-- Resultado -->
+        <div id="iaResultadoPA" style="display:none;margin-top:10px;">
+          <div id="iaMensajePA" style="background:white;border-radius:11px;padding:12px 14px;font-size:13px;line-height:1.7;color:#1A1A2E;white-space:pre-wrap;"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button onclick="copiarMensajePA()" style="flex:1;background:#E8F5EE;color:#2D6A4F;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">📋 Copiar</button>
+            <button id="btnEnviarWAPA" onclick="enviarWAPA()" style="flex:1;background:#25D366;color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">📱 Enviar por WhatsApp</button>
+          </div>
+          <button onclick="document.getElementById('iaResultadoPA').style.display='none';document.getElementById('iaOpcionesWrap').style.display='block';" style="width:100%;background:none;border:none;padding:8px;font-size:12px;color:#8A8FA8;cursor:pointer;margin-top:4px;">← Otro mensaje</button>
+        </div>
+      </div>
+    </div>
+
     <button onclick="irAHistoriaClinica()"
       style="width:100%;background:var(--primary);color:white;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
       🧠 Ver Historia Clínica
@@ -681,10 +731,13 @@ function abrirDetalle(id) {
 
   const wpBtn = document.getElementById('det-wp-btn');
   if (p.telefono) {
-    const num = p.telefono.replace(/\D/g,'');
-    wpBtn.onclick = () => window.open(`https://wa.me/54${num}`, '_blank');
+    let num = p.telefono.replace(/\D/g,'');
+    if(!num.startsWith('549')) num = '549' + num.replace(/^0?/,'');
+    wpBtn._waNum = num;
+    wpBtn.onclick = () => window.open(`https://wa.me/${num}`, '_blank');
     wpBtn.style.opacity = '1';
   } else {
+    wpBtn._waNum = '';
     wpBtn.onclick = null;
     wpBtn.style.opacity = '0.4';
   }
@@ -731,6 +784,114 @@ document.getElementById('overlay').addEventListener('click', e => {
 document.getElementById('overlayDetalle').addEventListener('click', e => {
   if (e.target === document.getElementById('overlayDetalle')) cerrarDetalle();
 });
+
+// ---- IA MENSAJES PACIENTES ----
+let pacienteActualPA = null;
+
+function togglePanelIA(){
+  const panel = document.getElementById('panelIA');
+  const btn = document.getElementById('btnToggleIA');
+  const visible = panel.style.display !== 'none';
+  panel.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? '🤖 Mensaje con IA' : '✕ Cerrar IA';
+  if(!visible){
+    document.getElementById('iaOpcionesWrap').style.display = 'block';
+    document.getElementById('iaResultadoPA').style.display = 'none';
+    document.getElementById('reprogramarWrapPA').style.display = 'none';
+  }
+}
+
+function mostrarReprogramarIA(){
+  document.getElementById('iaOpcionesWrap').style.display = 'none';
+  document.getElementById('reprogramarWrapPA').style.display = 'block';
+  document.getElementById('reprogramarInputPA').focus();
+}
+
+async function procesarReprogramarPA(){
+  const instruccion = document.getElementById('reprogramarInputPA').value.trim();
+  if(!instruccion){ alert('Escribí el cambio primero'); return; }
+  const nombre = document.getElementById('det-nombre').textContent.split(' ')[0];
+  const prompt = `Sos un psicólogo clínico argentino. Redactá un mensaje de WhatsApp para reprogramar un turno.
+
+PACIENTE: ${nombre}
+INSTRUCCIÓN: ${instruccion}
+
+REQUISITOS:
+- Máximo 3-4 líneas
+- Tono empático y profesional
+- Español argentino informal pero respetuoso
+- Incluí los datos del nuevo turno mencionados
+- Sin asteriscos ni markdown`;
+  document.getElementById('reprogramarWrapPA').style.display = 'none';
+  await llamarIAMensaje(prompt);
+}
+
+async function generarMensajePacienteIA(tipo){
+  const nombre = document.getElementById('det-nombre').textContent.split(' ')[0];
+  const tipoDesc = {
+    recordatorio: 'recordatorio amigable de su próximo turno de psicología.',
+    ausente: 'mensaje para un paciente que no se presentó sin avisar. Tono comprensivo, sin reproches, invitando a reagendar.',
+    seguimiento: 'mensaje de seguimiento entre sesiones preguntando cómo está. Breve, cálido, profesional.'
+  };
+  const prompt = `Sos un psicólogo clínico argentino. Redactá un ${tipoDesc[tipo]}
+
+PACIENTE: ${nombre}
+
+REQUISITOS:
+- Máximo 3-4 líneas
+- Tono empático y profesional
+- Español argentino informal pero respetuoso
+- Sin asteriscos ni markdown
+- Listo para WhatsApp`;
+  await llamarIAMensaje(prompt);
+}
+
+async function llamarIAMensaje(prompt){
+  document.getElementById('iaOpcionesWrap').style.display = 'none';
+  document.getElementById('iaLoadingPA').style.display = 'flex';
+  document.getElementById('iaResultadoPA').style.display = 'none';
+
+  try {
+    const resp = await fetch(SUPA_URL + '/functions/v1/generar-informe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_KEY },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await resp.json();
+    document.getElementById('iaLoadingPA').style.display = 'none';
+    document.getElementById('iaMensajePA').textContent = data.texto || data.error || 'Sin respuesta';
+    document.getElementById('iaResultadoPA').style.display = 'block';
+  } catch(e) {
+    document.getElementById('iaLoadingPA').style.display = 'none';
+    document.getElementById('iaMensajePA').textContent = '❌ Error: ' + e.message;
+    document.getElementById('iaResultadoPA').style.display = 'block';
+  }
+}
+
+function copiarMensajePA(){
+  const texto = document.getElementById('iaMensajePA').textContent;
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = event.target;
+    btn.textContent = '✅ Copiado';
+    setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+  });
+}
+
+function enviarWAPA(){
+  const texto = document.getElementById('iaMensajePA').textContent.trim();
+  if(!texto) return;
+  // Get phone from current patient
+  const wpBtn = document.getElementById('det-wp-btn');
+  const href = wpBtn._waUrl || '';
+  // Try to get number from the wa.me URL stored on button
+  let url;
+  if(wpBtn._waNum){
+    url = `https://wa.me/${wpBtn._waNum}?text=${encodeURIComponent(texto)}`;
+  } else {
+    url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  }
+  window.open(url, '_blank');
+}
 </script>
 </body>
 </html>
