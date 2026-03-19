@@ -630,23 +630,38 @@ sb.auth.onAuthStateChange((event, session) => {
 async function init() {
   const paramId = new URLSearchParams(window.location.search).get('id');
   if (paramId) {
-    // Mostrar loading claro mientras buscamos
     document.getElementById('pacList').innerHTML = '<div class="loading">Cargando paciente…</div>';
-    const { data } = await sb.from('pacientes')
+    console.log('[PsicoApp] init() con paramId:', paramId, 'userId:', userId);
+
+    const { data, error } = await sb.from('pacientes')
       .select('id,nombre,apellido,telefono,activo')
       .eq('id', paramId)
       .eq('user_id', userId)
       .maybeSingle();
+
+    console.log('[PsicoApp] resultado:', data, 'error:', error);
+
     if (data) {
       todosPacientes = [data];
       abrirDetalle(data, 0);
-      // Cargar el resto en background
       sb.from('pacientes').select('id,nombre,apellido,telefono,activo')
         .eq('user_id', userId).eq('activo', true).order('apellido')
         .then(({ data: todos }) => { if (todos) todosPacientes = todos; });
+    } else if (error) {
+      document.getElementById('pacList').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Error: ${error.message}</div><div class="empty-sub">userId: ${userId}<br>pacienteId: ${paramId}</div></div>`;
     } else {
-      showToast('⚠️ No se encontró el paciente');
-      cargarPacientes();
+      // data es null — intentar sin filtro user_id por si hay problema de RLS
+      const { data: data2, error: error2 } = await sb.from('pacientes')
+        .select('id,nombre,apellido,telefono,activo,user_id')
+        .eq('id', paramId)
+        .maybeSingle();
+      console.log('[PsicoApp] sin filtro user_id:', data2, error2);
+      if (data2) {
+        todosPacientes = [data2];
+        abrirDetalle(data2, 0);
+      } else {
+        document.getElementById('pacList').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Paciente no encontrado</div><div class="empty-sub">userId: ${userId}<br>pacienteId: ${paramId}</div></div>`;
+      }
     }
   } else {
     cargarPacientes();
@@ -1335,8 +1350,7 @@ async function procesarSesionIA() {
   const sesionesRealizadas = sesionesActuales.filter(s => s.estado === 'realizada' && s.id !== sesionActual.id)
     .sort((a,b) => new Date(b.fecha)-new Date(a.fecha)).slice(0,3);
   const contextoAnterior = sesionesRealizadas.length 
-    ? sesionesRealizadas.map(s => `[${formatFecha(s.fecha)}] ${s.notas||s.motivo||'Sin notas'}`).join('
-')
+    ? sesionesRealizadas.map(s => '[' + formatFecha(s.fecha) + '] ' + (s.notas||s.motivo||'Sin notas')).join('\n')
     : 'Primera sesión del paciente';
 
   const notasSesion = [sesionActual.motivo, sesionActual.notas].filter(Boolean).join('. ') || 'Sin notas registradas';
@@ -1382,8 +1396,7 @@ Lenguaje técnico-clínico argentino.`;
     const texto = data.texto || data.error || 'Sin respuesta';
     
     // Detectar alerta de riesgo
-    const alertaMatch = texto.match(/ALERTA:\s*([\s\S]*?)(?=
-[A-Z]|$)/i);
+    const alertaMatch = texto.match(/ALERTA:[\s\S]*?([^\n]+(?:\n(?![A-Z])[^\n]*)*)/i);
     if (alertaMatch) {
       const alertaContenido = alertaMatch[1].trim();
       if (alertaContenido && !alertaContenido.toLowerCase().includes('sin alerta') && alertaContenido.length > 10) {
@@ -1434,8 +1447,7 @@ async function verEvolucionIA() {
   
   const resumen = sesiones.map((s,i) => 
     `Sesión ${i+1} (${formatFecha(s.fecha)}): ${s.motivo||''} ${s.notas||''} ${s.estado_animo ? '| Ánimo: '+s.estado_animo+'/5' : ''}`.trim()
-  ).join('
-');
+  ).join('\n');
 
   const prompt = `Sos un psicólogo clínico argentino. Analizá la evolución de este paciente a lo largo de sus sesiones y redactá una síntesis clínica profesional.
 
@@ -1459,8 +1471,7 @@ REGLAS: párrafos corridos, lenguaje técnico-clínico argentino, sin bullets ni
 async function sugerirDiagnosticoIA() {
   const info = infoClinicaActual || {};
   const sesiones = sesionesActuales.filter(s => s.estado === 'realizada').slice(-5);
-  const notas = sesiones.map(s => `[${formatFecha(s.fecha)}] ${s.motivo||''} ${s.notas||''}`).join('
-');
+  const notas = sesiones.map(s => `[${formatFecha(s.fecha)}] ${s.motivo||''} ${s.notas||''}`).join('\n');
   
   const prompt = `Sos un psicólogo clínico argentino experto en nosografía. Basándote en los datos clínicos, sugerí posibles diagnósticos diferenciales usando CIE-11 y DSM-5. NO seas categórico — son hipótesis diagnósticas para orientar el trabajo clínico.
 
