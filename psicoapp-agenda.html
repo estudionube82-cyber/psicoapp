@@ -6,6 +6,7 @@
 <title>Psicoapp — Agenda</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="psicoapp-limites.js"></script>
 <style>
 :root {
   --bg: #F4F1ED;
@@ -1040,6 +1041,10 @@ _Psicoapp_`;
     if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
     tel = '+' + tel;
 
+    // Verificar límite WA antes de enviar
+    const puedeEnviar = await verificarLimiteWA(sb, session.user.id);
+    if (!puedeEnviar) return;
+
     await fetch('https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp', {
       method: 'POST',
       headers: {
@@ -1053,6 +1058,8 @@ _Psicoapp_`;
         hora: horaStr,
       }),
     });
+    // Registrar uso WA
+    await registrarUsoWA(sb, session.user.id, pac.id || null);
   } catch(e) {
     console.log('WhatsApp no enviado:', e.message);
   }

@@ -6,6 +6,7 @@
 <title>PsicoApp — Historia Clínica</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="psicoapp-limites.js"></script>
 <style>
 :root {
   --bg:#F4F1ED; --surface:#FFFFFF; --primary:#2D6A4F; --primary-light:#E8F5EE;
@@ -1110,6 +1111,7 @@ function selTipoInforme(tipo){
 }
 
 async function generarInformeIA(){
+  if (!await verificarLimiteIA(sb, userId)) return;
   const btn = document.getElementById('btnGenerarInforme');
   const resultCard = document.getElementById('informeResultadoCard');
   const output = document.getElementById('informeOutput');
@@ -1269,6 +1271,7 @@ REGLAS ABSOLUTAS DE REDACCIÓN:
       const textoInforme = data.texto || 'Sin respuesta';
       output.textContent = textoInforme;
       resultCard.style.display = 'block';
+      await registrarUsoIA(sb, userId, 'informe');
       // AUTO-GUARDAR en Supabase
       await guardarInformeEnDB(textoInforme, tipoInformeSeleccionado);
     }
@@ -1333,6 +1336,7 @@ function verInformeGuardado(inf) {
 
 async function procesarSesionIA() {
   if (!sesionActual) { showToast('⚠️ No hay sesión cargada'); return; }
+  if (!await verificarLimiteIA(sb, userId)) return;
   
   const resultDiv = document.getElementById('procesarIAResult');
   const loading = document.getElementById('procesarIALoading');
@@ -1442,6 +1446,7 @@ async function llamarIAExtra(loadingText, prompt) {
 }
 
 async function verEvolucionIA() {
+  if (!await verificarLimiteIA(sb, userId)) return;
   const sesiones = sesionesActuales.filter(s => s.estado === 'realizada').sort((a,b) => new Date(a.fecha)-new Date(b.fecha));
   if (sesiones.length < 2) { showToast('⚠️ Necesitás al menos 2 sesiones realizadas'); return; }
   
@@ -1469,6 +1474,7 @@ REGLAS: párrafos corridos, lenguaje técnico-clínico argentino, sin bullets ni
 }
 
 async function sugerirDiagnosticoIA() {
+  if (!await verificarLimiteIA(sb, userId)) return;
   const info = infoClinicaActual || {};
   const sesiones = sesionesActuales.filter(s => s.estado === 'realizada').slice(-5);
   const notas = sesiones.map(s => `[${formatFecha(s.fecha)}] ${s.motivo||''} ${s.notas||''}`).join('\n');
@@ -1496,6 +1502,7 @@ Aclará que son hipótesis orientativas, no diagnósticos definitivos.`;
 }
 
 async function sugerirPlanIA() {
+  if (!await verificarLimiteIA(sb, userId)) return;
   const info = infoClinicaActual || {};
   const sesiones = sesionesActuales.filter(s => s.estado === 'realizada');
   
@@ -1521,6 +1528,7 @@ Lenguaje técnico-clínico argentino, párrafos corridos, sin bullets.`;
 }
 
 async function generarMensajeWA() {
+  if (!await verificarLimiteIA(sb, userId)) return;
   // Show type selector
   const tipo = await new Promise(resolve => {
     const overlay = document.createElement('div');

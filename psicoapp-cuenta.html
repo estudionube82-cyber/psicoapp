@@ -6,6 +6,7 @@
 <title>Psicoapp — Mi Cuenta</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="psicoapp-limites.js"></script>
 <style>
 :root {
   --bg: #F4F1ED;
@@ -636,6 +637,33 @@ const sb = createClient(SUPA_URL, SUPA_KEY);
   document.getElementById('avatarInicial').textContent =
     nombre.charAt(0).toUpperCase();
 
+  // Mostrar plan real desde Supabase
+  const planInfo = await obtenerPlan(sb, user.id);
+  const planActual = planInfo.plan || 'free';
+  const planLabels = { free: '🆓 Free', pro: '⭐ Pro', max: '🚀 Max' };
+  const badgeEl = document.getElementById('planBadge');
+  if (badgeEl) { badgeEl.textContent = planLabels[planActual]; badgeEl.className = `plan-badge ${planActual}`; }
+
+  // Marcar card actual
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('current'));
+  document.querySelectorAll('.plan-tag.tag-current').forEach(t => t.remove());
+  const cardActual = document.getElementById(`card${planActual.charAt(0).toUpperCase()+planActual.slice(1)}`);
+  if (cardActual) {
+    cardActual.classList.add('current');
+    cardActual.insertAdjacentHTML('afterbegin', '<div class="plan-tag tag-current">Plan actual</div>');
+  }
+
+  // Mostrar uso de WA e IA este mes
+  const inicioMesStr = (() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d.toISOString(); })();
+  const [{ count: waUsado }, { count: iaUsado }] = await Promise.all([
+    sb.from('wa_usos').select('id',{count:'exact',head:true}).eq('user_id',user.id).gte('created_at',inicioMesStr),
+    sb.from('ia_usos').select('id',{count:'exact',head:true}).eq('user_id',user.id).gte('created_at',inicioMesStr),
+  ]);
+  const limites = PLANES[planActual];
+  document.getElementById('statWA').textContent = `${waUsado||0}/${planActual==='max'?'∞':limites.wa_mes+(planInfo.wa_extra||0)}`;
+  const iaEl = document.getElementById('statIA');
+  if (iaEl) iaEl.textContent = `${iaUsado||0}/${limites.ia_mes}`;
+
   // Días de trial
   if (perfil?.created_at) {
     const creado = new Date(perfil.created_at);
@@ -665,13 +693,13 @@ const sb = createClient(SUPA_URL, SUPA_KEY);
 const planesInfo = {
   pro: {
     title: 'Suscribirse a Pro ⭐',
-    nombre: '⭐ Plan Pro — $12.500 ARS/mes',
-    features: ['✅ Pacientes ilimitados', '✅ Recordatorios automáticos', '✅ Historial de pagos completo', '✅ Hasta 10 pericias activas']
+    nombre: '⭐ Plan Pro — $15.000 ARS/mes',
+    features: ['✅ Pacientes ilimitados', '✅ 20 WhatsApp automáticos/mes', '✅ Packs de 100 WA extra por $5.000', '✅ 25 usos de IA/mes', '✅ Historial de pagos completo', '✅ Hasta 10 pericias activas']
   },
   max: {
     title: 'Suscribirse a Max 🚀',
-    nombre: '🚀 Plan Max — $18.000 ARS/mes',
-    features: ['✅ Todo el plan Pro', '✅ Pericias ilimitadas', '✅ Estadísticas avanzadas', '✅ Bot de procuración de pericias', '✅ Soporte prioritario']
+    nombre: '🚀 Plan Max — $22.000 ARS/mes',
+    features: ['✅ Todo el plan Pro', '✅ WhatsApp ILIMITADOS', '✅ 80 usos de IA/mes', '✅ Pericias ilimitadas', '✅ Estadísticas avanzadas', '✅ Soporte prioritario']
   }
 };
 
@@ -685,7 +713,7 @@ const MP_LINKS = {
   pro: 'https://mpago.la/21qpD68',   // ← Plan Pro $15.000/mes
   max: 'https://mpago.la/2una14K',   // ← Plan Max $20.000/mes
 };
-const PRECIOS  = { pro: '$15.000', max: '$20.000' };
+const PRECIOS  = { pro: '$15.000', max: '$22.000' };
 const WA_MSGS  = {
   pro: 'Hola%2C%20quiero%20activar%20el%20plan%20*Pro*%20de%20PsicoApp%20(%2415.000%2Fmes%20-%2050%20WA%20incluidos)',
   max: 'Hola%2C%20quiero%20activar%20el%20plan%20*Max*%20de%20PsicoApp%20(%2420.000%2Fmes)',

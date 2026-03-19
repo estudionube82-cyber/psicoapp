@@ -6,6 +6,7 @@
 <title>PsicoApp — WhatsApp</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="psicoapp-limites.js"></script>
 <style>
 :root {
   --bg:#F4F1ED; --surface:#FFFFFF; --primary:#2D6A4F; --primary-light:#E8F5EE;
@@ -529,6 +530,11 @@ async function abrirWA(paciente, mensaje, tipo) {
   try {
     mostrarToast('📤 Enviando...', false);
     const { data:{ session } } = await sb.auth.getSession();
+
+    // Verificar límite WA
+    const puedeEnviar = await verificarLimiteWA(sb, session.user.id);
+    if (!puedeEnviar) return;
+
     const resp = await fetch(`${SUPA_URL}/functions/v1/enviar-whatsapp`, {
       method: 'POST',
       headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${session.access_token}` },
@@ -538,6 +544,7 @@ async function abrirWA(paciente, mensaje, tipo) {
 
     if (res.sid) {
       mostrarToast('✅ Mensaje enviado');
+      await registrarUsoWA(sb, session.user.id, paciente?.id || null);
       // Guardar en historial
       await registrarEnHistorial(paciente, mensaje, tipo, 'enviado', res.sid);
     } else {
