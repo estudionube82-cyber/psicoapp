@@ -377,15 +377,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
           <button class="btn-generar-ia" style="font-size:13px;padding:11px 16px;background:linear-gradient(135deg,#6B21A8,#9333EA);" onclick="sugerirDiagnosticoIA()">🔍 Sugerir diagnóstico (CIE-11)</button>
           <button class="btn-generar-ia" style="font-size:13px;padding:11px 16px;background:linear-gradient(135deg,#0369A1,#0284C7);" onclick="sugerirPlanIA()">📋 Sugerir plan terapéutico</button>
           <button class="btn-generar-ia" style="font-size:13px;padding:11px 16px;background:linear-gradient(135deg,#059669,#10B981);" onclick="generarMensajeWA()">💬 Generar mensaje WhatsApp</button>
+          <button class="btn-generar-ia" style="font-size:13px;padding:11px 16px;background:linear-gradient(135deg,#D97706,#F59E0B);" onclick="reprogramarConIA()">🔄 Reprogramar turno con IA</button>
         </div>
+
+        <!-- Input reprogramación -->
+        <div id="reprogramarInputWrap" style="display:none;margin-top:12px;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Escribí el cambio en lenguaje natural:</div>
+          <textarea id="reprogramarInput" class="form-textarea" style="min-height:60px;font-size:13px;" placeholder='Ej: "cambiá el turno de las 16hs del 2/2 para las 18hs del 3/2"'></textarea>
+          <button onclick="procesarReprogramacion()" style="margin-top:8px;width:100%;background:var(--primary);color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">✨ Generar mensaje</button>
+        </div>
+
         <div id="iaExtraOutput" style="display:none;margin-top:14px;">
           <div id="iaExtraLoading" class="ia-loading" style="display:none;">
             <div class="ia-dot"></div><div class="ia-dot"></div><div class="ia-dot"></div>
             <span id="iaExtraLoadingText">Analizando…</span>
           </div>
-          <div class="informe-output" id="iaExtraResult" style="min-height:100px;"></div>
+          <div class="informe-output" id="iaExtraResult" style="min-height:100px;font-size:13px;"></div>
           <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
             <button class="btn-copiar" style="flex:1;" onclick="copiarIAExtra()">📋 Copiar</button>
+            <button id="btnEnviarWA" onclick="enviarMensajeWA()" style="flex:1;background:#25D366;color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">📱 Enviar por WhatsApp</button>
           </div>
         </div>
       </div>
@@ -1253,22 +1263,22 @@ REGLAS ABSOLUTAS DE REDACCIÓN:
   [título]
   [M.P. y/o M.N.]`
 
-    const response = await fetch(SUPA_URL + '/functions/v1/generar-informe', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + SUPA_KEY
+        'Authorization': 'Bearer ' + OPENAI_KEY
       },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
     });
 
     const data = await response.json();
     loadingInd.style.display = 'none';
 
     if(data.error){
-      output.textContent = '❌ Error: ' + data.error;
+      output.textContent = '❌ Error: ' + data.error.message;
     } else {
-      const textoInforme = data.texto || 'Sin respuesta';
+      const textoInforme = data.choices?.[0]?.message?.content || 'Sin respuesta';
       output.textContent = textoInforme;
       resultCard.style.display = 'block';
       await registrarUsoIA(sb, userId, 'informe');
@@ -1389,15 +1399,15 @@ ALERTA:
 Lenguaje técnico-clínico argentino.`;
 
   try {
-    const response = await fetch(SUPA_URL + '/functions/v1/generar-informe', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_KEY },
-      body: JSON.stringify({ prompt })
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + OPENAI_KEY },
+      body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 1200, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await response.json();
     loading.style.display = 'none';
     
-    const texto = data.texto || data.error || 'Sin respuesta';
+    const texto = data.error ? ('❌ ' + data.error.message) : (data.choices?.[0]?.message?.content || 'Sin respuesta');
     
     // Detectar alerta de riesgo
     const alertaMatch = texto.match(/ALERTA:[\s\S]*?([^\n]+(?:\n(?![A-Z])[^\n]*)*)/i);
@@ -1418,6 +1428,8 @@ Lenguaje técnico-clínico argentino.`;
 
 // ===== FUNCIONES IA ADICIONALES =====
 
+const OPENAI_KEY = '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';
+
 async function llamarIAExtra(loadingText, prompt) {
   const output = document.getElementById('iaExtraResult');
   const loading = document.getElementById('iaExtraLoading');
@@ -1431,14 +1443,25 @@ async function llamarIAExtra(loadingText, prompt) {
   cont.scrollIntoView({ behavior: 'smooth' });
 
   try {
-    const response = await fetch(SUPA_URL + '/functions/v1/generar-informe', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_KEY },
-      body: JSON.stringify({ prompt })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + OPENAI_KEY
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
     const data = await response.json();
     loading.style.display = 'none';
-    output.textContent = data.texto || data.error || 'Sin respuesta';
+    if(data.error) {
+      output.textContent = '❌ Error: ' + data.error.message;
+    } else {
+      output.textContent = data.choices?.[0]?.message?.content || 'Sin respuesta';
+    }
   } catch(e) {
     loading.style.display = 'none';
     output.textContent = '❌ Error: ' + e.message;
@@ -1527,9 +1550,59 @@ Lenguaje técnico-clínico argentino, párrafos corridos, sin bullets.`;
   await llamarIAExtra('Diseñando plan terapéutico…', prompt);
 }
 
+// Número del psicólogo para WA (se carga del perfil)
+let telefonoPsicologo = '';
+
+async function cargarTelefonoPerfil(){
+  if(telefonoPsicologo) return telefonoPsicologo;
+  const { data } = await sb.from('profiles').select('telefono_profesional').eq('id', userId).maybeSingle();
+  telefonoPsicologo = data?.telefono_profesional || '';
+  return telefonoPsicologo;
+}
+
+function enviarMensajeWA(){
+  const texto = document.getElementById('iaExtraResult').textContent.trim();
+  if(!texto){ showToast('⚠️ Primero generá el mensaje'); return; }
+  const tel = pacienteActual.telefono || '';
+  let telLimpio = tel.replace(/\D/g,'');
+  if(!telLimpio.startsWith('549')) telLimpio = '549' + telLimpio.replace(/^0?/,'');
+  const url = telLimpio
+    ? `https://wa.me/${telLimpio}?text=${encodeURIComponent(texto)}`
+    : `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  window.open(url, '_blank');
+}
+
+function reprogramarConIA(){
+  const wrap = document.getElementById('reprogramarInputWrap');
+  wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  if(wrap.style.display === 'block'){
+    document.getElementById('reprogramarInput').focus();
+  }
+}
+
+async function procesarReprogramacion(){
+  const instruccion = document.getElementById('reprogramarInput').value.trim();
+  if(!instruccion){ showToast('⚠️ Escribí el cambio primero'); return; }
+  
+  const prompt = `Sos un psicólogo clínico argentino. Redactá un mensaje de WhatsApp para reprogramar un turno.
+
+PACIENTE: ${pacienteActual.nombre}
+INSTRUCCIÓN DEL PROFESIONAL: ${instruccion}
+
+REQUISITOS:
+- Máximo 3-4 líneas
+- Tono empático y profesional
+- Español argentino informal pero respetuoso
+- Incluí los datos del nuevo turno que se mencionan en la instrucción
+- No uses asteriscos ni formato markdown
+- Listo para enviar por WhatsApp`;
+
+  document.getElementById('reprogramarInputWrap').style.display = 'none';
+  await llamarIAExtra('Generando mensaje de reprogramación…', prompt);
+}
+
 async function generarMensajeWA() {
   if (!await verificarLimiteIA(sb, userId)) return;
-  // Show type selector
   const tipo = await new Promise(resolve => {
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
@@ -1537,24 +1610,18 @@ async function generarMensajeWA() {
       <div style="background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:430px;">
         <div style="font-size:15px;font-weight:800;margin-bottom:16px;">💬 Tipo de mensaje</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <button onclick="this.closest('div[style]').dataset.tipo='recordatorio'" style="background:var(--primary-light);color:var(--primary);border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">⏰ Recordatorio de turno</button>
-          <button onclick="this.closest('div[style]').dataset.tipo='reprogramacion'" style="background:#FEF3C7;color:#92400E;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">📅 Reprogramación</button>
-          <button onclick="this.closest('div[style]').dataset.tipo='ausente'" style="background:#FEE2E2;color:#991B1B;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">❌ Paciente ausente</button>
-          <button onclick="this.closest('div[style]').dataset.tipo='seguimiento'" style="background:#ECFDF5;color:#065F46;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">💚 Seguimiento / Cómo estás</button>
+          <button data-tipo="recordatorio" style="background:var(--primary-light);color:var(--primary);border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">⏰ Recordatorio de turno</button>
+          <button data-tipo="ausente" style="background:#FEE2E2;color:#991B1B;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">❌ Paciente ausente</button>
+          <button data-tipo="seguimiento" style="background:#ECFDF5;color:#065F46;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">💚 Seguimiento / Cómo estás</button>
         </div>
-        <button onclick="document.body.removeChild(this.closest('[style*=fixed]'));resolve(null)" style="margin-top:12px;width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:11px;font-size:13px;color:var(--muted);cursor:pointer;">Cancelar</button>
+        <button data-tipo="cancelar" style="margin-top:12px;width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:11px;font-size:13px;color:var(--muted);cursor:pointer;">Cancelar</button>
       </div>`;
-    
-    // Handle button clicks
-    overlay.querySelectorAll('button:not(:last-child)').forEach(btn => {
+    overlay.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
-        resolve(btn.dataset.tipo || btn.textContent.trim());
+        const t = btn.dataset.tipo;
         document.body.removeChild(overlay);
+        resolve(t === 'cancelar' ? null : t);
       });
-    });
-    overlay.querySelector('button:last-child').addEventListener('click', () => {
-      resolve(null);
-      document.body.removeChild(overlay);
     });
     document.body.appendChild(overlay);
   });
@@ -1562,16 +1629,14 @@ async function generarMensajeWA() {
   if (!tipo) return;
   
   const tipoDescripcion = {
-    recordatorio: 'recordatorio amigable de su próximo turno de psicología. Incluí día y hora si los tenés, o dejá espacio para completar.',
-    reprogramacion: 'mensaje para reprogramar un turno cancelado. Tono empático, sin hacer sentir mal al paciente.',
+    recordatorio: 'recordatorio amigable de su próximo turno de psicología.',
     ausente: 'mensaje para un paciente que no se presentó a su sesión sin avisar. Tono comprensivo, sin reproches, invitando a reagendar.',
     seguimiento: 'mensaje de seguimiento entre sesiones preguntando cómo está el paciente. Breve, cálido, profesional.'
   };
 
-  const prompt = `Sos un psicólogo clínico argentino. Redactá un ${tipoDescripcion[tipo] || tipo}
+  const prompt = `Sos un psicólogo clínico argentino. Redactá un ${tipoDescripcion[tipo]}
 
 PACIENTE: ${pacienteActual.nombre}
-PROFESIONAL: psicólogo/a
 
 REQUISITOS:
 - Máximo 3-4 líneas
