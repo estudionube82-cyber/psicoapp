@@ -359,6 +359,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
           <button class="btn-copiar" style="flex:1;min-width:120px;background:#25D366;color:white;" onclick="compartirWhatsApp()">📱 WhatsApp</button>
         </div>
       </div>
+
+      <!-- HISTORIAL DE INFORMES GUARDADOS -->
+      <div class="informe-card">
+        <div class="informe-card-title">📁 Informes guardados del paciente</div>
+        <div id="informesGuardadosList">
+          <p style="font-size:12px;color:var(--muted);text-align:center;padding:12px;">Cargando…</p>
+        </div>
+      </div>
+
+      <!-- FUNCIONES IA ADICIONALES -->
+      <div class="informe-card">
+        <div class="informe-card-title">🧠 Más funciones de IA</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn-generar-ia" style="font-size:13px;padding:11px 16px;" onclick="verEvolucionIA()">📈 Ver evolución del paciente</button>
+          <button class="btn-generar-ia" style="font-size:13px;padding:11px 16px;background:linear-gradient(135deg,#6B21A8,#9333EA);" onclick="sugerirDiagnosticoIA()">🔍 Sugerir diagnóstico (CIE-11)</button>
+          <button class="btn-generar-ia" style="font-size:13px;padding:11px 16px;background:linear-gradient(135deg,#0369A1,#0284C7);" onclick="sugerirPlanIA()">📋 Sugerir plan terapéutico</button>
+          <button class="btn-generar-ia" style="font-size:13px;padding:11px 16px;background:linear-gradient(135deg,#059669,#10B981);" onclick="generarMensajeWA()">💬 Generar mensaje WhatsApp</button>
+        </div>
+        <div id="iaExtraOutput" style="display:none;margin-top:14px;">
+          <div id="iaExtraLoading" class="ia-loading" style="display:none;">
+            <div class="ia-dot"></div><div class="ia-dot"></div><div class="ia-dot"></div>
+            <span id="iaExtraLoadingText">Analizando…</span>
+          </div>
+          <div class="informe-output" id="iaExtraResult" style="min-height:100px;"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <button class="btn-copiar" style="flex:1;" onclick="copiarIAExtra()">📋 Copiar</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -374,6 +404,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
     <button onclick="editarSesionActual()" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:10px;padding:8px 10px;font-size:18px;cursor:pointer;">✏️</button>
   </div>
   <div id="sdContent"></div>
+  
+  <!-- BOTÓN PROCESAR SESIÓN CON IA -->
+  <div style="padding:14px 16px;">
+    <button onclick="procesarSesionIA()" style="width:100%;background:linear-gradient(135deg,var(--primary),#2D6A4F);color:white;border:none;border-radius:14px;padding:13px 16px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+      🧠 Procesar sesión con IA
+    </button>
+  </div>
+  
+  <!-- RESULTADO PROCESAMIENTO IA -->
+  <div id="procesarIAResult" style="display:none;margin:0 16px 20px;">
+    <div id="procesarIALoading" class="ia-loading" style="display:none;">
+      <div class="ia-dot"></div><div class="ia-dot"></div><div class="ia-dot"></div>
+      <span>Analizando sesión…</span>
+    </div>
+    <div id="alertaRiesgo" style="display:none;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:800;color:#991B1B;margin-bottom:4px;">⚠️ Alerta clínica detectada</div>
+      <div id="alertaRiesgoTexto" style="font-size:12px;color:#7F1D1D;line-height:1.5;"></div>
+    </div>
+    <div class="informe-output" id="procesarIAOutput" style="min-height:120px;"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn-copiar" style="flex:1;" onclick="document.querySelector('#procesarIAOutput') && navigator.clipboard.writeText(document.getElementById('procesarIAOutput').textContent).then(()=>showToast('✅ Copiado'))">📋 Copiar</button>
+    </div>
+  </div>
 </div>
 
 <!-- ========== MODAL: NUEVA/EDITAR SESIÓN ========== -->
@@ -582,6 +635,22 @@ function showView(id){
 }
 
 // ---- CARGAR PACIENTES ----
+// ===== NAVEGACIÓN DESDE PACIENTES =====
+function checkURLParams() {
+  const params = new URLSearchParams(window.location.search);
+  const pacId = params.get('id');
+  if (!pacId) return;
+  // Esperar a que carguen los pacientes y abrir el correcto
+  const intentar = setInterval(() => {
+    if (!todosPacientes.length) return;
+    clearInterval(intentar);
+    const pac = todosPacientes.find(p => p.id === pacId);
+    const idx = todosPacientes.findIndex(p => p.id === pacId);
+    if (pac) abrirDetalle(pac, idx);
+  }, 200);
+  setTimeout(() => clearInterval(intentar), 5000); // timeout 5s
+}
+
 async function cargarPacientes(){
   const { data, error } = await sb.from('pacientes')
     .select('id,nombre,apellido,telefono,activo')
@@ -602,6 +671,7 @@ function renderStats(total){
       <div class="stat-card"><div class="stat-num" id="statEste">—</div><div class="stat-label">Este mes</div></div>
     </div>`;
   cargarStatsGlobales();
+  checkURLParams();
 }
 
 async function cargarStatsGlobales(){
@@ -672,6 +742,7 @@ function switchDetailTab(tab){
   });
   document.querySelectorAll('.detail-view').forEach(v=>v.classList.remove('active'));
   const map = {sesiones:'dtSesiones',info:'dtInfo',informe:'dtInforme'};
+  if(tab === 'informe') { setTimeout(cargarInformesGuardados, 200); }
   document.getElementById(map[tab]).classList.add('active');
 }
 
@@ -1072,37 +1143,48 @@ FORMATO:
 5. Cierre formal y firma`;
     }
 
-    const prompt = `Sos un psicólogo clínico argentino experto en redacción de informes para juzgados, obras sociales e instituciones. Generá un informe profesional real basado en los datos provistos.
+    const prompt = `Sos un psicólogo clínico argentino con amplia experiencia en redacción de informes psicológicos para juzgados, obras sociales, prepagas e instituciones educativas. Tu escritura es impecable, técnica y jurídicamente sólida. Generá el informe completo y listo para imprimir basándote exclusivamente en los datos provistos.
 
-PROFESIONAL: ${encabezadoProfesional}
+DATOS DEL PROFESIONAL:
+${encabezadoProfesional}
 
-PACIENTE: ${pac.nombre} ${pac.apellido}
+DATOS DEL PACIENTE:
+Nombre completo: ${pac.nombre} ${pac.apellido}
+${pac.fecha_nacimiento ? `Fecha de nacimiento: ${pac.fecha_nacimiento}` : ''}
+${pac.dni ? `DNI: ${pac.dni}` : ''}
 
-DATOS CLÍNICOS:
+HISTORIA CLÍNICA:
 ${datosClinicosStr}
 
-TRATAMIENTO:
-- Sesiones realizadas: ${totalSesiones}
-- Primera sesión: ${primeraFecha}
-- Última sesión: ${ultimaFecha}
-${moodPromDesc ? `- Estado de ánimo observado: ${moodPromDesc}` : ''}
-${diagsOrdenados.length ? `- Diagnósticos trabajados: ${diagsOrdenados.join(', ')}` : ''}
+ESTADÍSTICAS DEL TRATAMIENTO:
+- Total de sesiones realizadas: ${totalSesiones}
+- Inicio del tratamiento: ${primeraFecha}
+- Última sesión registrada: ${ultimaFecha}
+${moodPromDesc ? `- Estado de ánimo predominante en sesiones: ${moodPromDesc}` : ''}
+${diagsOrdenados.length ? `- Diagnósticos de trabajo (CIE-11 / DSM-5): ${diagsOrdenados.join(', ')}` : ''}
 
-NOTAS DE SESIONES RECIENTES:
-${notasResumen || 'Tratamiento en curso.'}
+RESUMEN DE SESIONES RECIENTES:
+${notasResumen || 'Tratamiento en curso con evolución acorde a los objetivos planteados.'}
 
-${observaciones ? 'INSTRUCCIONES DEL PROFESIONAL: '+observaciones : ''}
+${observaciones ? `INDICACIONES ESPECÍFICAS DEL PROFESIONAL:\n${observaciones}` : ''}
 
 ${instruccionesTipo}
 
-REGLAS CRÍTICAS:
-- Redactá en primera persona del profesional ("quien suscribe", "el suscripto")
-- Párrafos corridos y fluidos — PROHIBIDO usar títulos en negrita, bullets o subtítulos de sección
-- Lenguaje técnico-clínico argentino, preciso y sin relleno
-- Si un dato no está disponible, omitilo — NUNCA escribas "no registrado" ni menciones ausencia de datos
-- NO integrés el teléfono del paciente en el informe
-- El texto debe verse exactamente como un informe que un psicólogo firmaría y presentaría hoy
-- Terminá con firma: nombre completo, título, M.P. y M.N.`;
+REGLAS ABSOLUTAS DE REDACCIÓN:
+- Redactá SIEMPRE en primera persona del profesional: "quien suscribe", "el/la suscripto/a", "he podido observar", "en mi carácter de"
+- PROHIBIDO TERMINANTEMENTE: títulos en negrita, bullets, guiones, subtítulos, numeración de secciones o cualquier elemento de lista
+- El informe debe ser párrafos corridos, fluidos y bien conectados entre sí
+- Lenguaje técnico-clínico argentino: usá terminología del DSM-5 y/o CIE-11 cuando corresponda (ej: "Trastorno depresivo mayor, episodio moderado — F32.1 CIE-11 / 296.22 DSM-5")
+- Si hay diagnóstico disponible, siempre incluí el código nosográfico correspondiente (CIE-11 preferentemente, o DSM-5)
+- Si un dato no está disponible, simplemente no lo menciones — NUNCA escribas "no registrado", "sin datos" ni nada similar
+- NO menciones el teléfono del paciente bajo ninguna circunstancia
+- Extensión: mínimo 3 párrafos bien desarrollados, máximo lo que el tipo de informe requiera
+- El texto final debe poder imprimirse y presentarse tal cual, sin edición posterior
+- Cerrá SIEMPRE con la firma en este formato exacto:
+  [saludo protocolar según tipo]
+  [nombre completo del profesional]
+  [título]
+  [M.P. y/o M.N.]`
 
     const response = await fetch(SUPA_URL + '/functions/v1/generar-informe', {
       method: 'POST',
@@ -1119,7 +1201,11 @@ REGLAS CRÍTICAS:
     if(data.error){
       output.textContent = '❌ Error: ' + data.error;
     } else {
-      output.textContent = data.texto || 'Sin respuesta';
+      const textoInforme = data.texto || 'Sin respuesta';
+      output.textContent = textoInforme;
+      resultCard.style.display = 'block';
+      // AUTO-GUARDAR en Supabase
+      await guardarInformeEnDB(textoInforme, tipoInformeSeleccionado);
     }
 
   } catch(e) {
@@ -1130,6 +1216,310 @@ REGLAS CRÍTICAS:
   btn.disabled = false;
   btn.innerHTML = '✨ Generar Informe con IA';
 }
+
+async function guardarInformeEnDB(texto, tipo) {
+  try {
+    const { error } = await sb.from('informes_clinicos').insert({
+      paciente_id: pacienteActual.id,
+      user_id: userId,
+      tipo: tipo,
+      texto: texto,
+      destinatario: document.getElementById('informeDestinatario').value.trim() || null,
+      created_at: new Date().toISOString()
+    });
+    if (!error) {
+      showToast('✅ Informe guardado en el historial del paciente');
+      cargarInformesGuardados();
+    }
+  } catch(e) { console.warn('No se pudo guardar informe:', e); }
+}
+
+async function cargarInformesGuardados() {
+  const { data } = await sb.from('informes_clinicos')
+    .select('*')
+    .eq('paciente_id', pacienteActual.id)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  
+  const cont = document.getElementById('informesGuardadosList');
+  if (!cont) return;
+  if (!data || !data.length) { cont.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:12px;">Sin informes guardados aún</p>'; return; }
+  
+  const tipoLabel = { clinico: '🏥 Clínico', juzgado: '⚖️ Juzgado', obrasocial: '📋 Obra Social' };
+  cont.innerHTML = data.map(inf => `
+    <div style="background:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);cursor:pointer;" onclick="verInformeGuardado(${JSON.stringify(inf).replace(/"/g,'&quot;')})">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:12px;font-weight:800;color:var(--primary)">${tipoLabel[inf.tipo] || inf.tipo}</span>
+        <span style="font-size:11px;color:var(--muted)">${new Date(inf.created_at).toLocaleDateString('es-AR')}</span>
+      </div>
+      ${inf.destinatario ? `<div style="font-size:11px;color:var(--muted);margin-top:3px;">Para: ${inf.destinatario}</div>` : ''}
+      <div style="font-size:12px;color:var(--text);margin-top:6px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${inf.texto.slice(0,120)}…</div>
+    </div>
+  `).join('');
+}
+
+function verInformeGuardado(inf) {
+  document.getElementById('informeOutput').textContent = inf.texto;
+  document.getElementById('informeResultadoCard').style.display = 'block';
+  document.getElementById('informeResultadoCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ===== PROCESAR SESIÓN CON IA =====
+
+async function procesarSesionIA() {
+  if (!sesionActual) { showToast('⚠️ No hay sesión cargada'); return; }
+  
+  const resultDiv = document.getElementById('procesarIAResult');
+  const loading = document.getElementById('procesarIALoading');
+  const output = document.getElementById('procesarIAOutput');
+  const alertaDiv = document.getElementById('alertaRiesgo');
+  const alertaTexto = document.getElementById('alertaRiesgoTexto');
+  
+  resultDiv.style.display = 'block';
+  loading.style.display = 'flex';
+  alertaDiv.style.display = 'none';
+  output.textContent = '';
+  resultDiv.scrollIntoView({ behavior: 'smooth' });
+
+  // Armar contexto de sesiones previas
+  const sesionesRealizadas = sesionesActuales.filter(s => s.estado === 'realizada' && s.id !== sesionActual.id)
+    .sort((a,b) => new Date(b.fecha)-new Date(a.fecha)).slice(0,3);
+  const contextoAnterior = sesionesRealizadas.length 
+    ? sesionesRealizadas.map(s => `[${formatFecha(s.fecha)}] ${s.notas||s.motivo||'Sin notas'}`).join('
+')
+    : 'Primera sesión del paciente';
+
+  const notasSesion = [sesionActual.motivo, sesionActual.notas].filter(Boolean).join('. ') || 'Sin notas registradas';
+
+  const prompt = `Sos un psicólogo clínico argentino supervisando una sesión. Analizá las notas y generá un informe de procesamiento clínico.
+
+PACIENTE: ${pacienteActual.nombre} ${pacienteActual.apellido}
+SESIÓN N°: ${sesionActual.numero || '?'} — Fecha: ${formatFecha(sesionActual.fecha)}
+TIPO: ${sesionActual.tipo || 'Individual'}
+ESTADO DE ÁNIMO: ${sesionActual.estado_animo ? sesionActual.estado_animo + '/5' : 'No registrado'}
+
+NOTAS DE ESTA SESIÓN:
+${notasSesion}
+
+SESIONES ANTERIORES (contexto):
+${contextoAnterior}
+
+RESPONDÉ EXACTAMENTE CON ESTE FORMATO (usá estos títulos sin negrita ni markdown):
+
+RESUMEN CLÍNICO:
+[3-5 líneas con síntesis de lo trabajado en esta sesión]
+
+EVOLUCIÓN RESPECTO A SESIONES ANTERIORES:
+[Comparación con el proceso previo, cambios observados]
+
+SUGERENCIA CLÍNICA:
+[Líneas de abordaje recomendadas para próximas sesiones]
+
+ALERTA:
+[Si detectás riesgo emocional, consumo problemático, ideación, angustia elevada o cualquier señal de riesgo, describilo aquí. Si no hay riesgo, escribí: Sin alertas.]
+
+Lenguaje técnico-clínico argentino.`;
+
+  try {
+    const response = await fetch(SUPA_URL + '/functions/v1/generar-informe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_KEY },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await response.json();
+    loading.style.display = 'none';
+    
+    const texto = data.texto || data.error || 'Sin respuesta';
+    
+    // Detectar alerta de riesgo
+    const alertaMatch = texto.match(/ALERTA:\s*([\s\S]*?)(?=
+[A-Z]|$)/i);
+    if (alertaMatch) {
+      const alertaContenido = alertaMatch[1].trim();
+      if (alertaContenido && !alertaContenido.toLowerCase().includes('sin alerta') && alertaContenido.length > 10) {
+        alertaDiv.style.display = 'block';
+        alertaTexto.textContent = alertaContenido;
+      }
+    }
+    
+    output.textContent = texto;
+  } catch(e) {
+    loading.style.display = 'none';
+    output.textContent = '❌ Error: ' + e.message;
+  }
+}
+
+// ===== FUNCIONES IA ADICIONALES =====
+
+async function llamarIAExtra(loadingText, prompt) {
+  const output = document.getElementById('iaExtraResult');
+  const loading = document.getElementById('iaExtraLoading');
+  const loadingTextEl = document.getElementById('iaExtraLoadingText');
+  const cont = document.getElementById('iaExtraOutput');
+  
+  cont.style.display = 'block';
+  loading.style.display = 'flex';
+  loadingTextEl.textContent = loadingText;
+  output.textContent = '';
+  cont.scrollIntoView({ behavior: 'smooth' });
+
+  try {
+    const response = await fetch(SUPA_URL + '/functions/v1/generar-informe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_KEY },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await response.json();
+    loading.style.display = 'none';
+    output.textContent = data.texto || data.error || 'Sin respuesta';
+  } catch(e) {
+    loading.style.display = 'none';
+    output.textContent = '❌ Error: ' + e.message;
+  }
+}
+
+async function verEvolucionIA() {
+  const sesiones = sesionesActuales.filter(s => s.estado === 'realizada').sort((a,b) => new Date(a.fecha)-new Date(b.fecha));
+  if (sesiones.length < 2) { showToast('⚠️ Necesitás al menos 2 sesiones realizadas'); return; }
+  
+  const resumen = sesiones.map((s,i) => 
+    `Sesión ${i+1} (${formatFecha(s.fecha)}): ${s.motivo||''} ${s.notas||''} ${s.estado_animo ? '| Ánimo: '+s.estado_animo+'/5' : ''}`.trim()
+  ).join('
+');
+
+  const prompt = `Sos un psicólogo clínico argentino. Analizá la evolución de este paciente a lo largo de sus sesiones y redactá una síntesis clínica profesional.
+
+PACIENTE: ${pacienteActual.nombre} ${pacienteActual.apellido}
+TOTAL DE SESIONES: ${sesiones.length}
+
+REGISTRO DE SESIONES (cronológico):
+${resumen}
+
+REDACTÁ:
+1. Evolución general del tratamiento (mejoría / estancamiento / empeoramiento)
+2. Áreas afectadas y cambios observados
+3. Tendencias clínicas relevantes
+4. Recomendaciones para las próximas sesiones
+
+REGLAS: párrafos corridos, lenguaje técnico-clínico argentino, sin bullets ni títulos en negrita.`;
+
+  await llamarIAExtra('Analizando evolución del paciente…', prompt);
+}
+
+async function sugerirDiagnosticoIA() {
+  const info = infoClinicaActual || {};
+  const sesiones = sesionesActuales.filter(s => s.estado === 'realizada').slice(-5);
+  const notas = sesiones.map(s => `[${formatFecha(s.fecha)}] ${s.motivo||''} ${s.notas||''}`).join('
+');
+  
+  const prompt = `Sos un psicólogo clínico argentino experto en nosografía. Basándote en los datos clínicos, sugerí posibles diagnósticos diferenciales usando CIE-11 y DSM-5. NO seas categórico — son hipótesis diagnósticas para orientar el trabajo clínico.
+
+MOTIVO DE CONSULTA: ${info.motivo_consulta || 'No especificado'}
+ANTECEDENTES: ${info.antecedentes || 'No especificados'}
+DIAGNÓSTICO PREVIO: ${info.diagnostico_principal || 'Sin diagnóstico previo'}
+MEDICACIÓN ACTUAL: ${info.medicacion || 'Sin medicación'}
+ENFOQUE TERAPÉUTICO: ${info.enfoque_terapeutico || 'No especificado'}
+
+NOTAS DE ÚLTIMAS SESIONES:
+${notas || 'Sin notas registradas'}
+
+RESPONDÉ CON:
+1. Diagnóstico/s presuntivo/s más probable/s (con código CIE-11 y DSM-5)
+2. Breve fundamentación clínica de cada uno
+3. Diagnósticos diferenciales a descartar
+4. Indicadores que ayudarían a confirmar o descartar
+
+Aclará que son hipótesis orientativas, no diagnósticos definitivos.`;
+
+  await llamarIAExtra('Analizando cuadro clínico…', prompt);
+}
+
+async function sugerirPlanIA() {
+  const info = infoClinicaActual || {};
+  const sesiones = sesionesActuales.filter(s => s.estado === 'realizada');
+  
+  const prompt = `Sos un psicólogo clínico argentino. Diseñá un plan terapéutico orientativo basado en los datos del paciente.
+
+PACIENTE: ${pacienteActual.nombre} ${pacienteActual.apellido}
+MOTIVO DE CONSULTA: ${info.motivo_consulta || 'No especificado'}
+DIAGNÓSTICO: ${info.diagnostico_principal || 'En evaluación'}
+ENFOQUE TERAPÉUTICO: ${info.enfoque_terapeutico || 'No especificado'}
+SESIONES REALIZADAS: ${sesiones.length}
+OBJETIVOS PREVIOS: ${info.objetivos || 'Sin objetivos registrados'}
+
+REDACTÁ UN PLAN CON:
+1. Objetivos terapéuticos generales y específicos
+2. Intervenciones sugeridas acordes al enfoque
+3. Indicadores de progreso esperados
+4. Frecuencia y modalidad de trabajo sugerida
+5. Aspectos a monitorear
+
+Lenguaje técnico-clínico argentino, párrafos corridos, sin bullets.`;
+
+  await llamarIAExtra('Diseñando plan terapéutico…', prompt);
+}
+
+async function generarMensajeWA() {
+  // Show type selector
+  const tipo = await new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
+    overlay.innerHTML = `
+      <div style="background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:430px;">
+        <div style="font-size:15px;font-weight:800;margin-bottom:16px;">💬 Tipo de mensaje</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button onclick="this.closest('div[style]').dataset.tipo='recordatorio'" style="background:var(--primary-light);color:var(--primary);border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">⏰ Recordatorio de turno</button>
+          <button onclick="this.closest('div[style]').dataset.tipo='reprogramacion'" style="background:#FEF3C7;color:#92400E;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">📅 Reprogramación</button>
+          <button onclick="this.closest('div[style]').dataset.tipo='ausente'" style="background:#FEE2E2;color:#991B1B;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">❌ Paciente ausente</button>
+          <button onclick="this.closest('div[style]').dataset.tipo='seguimiento'" style="background:#ECFDF5;color:#065F46;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;">💚 Seguimiento / Cómo estás</button>
+        </div>
+        <button onclick="document.body.removeChild(this.closest('[style*=fixed]'));resolve(null)" style="margin-top:12px;width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:11px;font-size:13px;color:var(--muted);cursor:pointer;">Cancelar</button>
+      </div>`;
+    
+    // Handle button clicks
+    overlay.querySelectorAll('button:not(:last-child)').forEach(btn => {
+      btn.addEventListener('click', () => {
+        resolve(btn.dataset.tipo || btn.textContent.trim());
+        document.body.removeChild(overlay);
+      });
+    });
+    overlay.querySelector('button:last-child').addEventListener('click', () => {
+      resolve(null);
+      document.body.removeChild(overlay);
+    });
+    document.body.appendChild(overlay);
+  });
+  
+  if (!tipo) return;
+  
+  const tipoDescripcion = {
+    recordatorio: 'recordatorio amigable de su próximo turno de psicología. Incluí día y hora si los tenés, o dejá espacio para completar.',
+    reprogramacion: 'mensaje para reprogramar un turno cancelado. Tono empático, sin hacer sentir mal al paciente.',
+    ausente: 'mensaje para un paciente que no se presentó a su sesión sin avisar. Tono comprensivo, sin reproches, invitando a reagendar.',
+    seguimiento: 'mensaje de seguimiento entre sesiones preguntando cómo está el paciente. Breve, cálido, profesional.'
+  };
+
+  const prompt = `Sos un psicólogo clínico argentino. Redactá un ${tipoDescripcion[tipo] || tipo}
+
+PACIENTE: ${pacienteActual.nombre}
+PROFESIONAL: psicólogo/a
+
+REQUISITOS:
+- Máximo 3-4 líneas
+- Tono empático y profesional
+- Español argentino informal pero respetuoso
+- No uses asteriscos ni formato markdown
+- Listo para enviar por WhatsApp`;
+
+  await llamarIAExtra('Redactando mensaje…', prompt);
+}
+
+function copiarIAExtra() {
+  const texto = document.getElementById('iaExtraResult').textContent;
+  navigator.clipboard.writeText(texto).then(() => showToast('✅ Copiado al portapapeles'));
+}
+
+// ===== FIN FUNCIONES IA ADICIONALES =====
 
 function copiarInforme(){
   const texto = document.getElementById('informeOutput').textContent;

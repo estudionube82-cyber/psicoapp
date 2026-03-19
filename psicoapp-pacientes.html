@@ -426,6 +426,10 @@ body {
       <button class="btn-action btn-wp" id="det-wp-btn">💬 WhatsApp</button>
       <button class="btn-action btn-del" onclick="eliminarPaciente()">🗑 Eliminar</button>
     </div>
+    <button onclick="irAHistoriaClinica()"
+      style="width:100%;background:var(--primary);color:white;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
+      🧠 Ver Historia Clínica
+    </button>
     <button onclick="cerrarDetalle()"
       style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">
       Cerrar
@@ -565,7 +569,7 @@ function renderLista(lista) {
       : `<div class="patient-badge pb-particular">Particular</div>`;
     const tel = p.telefono ? `💬 ${p.telefono}` : 'Sin teléfono';
     html += `
-      <div class="patient-card" onclick="abrirDetalle('${p.id}')">
+      <div class="patient-card" onclick="abrirDetalle('${p.id}')" ondblclick="window.location.href='psicoapp-historia.html?id=${p.id}'">
         <div class="patient-avatar ${color}">${inicial1}${inicial2}</div>
         <div class="patient-info">
           <div class="patient-name">${p.apellido}, ${p.nombre}</div>
@@ -699,6 +703,11 @@ function fila(icon, label, val) {
 function cerrarDetalle() {
   document.getElementById('overlayDetalle').classList.remove('open');
   pacienteSeleccionado = null;
+}
+
+function irAHistoriaClinica() {
+  if (!pacienteSeleccionado) return;
+  window.location.href = `psicoapp-historia.html?id=${pacienteSeleccionado.id}`;
 }
 
 async function eliminarPaciente() {
