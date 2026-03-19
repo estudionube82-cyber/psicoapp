@@ -610,17 +610,29 @@ let editandoSesionId = null;
 let userId = null;
 
 // ---- AUTH ----
+// Usar getSession() para no depender solo de onAuthStateChange
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    userId = session.user.id;
+    init();
+  }
+})();
+
 sb.auth.onAuthStateChange((event, session) => {
   if (!session) { window.location.href = 'login.html'; return; }
-  userId = session.user.id;
-  init();
+  if (!userId) {
+    userId = session.user.id;
+    init();
+  }
 });
 
 async function init() {
   const paramId = new URLSearchParams(window.location.search).get('id');
   if (paramId) {
-    // Vino desde pacientes — cargar ese paciente directo, sin mostrar la lista
-    const { data, error } = await sb.from('pacientes')
+    // Mostrar loading claro mientras buscamos
+    document.getElementById('pacList').innerHTML = '<div class="loading">Cargando paciente…</div>';
+    const { data } = await sb.from('pacientes')
       .select('id,nombre,apellido,telefono,activo')
       .eq('id', paramId)
       .eq('user_id', userId)
@@ -628,7 +640,7 @@ async function init() {
     if (data) {
       todosPacientes = [data];
       abrirDetalle(data, 0);
-      // Cargar el resto en background para búsqueda
+      // Cargar el resto en background
       sb.from('pacientes').select('id,nombre,apellido,telefono,activo')
         .eq('user_id', userId).eq('activo', true).order('apellido')
         .then(({ data: todos }) => { if (todos) todosPacientes = todos; });
