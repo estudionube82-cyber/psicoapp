@@ -36,6 +36,9 @@
   --sb-text: rgba(255,255,255,0.65);
   --sb-active: rgba(255,255,255,0.1);
   --sb-border: rgba(255,255,255,0.08);
+  --accent-light: #FDE8F5;
+  --danger: #E53E3E;
+  --danger-light: #FFF5F5;
 }
 [data-theme="dark"] {
   --bg: #0F0B1E;
@@ -53,6 +56,9 @@
   --sb-text: rgba(255,255,255,0.55);
   --sb-active: rgba(124,58,237,0.2);
   --sb-border: rgba(255,255,255,0.06);
+  --accent-light: rgba(244,114,182,0.15);
+  --danger: #FC8181;
+  --danger-light: rgba(229,62,62,0.12);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
@@ -737,7 +743,7 @@ body { transition: background var(--transition), color var(--transition); }
   </div>
   <div class="stat-card">
     <div class="stat-card-top">
-      <div class="stat-icon" style="background:#F3FFF6">🌱</div>
+      <div class="stat-icon" style="background:var(--primary-light)">🌱</div>
       <div class="stat-trend trend-up">Este mes</div>
     </div>
     <div class="stat-num" style="color:#388E3C">2</div>
@@ -827,7 +833,7 @@ body { transition: background var(--transition), color var(--transition); }
   <div class="income-card">
     <div class="income-main">
       <div class="income-amount">$900.000</div>
-      <div class="income-sub">de $1.550.000 esperados</div>
+      <div class="income-sub">de $1.200.000 esperados</div>
     </div>
     <div class="income-bar-container">
       <div class="income-bar"></div>
@@ -853,16 +859,7 @@ body { transition: background var(--transition), color var(--transition); }
           <div class="income-meta">⏳ Pendiente presentación</div>
         </div>
       </div>
-      <div class="income-row">
-        <div class="income-row-label">
-          <div class="income-dot" style="background:var(--accent)"></div>
-          Pericias judiciales
-        </div>
-        <div>
-          <div class="income-val">$0</div>
-          <div class="income-meta">1 en curso</div>
-        </div>
-      </div>
+
     </div>
   </div>
 </div>
@@ -890,7 +887,7 @@ body { transition: background var(--transition), color var(--transition); }
       </div>
       <div class="wp-pi-time">08:00</div>
     </div>
-    <div class="wp-pending-item" style="border-left-color:var(--danger);background:#FFF8F8">
+    <div class="wp-pending-item" style="border-left-color:var(--danger);background:var(--danger-light)">
       <div class="wp-pi-avatar" style="background:#FFCDD2">⚠️</div>
       <div class="wp-pi-info">
         <div class="wp-pi-name" style="color:var(--danger)">Error — Laura Pérez</div>
@@ -951,8 +948,8 @@ function toggleTheme(){
   width: 100%;
   max-width: 430px;
   height: 64px;
-  background: #fff;
-  border-top: 1.5px solid #E8E4DD;
+  background: var(--surface);
+  border-top: 1.5px solid var(--border);
   display: flex;
   align-items: center;
   z-index: 2147483647;
@@ -973,7 +970,7 @@ function toggleTheme(){
 .app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
 .app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
 .app-nav a.on .nl { color: var(--primary); }
-.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(45,106,79,0.5)); }
+.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(92,47,168,0.5)); }
 </style>
 <nav class="app-nav">
   <a href="index.html" class="on"><span class="ni">📊</span><span class="nl">Inicio</span></a>
