@@ -1,21 +1,63 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>PsicoApp — Historia Clínica</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="psicoapp-limites.js"></script>
 <style>
 :root {
-  --bg:#F4F1ED; --surface:#FFFFFF; --primary:#2D6A4F; --primary-light:#E8F5EE;
-  --accent:#F4A261; --text:#1A1A2E; --muted:#8A8FA8; --border:#E8E4DD;
-  --sh:0 2px 8px rgba(0,0,0,0.06); --sh-md:0 4px 20px rgba(0,0,0,0.10); --r:14px;
-  --danger:#E53935; --warn:#F59E0B; --info:#1976D2;
+  --v1: #5B2FA8;
+  --v2: #7C3AED;
+  --v3: #A78BFA;
+  --v4: #EDE9FE;
+  --v5: #F5F3FF;
+  --accent: #F472B6;
+  --accent2: #34D399;
+  --radius: 16px;
+  --radius-sm: 11px;
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Fraunces', serif;
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg: #F8F7FF;
+  --surface: #FFFFFF;
+  --surface2: #F3F0FF;
+  --border: #E5E2F5;
+  --text: #1E1040;
+  --text-muted: #7C6FAE;
+  --shadow-sm: 0 2px 8px rgba(108,63,197,0.07);
+  --shadow-md: 0 6px 24px rgba(108,63,197,0.12);
+  --primary: #5B2FA8;
+  --primary-light: #EDE9FE;
+  --primary-mid: #A78BFA;
+  --sb-bg: #1E1040;
+  --sb-text: rgba(255,255,255,0.65);
+  --sb-active: rgba(255,255,255,0.1);
+  --sb-border: rgba(255,255,255,0.08);
+}
+[data-theme="dark"] {
+  --bg: #0F0B1E;
+  --surface: #1A1530;
+  --surface2: #221D3A;
+  --border: #2E2850;
+  --text: #EDE9FE;
+  --text-muted: #9D8EC7;
+  --shadow-sm: 0 2px 12px rgba(0,0,0,0.25);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.4);
+  --primary: #7C3AED;
+  --primary-light: rgba(124,58,237,0.15);
+  --primary-mid: #A78BFA;
+  --sb-bg: #13102A;
+  --sb-text: rgba(255,255,255,0.55);
+  --sb-active: rgba(124,58,237,0.2);
+  --sb-border: rgba(255,255,255,0.06);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;}
+body{font-family: var(--font);background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;}
 
 /* HEADER */
 .header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--sh);}
@@ -33,7 +75,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 
 /* SEARCH */
 .search-wrap{padding:14px 16px 8px;}
-.search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px 10px 40px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;color:var(--text);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A8FA8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;}
+.search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px 10px 40px;font-size:14px;font-family: var(--font);outline:none;color:var(--text);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A8FA8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;}
 .search-input:focus{border-color:var(--primary);}
 
 /* LISTA PACIENTES */
@@ -64,7 +106,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 /* SESIONES LIST */
 .sesiones-header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;}
 .sesiones-title{font-size:15px;font-weight:800;}
-.btn-nueva-sesion{background:var(--primary);color:white;border:none;border-radius:11px;padding:8px 14px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-nueva-sesion{background:var(--primary);color:white;border:none;border-radius:11px;padding:8px 14px;font-size:13px;font-weight:700;font-family: var(--font);cursor:pointer;display:flex;align-items:center;gap:6px;}
 .sesiones-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
 .sesion-card{background:var(--surface);border-radius:14px;padding:14px;box-shadow:var(--sh);cursor:pointer;transition:box-shadow 0.15s;border-left:4px solid var(--primary);}
 .sesion-card:hover{box-shadow:var(--sh-md);}
@@ -99,7 +141,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 .info-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
 .info-value{font-size:14px;font-weight:600;color:var(--text);}
 .info-value.empty{color:var(--muted);font-weight:400;font-style:italic;}
-.btn-edit-info{width:100%;background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;}
+.btn-edit-info{width:100%;background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;font-family: var(--font);cursor:pointer;margin-top:4px;}
 
 /* ======= MODAL SESIÓN ======= */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;}
@@ -115,7 +157,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 /* FORM STYLES */
 .form-group{margin-bottom:16px;}
 .form-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block;}
-.form-input,.form-select,.form-textarea{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color 0.15s;}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;font-size:14px;font-family: var(--font);color:var(--text);outline:none;transition:border-color 0.15s;}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--primary);background:white;}
 .form-textarea{resize:vertical;min-height:90px;line-height:1.6;}
 .form-textarea.tall{min-height:120px;}
@@ -137,9 +179,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 .mood-btn.sel span{color:var(--primary);}
 
 /* BTN GUARDAR */
-.btn-guardar{width:100%;background:var(--primary);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
+.btn-guardar{width:100%;background:var(--primary);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;font-family: var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
 .btn-guardar:disabled{opacity:0.6;cursor:not-allowed;}
-.btn-danger{background:#FEE2E2;color:var(--danger);border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;margin-top:8px;}
+.btn-danger{background:#FEE2E2;color:var(--danger);border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;font-family: var(--font);cursor:pointer;width:100%;margin-top:8px;}
 
 /* SESIÓN DETALLE */
 .sesion-detail-header{background:var(--primary);padding:16px 18px;display:flex;align-items:center;gap:12px;}
@@ -153,7 +195,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 .sesion-mood-display{display:flex;align-items:center;gap:10px;}
 .sesion-mood-emoji{font-size:28px;}
 .sesion-mood-label{font-size:14px;font-weight:700;color:var(--text);}
-.btn-edit-sesion{background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px 18px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;margin:0 16px;}
+.btn-edit-sesion{background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px 18px;font-size:13px;font-weight:700;font-family: var(--font);cursor:pointer;display:flex;align-items:center;gap:6px;margin:0 16px;}
 
 /* MODAL EDIT INFO */
 .modal-info-body{padding:16px 20px;}
@@ -197,15 +239,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 .informe-section{padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
 .informe-card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--sh);}
 .informe-card-title{font-size:13px;font-weight:800;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-.btn-generar-ia{width:100%;background:linear-gradient(135deg,#2D6A4F,#1976D2);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-generar-ia{width:100%;background:linear-gradient(135deg,#2D6A4F,#1976D2);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;font-family: var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-generar-ia:disabled{opacity:0.6;cursor:not-allowed;}
-.informe-output{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;min-height:200px;font-family:'DM Sans',sans-serif;}
+.informe-output{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;min-height:200px;font-family: var(--font);}
 .informe-output.generando{color:var(--muted);font-style:italic;}
-.btn-copiar{background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;}
+.btn-copiar{background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;font-family: var(--font);cursor:pointer;width:100%;}
 .informe-tipo-btns{display:flex;gap:8px;margin-bottom:4px;}
-.informe-tipo-btn{flex:1;padding:9px;border-radius:11px;border:2px solid var(--border);background:var(--surface);font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;color:var(--muted);}
+.informe-tipo-btn{flex:1;padding:9px;border-radius:11px;border:2px solid var(--border);background:var(--surface);font-size:12px;font-weight:700;font-family: var(--font);cursor:pointer;transition:all 0.15s;color:var(--muted);}
 .informe-tipo-btn.sel{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
-.informe-destino-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;}
+.informe-destino-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;font-family: var(--font);color:var(--text);outline:none;}
 .informe-destino-input:focus{border-color:var(--primary);}
 .ia-loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;padding:20px 0;}
 .ia-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);animation:iaPulse 1.2s infinite;}
@@ -229,7 +271,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
     height: 100vh;
     position: sticky;
     top: 0;
-    background: #1B4332;
+    background: var(--sb-bg);
     padding: 28px 0 20px;
     z-index: 100;
     overflow-y: auto;
@@ -250,6 +292,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
   .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
 }
+
+/* ══ TEMA CLARO/OSCURO ══ */
+.theme-toggle {
+  width: 50px; height: 26px; border-radius: 20px;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  cursor: pointer; position: relative; display: flex;
+  align-items: center; padding: 0 3px;
+  transition: all var(--transition); flex-shrink: 0;
+}
+[data-theme="dark"] .theme-toggle { background: var(--v2); border-color: var(--v2); }
+.toggle-thumb {
+  width: 19px; height: 19px; border-radius: 50%; background: white;
+  transition: transform var(--transition);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+[data-theme="dark"] .toggle-thumb { transform: translateX(22px); }
+/* Sidebar violeta */
+.sidebar, aside.sidebar {
+  background: var(--sb-bg) !important;
+  transition: background var(--transition) !important;
+}
+.sb-item, .sb-item a { color: var(--sb-text) !important; }
+.sb-item:hover, .sb-item.active, .sb-item.sb-active { background: var(--sb-active) !important; color: white !important; }
+.sb-logo, .sidebar .sb-logo { color: white !important; }
+.sb-logo span { color: var(--v3) !important; }
+.sb-section { color: var(--sb-text) !important; }
+.sb-footer { border-top-color: var(--sb-border) !important; }
+.sb-user-name { color: white !important; }
+.sb-user-role { color: var(--sb-text) !important; }
+/* Body transitions */
+body { transition: background var(--transition), color var(--transition); }
+.header, .app-nav { transition: background var(--transition), border-color var(--transition); }
+
 </style>
 </head>
 <body>
@@ -313,7 +389,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
 
   <div class="drawer-footer">
     <button class="drawer-logout" onclick="doLogout()">🚪 Cerrar sesión</button>
-  </div>
+  
+  <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" style="margin-left:4px;"><div class="toggle-thumb" id="toggle-thumb">☀️</div></button></div>
 </div>
 
 <!-- HEADER -->
@@ -488,7 +565,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max
   
   <!-- BOTÓN PROCESAR SESIÓN CON IA -->
   <div style="padding:14px 16px;">
-    <button onclick="procesarSesionIA()" style="width:100%;background:linear-gradient(135deg,var(--primary),#2D6A4F);color:white;border:none;border-radius:14px;padding:13px 16px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+    <button onclick="procesarSesionIA()" style="width:100%;background:linear-gradient(135deg,var(--primary),#2D6A4F);color:white;border:none;border-radius:14px;padding:13px 16px;font-size:14px;font-weight:700;font-family: var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
       🧠 Procesar sesión con IA
     </button>
   </div>
@@ -1760,7 +1837,24 @@ function imprimirInforme(){
     <pre>${texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
     ${firmaHtml}
     <script>window.onload=()=>{window.print();}<\/script>
-  </body></html>`);
+  <script>
+// ── TEMA CLARO/OSCURO ──
+(function(){
+  var saved = localStorage.getItem('psicoapp-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  var th = document.getElementById('toggle-thumb');
+  if(th) th.textContent = saved === 'dark' ? '🌙' : '☀️';
+})();
+function toggleTheme(){
+  var html = document.documentElement;
+  var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('psicoapp-theme', next);
+  var th = document.getElementById('toggle-thumb');
+  if(th) th.textContent = next === 'dark' ? '🌙' : '☀️';
+}
+</script>
+</body></html>`);
   win.document.close();
 }
 

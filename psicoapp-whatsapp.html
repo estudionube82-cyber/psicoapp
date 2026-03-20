@@ -1,21 +1,63 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>PsicoApp — WhatsApp</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="psicoapp-limites.js"></script>
 <style>
 :root {
-  --bg:#F4F1ED; --surface:#FFFFFF; --primary:#2D6A4F; --primary-light:#E8F5EE;
-  --accent:#F4A261; --text:#1A1A2E; --muted:#8A8FA8; --border:#E8E4DD;
-  --wp:#25D366; --wp-dark:#075E54; --wp-light:#DCF8C6;
-  --sh:0 2px 8px rgba(0,0,0,0.06); --sh-md:0 4px 20px rgba(0,0,0,0.10); --r:14px;
+  --v1: #5B2FA8;
+  --v2: #7C3AED;
+  --v3: #A78BFA;
+  --v4: #EDE9FE;
+  --v5: #F5F3FF;
+  --accent: #F472B6;
+  --accent2: #34D399;
+  --radius: 16px;
+  --radius-sm: 11px;
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Fraunces', serif;
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg: #F8F7FF;
+  --surface: #FFFFFF;
+  --surface2: #F3F0FF;
+  --border: #E5E2F5;
+  --text: #1E1040;
+  --text-muted: #7C6FAE;
+  --shadow-sm: 0 2px 8px rgba(108,63,197,0.07);
+  --shadow-md: 0 6px 24px rgba(108,63,197,0.12);
+  --primary: #5B2FA8;
+  --primary-light: #EDE9FE;
+  --primary-mid: #A78BFA;
+  --sb-bg: #1E1040;
+  --sb-text: rgba(255,255,255,0.65);
+  --sb-active: rgba(255,255,255,0.1);
+  --sb-border: rgba(255,255,255,0.08);
+}
+[data-theme="dark"] {
+  --bg: #0F0B1E;
+  --surface: #1A1530;
+  --surface2: #221D3A;
+  --border: #2E2850;
+  --text: #EDE9FE;
+  --text-muted: #9D8EC7;
+  --shadow-sm: 0 2px 12px rgba(0,0,0,0.25);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.4);
+  --primary: #7C3AED;
+  --primary-light: rgba(124,58,237,0.15);
+  --primary-mid: #A78BFA;
+  --sb-bg: #13102A;
+  --sb-text: rgba(255,255,255,0.55);
+  --sb-active: rgba(124,58,237,0.2);
+  --sb-border: rgba(255,255,255,0.06);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
+body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
 
 /* HEADER */
 .header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--sh);}
@@ -37,7 +79,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* SEARCH */
 .search-bar{padding:12px 16px;}
-.search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px 10px 38px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;color:var(--text);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A8FA8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;}
+.search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px 10px 38px;font-size:14px;font-family: var(--font);outline:none;color:var(--text);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A8FA8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;}
 .search-input:focus{border-color:var(--wp);}
 
 /* PACIENTES */
@@ -60,8 +102,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .plantilla-icon{width:36px;height:36px;border-radius:11px;background:#E8F8EE;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .plantilla-titulo{font-size:14px;font-weight:700;}
 .plantilla-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.plantilla-preview{background:var(--wp-light);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;color:#1a1a1a;border-left:4px solid var(--wp);margin-bottom:12px;white-space:pre-wrap;font-family:'DM Sans',sans-serif;}
-.btn-usar{width:100%;background:var(--wp);color:white;border:none;border-radius:11px;padding:11px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.plantilla-preview{background:var(--wp-light);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;color:#1a1a1a;border-left:4px solid var(--wp);margin-bottom:12px;white-space:pre-wrap;font-family: var(--font);}
+.btn-usar{width:100%;background:var(--wp);color:white;border:none;border-radius:11px;padding:11px;font-size:14px;font-weight:700;font-family: var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 
 /* HISTORIAL */
 .historial-header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;}
@@ -87,7 +129,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .estado-ok{color:#25D366;}
 .estado-err{color:#E53935;}
 .estado-pending{color:var(--muted);}
-.btn-reenviar{font-size:11px;color:var(--wp-dark);font-weight:700;background:none;border:none;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;}
+.btn-reenviar{font-size:11px;color:var(--wp-dark);font-weight:700;background:none;border:none;cursor:pointer;padding:0;font-family: var(--font);}
 
 /* AUTOMATIZACIÓN */
 .auto-section{padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
@@ -108,7 +150,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .auto-info strong{font-weight:800;}
 .sandbox-warn{background:#FEF3C7;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400E;line-height:1.5;}
 .sandbox-warn strong{font-weight:800;display:block;margin-bottom:2px;}
-.btn-probar{width:100%;background:var(--wp-dark);color:white;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-probar{width:100%;background:var(--wp-dark);color:white;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:700;font-family: var(--font);cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-probar:active{opacity:0.85;}
 .turnos-mañana{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
 .tm-row{background:var(--bg);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;}
@@ -169,7 +211,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     height: 100vh;
     position: sticky;
     top: 0;
-    background: #1B4332;
+    background: var(--sb-bg);
     padding: 28px 0 20px;
     z-index: 100;
     overflow-y: auto;
@@ -190,6 +232,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
 }
+
+/* ══ TEMA CLARO/OSCURO ══ */
+.theme-toggle {
+  width: 50px; height: 26px; border-radius: 20px;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  cursor: pointer; position: relative; display: flex;
+  align-items: center; padding: 0 3px;
+  transition: all var(--transition); flex-shrink: 0;
+}
+[data-theme="dark"] .theme-toggle { background: var(--v2); border-color: var(--v2); }
+.toggle-thumb {
+  width: 19px; height: 19px; border-radius: 50%; background: white;
+  transition: transform var(--transition);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+[data-theme="dark"] .toggle-thumb { transform: translateX(22px); }
+/* Sidebar violeta */
+.sidebar, aside.sidebar {
+  background: var(--sb-bg) !important;
+  transition: background var(--transition) !important;
+}
+.sb-item, .sb-item a { color: var(--sb-text) !important; }
+.sb-item:hover, .sb-item.active, .sb-item.sb-active { background: var(--sb-active) !important; color: white !important; }
+.sb-logo, .sidebar .sb-logo { color: white !important; }
+.sb-logo span { color: var(--v3) !important; }
+.sb-section { color: var(--sb-text) !important; }
+.sb-footer { border-top-color: var(--sb-border) !important; }
+.sb-user-name { color: white !important; }
+.sb-user-role { color: var(--sb-text) !important; }
+/* Body transitions */
+body { transition: background var(--transition), color var(--transition); }
+.header, .app-nav { transition: background var(--transition), border-color var(--transition); }
+
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2D6A4F">
@@ -245,7 +321,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="tab" id="tab-plantillas" onclick="setTab('plantillas')">📋 Plantillas</div>
     <div class="tab" id="tab-historial" onclick="setTab('historial');cargarHistorial()">🕐 Historial</div>
     <div class="tab" id="tab-auto" onclick="setTab('auto');cargarTurnosMañana()">⚡ Auto</div>
-  </div>
+  
+  <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" style="margin-left:4px;"><div class="toggle-thumb" id="toggle-thumb">☀️</div></button></div>
 </div>
 
 <!-- ─── TAB PACIENTES ─── -->
@@ -294,7 +371,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="plantilla-icon">✏️</div>
         <div><div class="plantilla-titulo">Mensaje libre</div><div class="plantilla-sub">Escribí lo que necesitás</div></div>
       </div>
-      <textarea id="msg-libre" style="width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:13px;font-family:'DM Sans',sans-serif;resize:none;min-height:80px;background:var(--bg);outline:none;margin-bottom:12px" placeholder="Escribí tu mensaje aquí..."></textarea>
+      <textarea id="msg-libre" style="width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:13px;font-family: var(--font);resize:none;min-height:80px;background:var(--bg);outline:none;margin-bottom:12px" placeholder="Escribí tu mensaje aquí..."></textarea>
       <button class="btn-usar" onclick="usarPlantilla('libre')">💬 Enviar a paciente</button>
     </div>
 
@@ -375,7 +452,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="modal-title">💬 ¿A quién enviás?</div>
     <div class="modal-sub">Seleccioná el paciente para enviar el mensaje.</div>
     <div id="modalPacList"></div>
-    <button onclick="cerrarModalPac()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Cancelar</button>
+    <button onclick="cerrarModalPac()" style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--muted);font-family: var(--font);cursor:pointer;margin-top:4px">Cancelar</button>
   </div>
 </div>
 
@@ -820,6 +897,23 @@ document.getElementById('overlayPac').addEventListener('click', e => { if(e.targ
     }
   } catch(e) {}
 })();
+</script>
+<script>
+// ── TEMA CLARO/OSCURO ──
+(function(){
+  var saved = localStorage.getItem('psicoapp-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  var th = document.getElementById('toggle-thumb');
+  if(th) th.textContent = saved === 'dark' ? '🌙' : '☀️';
+})();
+function toggleTheme(){
+  var html = document.documentElement;
+  var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('psicoapp-theme', next);
+  var th = document.getElementById('toggle-thumb');
+  if(th) th.textContent = next === 'dark' ? '🌙' : '☀️';
+}
 </script>
 </body>
 </html>
