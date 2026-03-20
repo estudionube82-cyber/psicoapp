@@ -27,6 +27,8 @@ body {
   font-family: 'DM Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
+  max-width: 430px;
+  margin: 0 auto;
   min-height: 100vh;
   padding-bottom: 80px;
 }
@@ -289,42 +291,6 @@ body {
   cursor: pointer; padding: 8px 0; background: none; border: none; width: 100%;
 }
 
-
-/* ── RESPONSIVE DESKTOP ── */
-@media (min-width: 768px) {
-  body { display: flex !important; max-width: none !important; margin: 0 !important; padding-bottom: 0 !important; }
-  #app-shell { flex: 1; max-width: none !important; padding-bottom: 0 !important; overflow-y: auto; height: 100vh; min-width: 0; }
-  .app-nav, .unified-bnav, .bottom-nav { display: none !important; }
-  .sidebar {
-    display: flex !important;
-    flex-direction: column;
-    width: 220px;
-    min-width: 220px;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    background: #1B4332;
-    padding: 28px 0 20px;
-    z-index: 100;
-    overflow-y: auto;
-    flex-shrink: 0;
-  }
-  .sb-logo { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; color: white; padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
-  .sb-logo span { color: #52B788; }
-  .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
-  .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: background .15s, color .15s; }
-  .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
-  .sb-item.sb-active { background: rgba(82,183,136,0.28); color: white; }
-  .sb-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
-  .sb-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,0.3); padding: 14px 23px 5px; }
-  .sb-footer { padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
-  .sb-user { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); cursor: pointer; text-decoration: none; }
-  .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
-  .sb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
-  .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
-}
-.sidebar { display: none; }
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2D6A4F">
@@ -333,37 +299,6 @@ body {
 <link rel="apple-touch-icon" href="/icon-192.png">
 </head>
 <body>
-
-<!-- SIDEBAR desktop -->
-<aside class="sidebar">
-  <div class="sb-logo">Psico<span>app</span></div>
-  <nav class="sb-nav">
-    <div class="sb-section">Principal</div>
-    <a href="psicoapp-index.html" class="sb-item"><span class="sb-icon">📊</span> Inicio</a>
-    <a href="psicoapp-agenda.html" class="sb-item"><span class="sb-icon">📅</span> Agenda</a>
-    <a href="psicoapp-pacientes.html" class="sb-item sb-active"><span class="sb-icon">👥</span> Pacientes</a>
-    <a href="psicoapp-historia.html" class="sb-item"><span class="sb-icon">🧠</span> Historia clínica</a>
-    <div class="sb-section">Gestión</div>
-    <a href="psicoapp-pagos.html" class="sb-item"><span class="sb-icon">💰</span> Pagos</a>
-    <a href="psicoapp-whatsapp.html" class="sb-item"><span class="sb-icon">💬</span> WhatsApp</a>
-    <a href="psicoapp-pericias.html" class="sb-item"><span class="sb-icon">⚖️</span> Pericias</a>
-    <a href="psicoapp-estadisticas.html" class="sb-item"><span class="sb-icon">📈</span> Estadísticas</a>
-    <div class="sb-section">Clínico</div>
-    <a href="psicoapp-consentimiento.html" class="sb-item"><span class="sb-icon">📋</span> Consentimiento</a>
-    <a href="psicoapp-perfil.html" class="sb-item"><span class="sb-icon">⚙️</span> Perfil</a>
-    <a href="psicoapp-cuenta.html" class="sb-item"><span class="sb-icon">👤</span> Cuenta</a>
-  </nav>
-  <div class="sb-footer">
-    <a href="psicoapp-perfil.html" class="sb-user">
-      <div class="sb-avatar" id="sb-avatar">JG</div>
-      <div style="min-width:0">
-        <div class="sb-user-name" id="sb-user-name">Psicólogo/a</div>
-        <div class="sb-user-role">PsicoApp</div>
-      </div>
-    </a>
-  </div>
-</aside>
-<div id="app-shell">
 
 <!-- HEADER -->
 <div class="header">
@@ -885,7 +820,7 @@ async function cargarProximoTurnoPA(pacienteId){
     const hoy = new Date().toISOString().split('T')[0];
     const { data } = await sb
       .from('turnos')
-      .select('fecha, hora')
+      .select('id, fecha, hora')
       .eq('paciente_id', pacienteId)
       .gte('fecha', hoy)
       .order('fecha', { ascending: true })
@@ -896,7 +831,7 @@ async function cargarProximoTurnoPA(pacienteId){
       const [anio, mes, dia] = t.fecha.split('-');
       const fechaFormateada = `${dia}/${mes}/${anio}`;
       const horaFormateada = t.hora ? t.hora.substring(0,5) : '';
-      proximoTurnoData = { fecha: t.fecha, hora: t.hora, fechaFormateada, horaFormateada };
+      proximoTurnoData = { id: t.id, fecha: t.fecha, hora: t.hora, fechaFormateada, horaFormateada };
       document.getElementById('proximoTurnoTextoPA').textContent = `${fechaFormateada} a las ${horaFormateada} hs`;
       document.getElementById('proximoTurnoPA').style.display = 'block';
     }
@@ -929,18 +864,71 @@ function mostrarReprogramarIA(){
   document.getElementById('reprogramarInputPA').focus();
 }
 
+function parsearFechaHoraTexto(texto){
+  let fecha = null, hora = null;
+  const matchHora = texto.match(/(\d{1,2})[:\.\s]?(\d{2})?\s*hs?/i);
+  if(matchHora){
+    const h = matchHora[1].padStart(2,'0');
+    const m = matchHora[2] ? matchHora[2].padStart(2,'0') : '00';
+    hora = `${h}:${m}:00`;
+  }
+  const matchFecha = texto.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if(matchFecha){
+    const d = matchFecha[1].padStart(2,'0');
+    const mo = matchFecha[2].padStart(2,'0');
+    let y = matchFecha[3];
+    if(!y){ const hoy = new Date(); y = hoy.getFullYear().toString(); }
+    if(y.length === 2) y = '20' + y;
+    fecha = `${y}-${mo}-${d}`;
+  }
+  if(!fecha && /mañana/i.test(texto)){
+    const man = new Date(); man.setDate(man.getDate()+1);
+    fecha = man.toISOString().split('T')[0];
+  }
+  return { fecha, hora };
+}
+
 async function procesarReprogramarPA(){
-  const nuevaFecha = document.getElementById('reprogramarInputPA').value.trim();
-  if(!nuevaFecha){ alert('Escribí la nueva fecha/hora primero'); return; }
+  const nuevaFechaTexto = document.getElementById('reprogramarInputPA').value.trim();
+  if(!nuevaFechaTexto){ alert('Escribí la nueva fecha/hora primero'); return; }
   const nombre = pacienteActualPA ? pacienteActualPA.nombre : document.getElementById('det-nombre').textContent.split(' ')[0];
   const turnoActual = proximoTurnoData
     ? `Turno ACTUAL del paciente: ${proximoTurnoData.fechaFormateada} a las ${proximoTurnoData.horaFormateada} hs.`
     : 'No hay turno previo registrado.';
+
+  // Actualizar turno en Supabase si tenemos el ID
+  let agendaActualizada = false;
+  if(proximoTurnoData && proximoTurnoData.id){
+    const { fecha: nuevaFecha, hora: nuevaHora } = parsearFechaHoraTexto(nuevaFechaTexto);
+    if(nuevaFecha || nuevaHora){
+      const updates = {};
+      if(nuevaFecha) updates.fecha = nuevaFecha;
+      if(nuevaHora) updates.hora = nuevaHora;
+      try {
+        const { error } = await sb.from('turnos').update(updates).eq('id', proximoTurnoData.id);
+        if(!error){
+          agendaActualizada = true;
+          if(nuevaFecha){
+            const [y,m,d] = nuevaFecha.split('-');
+            proximoTurnoData.fecha = nuevaFecha;
+            proximoTurnoData.fechaFormateada = `${d}/${m}/${y}`;
+          }
+          if(nuevaHora){
+            proximoTurnoData.hora = nuevaHora;
+            proximoTurnoData.horaFormateada = nuevaHora.slice(0,5);
+          }
+          document.getElementById('proximoTurnoTextoPA').textContent =
+            `${proximoTurnoData.fechaFormateada} a las ${proximoTurnoData.horaFormateada} hs`;
+        }
+      } catch(e){ /* continúa igual */ }
+    }
+  }
+
   const prompt = `Sos un psicólogo clínico argentino. Redactá un mensaje de WhatsApp para avisarle a un paciente que su turno fue reprogramado.
 
 PACIENTE: ${nombre}
 ${turnoActual}
-NUEVA FECHA/HORA: ${nuevaFecha}
+NUEVA FECHA/HORA: ${nuevaFechaTexto}
 
 REQUISITOS:
 - Máximo 3-4 líneas
@@ -950,7 +938,7 @@ REQUISITOS:
 - Sin asteriscos ni markdown
 - Listo para copiar y pegar en WhatsApp`;
   document.getElementById('reprogramarWrapPA').style.display = 'none';
-  await llamarIAMensaje(prompt);
+  await llamarIAMensaje(prompt, agendaActualizada);
 }
 
 async function generarMensajePacienteIA(tipo){
@@ -976,7 +964,7 @@ REQUISITOS:
   await llamarIAMensaje(prompt);
 }
 
-async function llamarIAMensaje(prompt){
+async function llamarIAMensaje(prompt, agendaActualizada = false){
   document.getElementById('iaOpcionesWrap').style.display = 'none';
   document.getElementById('iaLoadingPA').style.display = 'flex';
   document.getElementById('iaResultadoPA').style.display = 'none';
@@ -990,6 +978,20 @@ async function llamarIAMensaje(prompt){
     const data = await resp.json();
     document.getElementById('iaLoadingPA').style.display = 'none';
     document.getElementById('iaMensajePA').textContent = data.texto || data.error || 'Sin respuesta';
+    // Mostrar badge si se actualizó la agenda
+    let badge = document.getElementById('agendaBadgePA');
+    if(!badge){
+      badge = document.createElement('div');
+      badge.id = 'agendaBadgePA';
+      badge.style.cssText = 'margin-bottom:8px;padding:7px 12px;background:#D1FAE5;color:#065F46;border-radius:9px;font-size:13px;font-weight:700;display:none;';
+      document.getElementById('iaResultadoPA').insertBefore(badge, document.getElementById('iaResultadoPA').firstChild);
+    }
+    if(agendaActualizada){
+      badge.textContent = '✅ Turno actualizado en agenda';
+      badge.style.display = 'block';
+    } else {
+      badge.style.display = 'none';
+    }
     document.getElementById('iaResultadoPA').style.display = 'block';
   } catch(e) {
     document.getElementById('iaLoadingPA').style.display = 'none';
@@ -1022,24 +1024,6 @@ function enviarWAPA(){
   }
   window.open(url, '_blank');
 }
-</script>
-</div>
-<script>
-// Load sidebar user name
-(async () => {
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) return;
-    const { data: p } = await sb.from('perfiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
-    if (p) {
-      const name = (p.titulo ? p.titulo + ' ' : '') + (p.nombre || '') + ' ' + (p.apellido || '');
-      const el = document.getElementById('sb-user-name');
-      const av = document.getElementById('sb-avatar');
-      if (el) el.textContent = name.trim();
-      if (av) av.textContent = ((p.nombre||'?')[0] + (p.apellido||'?')[0]).toUpperCase();
-    }
-  } catch(e) {}
-})();
 </script>
 </body>
 </html>
