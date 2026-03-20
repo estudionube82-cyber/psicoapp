@@ -63,21 +63,15 @@
     }
 
     /* ── RESPONSIVE WRAPPER ── */
+    .page-wrap {
+      width: 100%;
+      box-sizing: border-box;
+    }
     @media (max-width: 767px) {
       .page-wrap {
         max-width: 430px;
         margin: 0 auto;
       }
-    }
-    @media (min-width: 768px) {
-      .page-wrap {
-        max-width: 100%;
-        margin: 0;
-        width: 100%;
-      }
-    }
-    @media (min-width: 768px) {
-      .page-wrap { max-width: 100% !important; margin: 0 !important; }
     }
 
     @media (min-width: 600px) {
@@ -537,6 +531,13 @@
   .header-bar { max-width: none !important; margin: 0 !important; }
   .nav-bottom { display: none !important; }
   .quick-stats-grid { grid-template-columns: repeat(4, 1fr) !important; }
+  /* Ampliar márgenes y paddings del contenido en desktop */
+  .hero-card { margin: 24px 32px 0 !important; padding: 40px 40px !important; }
+  .stats-grid { padding: 24px 32px 0 !important; }
+  .section { padding: 24px 32px 0 !important; }
+  .quick-access { padding: 0 32px !important; }
+  .impacto-card { margin: 0 32px !important; }
+  .header { padding: 20px 32px !important; }
 }
 
 
