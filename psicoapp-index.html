@@ -145,7 +145,7 @@
     .header-brand {
       font-size: 18px;
       font-weight: 700;
-      color: var(--verde-oscuro);
+      color: var(--v1);
     }
     .header-saludo {
       font-size: 13px;
@@ -176,7 +176,7 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--verde), var(--naranja));
+      background: linear-gradient(135deg, var(--v1), var(--v2));
       border: none;
       cursor: pointer;
       display: flex;
@@ -196,7 +196,7 @@
     /* ── HERO CARD ── */
     .hero-card {
       margin: 16px 16px 0;
-      background: linear-gradient(135deg, var(--verde-oscuro) 0%, var(--verde) 50%, var(--naranja) 100%);
+      background: linear-gradient(135deg, var(--v1) 0%, var(--v2) 50%, var(--v3) 100%);
       border-radius: var(--radio);
       padding: 24px 20px;
       color: white;
@@ -269,7 +269,7 @@
       color: var(--gris-texto);
       font-weight: 500;
     }
-    .stat-card.verde .stat-valor { color: var(--verde-oscuro); }
+    .stat-card.verde .stat-valor { color: var(--v1); }
     .stat-card.naranja .stat-valor { color: var(--naranja); }
     .stat-card.azul .stat-valor { color: #3498db; }
     .stat-card.violeta .stat-valor { color: #8e44ad; }
@@ -291,9 +291,7 @@
     }
     .section-link {
       font-size: 13px;
-      color: var(--verde-oscuro);
-      text-decoration: none;
-      font-weight: 600;
+      color: var(--v1);
     }
 
     /* ── TURNO CARD HOY ── */
@@ -306,7 +304,7 @@
       align-items: center;
       gap: 14px;
       margin-bottom: 10px;
-      border-left: 4px solid var(--verde);
+      border-left: 4px solid var(--v2);
       transition: box-shadow 0.2s;
     }
     .turno-card.naranja { border-color: var(--naranja); }
@@ -389,7 +387,7 @@
     .impacto-num {
       font-size: 26px;
       font-weight: 800;
-      color: var(--verde-oscuro);
+      color: var(--v1);
     }
     .impacto-lbl {
       font-size: 11px;
@@ -412,12 +410,12 @@
     .barra {
       width: 100%;
       border-radius: 6px 6px 0 0;
-      background: #e8f5e9;
+      background: #ede9fe;
       min-height: 4px;
       transition: height 0.4s;
     }
     .barra.hoy { background: var(--naranja); }
-    .barra.tiene { background: var(--verde); }
+    .barra.tiene { background: var(--v2); }
     .barra-dia {
       font-size: 10px;
       color: var(--gris-texto);
@@ -601,7 +599,7 @@ body { transition: background var(--transition), color var(--transition); }
     <div class="sb-section">Gestión</div>
     <a href="https://psicoapp-ten.vercel.app/psicoapp-pagos.html" class="sb-item"><span class="sb-icon">💰</span> Pagos</a>
     <a href="https://psicoapp-ten.vercel.app/psicoapp-whatsapp.html" class="sb-item"><span class="sb-icon">💬</span> WhatsApp</a>
-    <a href="https://psicoapp-ten.vercel.app/psicoapp-pericias.html" class="sb-item"><span class="sb-icon">⚖️</span> Pericias</a>
+
     <a href="https://psicoapp-ten.vercel.app/psicoapp-estadisticas.html" class="sb-item"><span class="sb-icon">📈</span> Estadísticas</a>
     <div class="sb-section">Clínico</div>
     <a href="https://psicoapp-ten.vercel.app/psicoapp-consentimiento.html" class="sb-item"><span class="sb-icon">📋</span> Consentimiento</a>
@@ -667,11 +665,7 @@ body { transition: background var(--transition), color var(--transition); }
     <div class="stat-valor" id="stat-pacientes">2</div>
     <div class="stat-label">Pacientes activos</div>
   </div>
-  <div class="stat-card violeta">
-    <div class="stat-icon">📋</div>
-    <div class="stat-valor" id="stat-pericias">1</div>
-    <div class="stat-label">Pericias activas</div>
-  </div>
+
 </div>
 
 <!-- TURNOS DE HOY -->
@@ -717,10 +711,7 @@ body { transition: background var(--transition), color var(--transition); }
       <div class="acceso-icon">💳</div>
       <div class="acceso-label">Registrar pago</div>
     </a>
-    <a href="https://psicoapp-ten.vercel.app/psicoapp-pericias.html" class="acceso-btn">
-      <div class="acceso-icon">📋</div>
-      <div class="acceso-label">Nueva pericia</div>
-    </a>
+
   </div>
 </div>
 
@@ -791,7 +782,7 @@ body { transition: background var(--transition), color var(--transition); }
   <a href="https://psicoapp-ten.vercel.app/psicoapp-cuenta.html" class="drawer-item"><span class="di">👤</span>Mi Cuenta</a>
   <div class="drawer-section-title">Más módulos</div>
   <a href="https://psicoapp-ten.vercel.app/psicoapp-pagos.html" class="drawer-item"><span class="di">💰</span>Pagos</a>
-  <a href="https://psicoapp-ten.vercel.app/psicoapp-pericias.html" class="drawer-item"><span class="di">⚖️</span>Pericias</a>
+
   <a href="https://psicoapp-ten.vercel.app/psicoapp-historia.html" class="drawer-item"><span class="di">🧠</span>Historia Clínica</a>
   <a href="https://psicoapp-ten.vercel.app/psicoapp-consentimiento.html" class="drawer-item"><span class="di">✍️</span>Consentimiento</a>
   <a href="https://psicoapp-ten.vercel.app/psicoapp-estadisticas.html" class="drawer-item"><span class="di">📊</span>Estadísticas</a>
