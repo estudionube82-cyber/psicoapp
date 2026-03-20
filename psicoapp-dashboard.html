@@ -92,7 +92,7 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.1);
     margin-bottom: 12px;
   }
-  .sb-logo span { color: #52B788; }
+  .sb-logo span { color: var(--v3); }
   .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
   .sb-item {
     display: flex;
@@ -113,7 +113,7 @@ body {
   .sb-footer { padding: 16px 12px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
   .sb-user { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; color: rgba(255,255,255,0.7); cursor: pointer; text-decoration: none; }
   .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
-  .sb-avatar { width: 32px; height: 32px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }
+  .sb-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--v2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }
   .sb-user-name { font-size: 13px; font-weight: 600; color: white; }
   .sb-user-role { font-size: 11px; color: rgba(255,255,255,0.5); }
 
@@ -125,7 +125,7 @@ body {
 
 /* ── HEADER ── */
 .header {
-  background: linear-gradient(145deg, #1B4332 0%, #2D6A4F 60%, #40916C 100%);
+  background: linear-gradient(145deg, #1E1040 0%, #2D1B69 60%, #4C2A9A 100%);
   padding: 20px 20px 28px;
   position: relative;
   overflow: hidden;
@@ -309,6 +309,7 @@ body {
 .tc-jud::before { background: #7B5EA7; }
 .tc-past { opacity: 0.5; }
 .tc-now { box-shadow: 0 0 0 2px var(--primary), var(--shadow-md); }
+.turno-card:hover:not(.tc-past) { transform: translateX(2px); box-shadow: var(--shadow-md); }
 .turno-time {
   font-size: 13px;
   font-weight: 800;
@@ -426,12 +427,12 @@ body {
   align-items: center;
   gap: 14px;
   cursor: pointer;
-  border: 1.5px solid #C8E6C0;
+  border: 1.5px solid var(--v4);
 }
 .wp-alert-icon {
   width: 44px; height: 44px;
   border-radius: 14px;
-  background: #E8F8EE;
+  background: var(--primary-light);
   display: flex; align-items: center; justify-content: center;
   font-size: 22px;
   flex-shrink: 0;
@@ -442,7 +443,7 @@ body {
 .wp-alert-count {
   font-size: 22px;
   font-weight: 800;
-  color: var(--wp-green);
+  color: var(--primary);
 }
 
 .wp-pending-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
@@ -454,12 +455,12 @@ body {
   align-items: center;
   gap: 10px;
   box-shadow: var(--shadow-sm);
-  border-left: 3px solid var(--wp-green);
+  border-left: 3px solid var(--primary);
 }
 .wp-pi-avatar {
   width: 34px; height: 34px;
   border-radius: 10px;
-  background: #E8F8EE;
+  background: var(--primary-light);
   display: flex; align-items: center; justify-content: center;
   font-size: 16px;
   flex-shrink: 0;
@@ -609,7 +610,7 @@ body {
 }
 .unav-icon { font-size: 20px; line-height: 1; }
 .unav-label { font-size: 10px; font-weight: 600; color: #8A8FA8; }
-.unav-item.unav-active .unav-label { color: #2D6A4F !important; }
+.unav-item.unav-active .unav-label { color: var(--primary) !important; }
 
 
 /* ══ TEMA CLARO/OSCURO ══ */
@@ -672,9 +673,6 @@ body { transition: background var(--transition), color var(--transition); }
     </a>
     <a href="psicoapp-whatsapp.html" class="sb-item">
       <span class="sb-icon">💬</span> WhatsApp
-    </a>
-    <a href="psicoapp-pericias.html" class="sb-item">
-      <span class="sb-icon">⚖️</span> Pericias
     </a>
     <a href="psicoapp-estadisticas.html" class="sb-item">
       <span class="sb-icon">📈</span> Estadísticas
@@ -764,7 +762,7 @@ body { transition: background var(--transition), color var(--transition); }
   <div class="turnos-list">
 
     <!-- Pasados -->
-    <div class="turno-card tc-pac tc-past">
+    <div class="turno-card tc-pac tc-past" onclick="location.href='psicoapp-paciente.html?p=maria-gonzalez'" style="cursor:pointer">
       <div class="turno-time">9:00</div>
       <div class="turno-info">
         <div class="turno-name">María González</div>
@@ -773,7 +771,7 @@ body { transition: background var(--transition), color var(--transition); }
       <div class="turno-badge tb-done">Realizada</div>
     </div>
 
-    <div class="turno-card tc-pac tc-past">
+    <div class="turno-card tc-pac tc-past" onclick="location.href='psicoapp-paciente.html?p=carlos-fernandez'" style="cursor:pointer">
       <div class="turno-time">10:00</div>
       <div class="turno-info">
         <div class="turno-name">Carlos Fernández</div>
@@ -789,7 +787,7 @@ body { transition: background var(--transition), color var(--transition); }
       <div class="now-line-h"></div>
     </div>
 
-    <div class="turno-card tc-pac tc-now">
+    <div class="turno-card tc-pac tc-now" onclick="location.href='psicoapp-paciente.html?p=ana-rodriguez'" style="cursor:pointer">
       <div class="turno-time now">15:00</div>
       <div class="turno-info">
         <div class="turno-name">Ana Rodríguez</div>
@@ -799,16 +797,7 @@ body { transition: background var(--transition), color var(--transition); }
     </div>
 
     <!-- Próximos -->
-    <div class="turno-card tc-jud">
-      <div class="turno-time">16:00</div>
-      <div class="turno-info">
-        <div class="turno-name">⚖️ Pericia Exp. 4821</div>
-        <div class="turno-meta">Juzgado Civil Nº3 · Chivilcoy</div>
-      </div>
-      <div class="turno-badge tb-jud">Judicial</div>
-    </div>
-
-    <div class="turno-card tc-pac">
+    <div class="turno-card tc-pac" onclick="location.href='psicoapp-paciente.html?p=diego-martinez'" style="cursor:pointer">
       <div class="turno-time">18:00</div>
       <div class="turno-info">
         <div class="turno-name">Diego Martínez</div>
@@ -817,7 +806,7 @@ body { transition: background var(--transition), color var(--transition); }
       <div class="turno-badge tb-ok">✓ Confirmó</div>
     </div>
 
-    <div class="turno-card tc-pac">
+    <div class="turno-card tc-pac" onclick="location.href='psicoapp-paciente.html?p=laura-perez'" style="cursor:pointer">
       <div class="turno-time">19:00</div>
       <div class="turno-info">
         <div class="turno-name">Laura Pérez</div>
@@ -916,10 +905,10 @@ body { transition: background var(--transition), color var(--transition); }
 <div class="section" style="margin-top:16px; margin-bottom: 16px">
   <div class="section-title">Acceso rápido</div>
   <div class="quick-access">
-    <div class="qa-item"><div class="qa-icon">➕</div><div class="qa-label">Nuevo turno</div></div>
-    <div class="qa-item"><div class="qa-icon">👤</div><div class="qa-label">Nuevo paciente</div></div>
-    <div class="qa-item"><div class="qa-icon">💰</div><div class="qa-label">Registrar pago</div></div>
-    <div class="qa-item"><div class="qa-icon">⚖️</div><div class="qa-label">Nueva pericia</div></div>
+    <div class="qa-item" onclick="location.href='psicoapp-turnos-nuevo.html'"><div class="qa-icon">➕</div><div class="qa-label">Nuevo turno</div></div>
+    <div class="qa-item" onclick="location.href='psicoapp-pacientes.html'"><div class="qa-icon">👤</div><div class="qa-label">Nuevo paciente</div></div>
+    <div class="qa-item" onclick="location.href='psicoapp-pagos.html'"><div class="qa-icon">💰</div><div class="qa-label">Registrar pago</div></div>
+    <div class="qa-item" onclick="location.href='psicoapp-whatsapp.html'"><div class="qa-icon">💬</div><div class="qa-label">WhatsApp</div></div>
   </div>
 </div>
 
@@ -983,7 +972,7 @@ function toggleTheme(){
 }
 .app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
 .app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
-.app-nav a.on .nl { color: #2D6A4F; }
+.app-nav a.on .nl { color: var(--primary); }
 .app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(45,106,79,0.5)); }
 </style>
 <nav class="app-nav">
@@ -992,7 +981,6 @@ function toggleTheme(){
   <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
   <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
   <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
-  <a href="psicoapp-pericias.html"><span class="ni">⚖️</span><span class="nl">Pericias</span></a>
 </nav>
 
 </html>
