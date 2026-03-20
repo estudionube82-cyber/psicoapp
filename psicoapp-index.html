@@ -433,7 +433,7 @@
     }
     .app-nav a .ni, .app-nav button.nav-menu-btn .ni { font-size: 22px; line-height: 1; display: block; }
     .app-nav a .nl, .app-nav button.nav-menu-btn .nl { font-size: 10px; font-weight: 700; display: block; }
-    .app-nav a.on .nl { color: #2D6A4F; }
+    .app-nav a.on .nl { color: var(--v2); }
     .menu-overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.5); z-index: 9998; backdrop-filter: blur(2px);
@@ -448,7 +448,7 @@
     }
     .side-drawer.open { left: 0; }
     .drawer-header {
-      background: linear-gradient(135deg, #2D6A4F 0%, #3A7D5F 50%, #F4A261 100%);
+      background: linear-gradient(135deg, #5B2FA8 0%, #7C3AED 60%, #A855F7 100%);
       padding: 48px 20px 24px; display: flex; align-items: center; gap: 12px;
     }
     .drawer-header img { width: 48px; height: 48px; object-fit: contain; }
@@ -466,7 +466,7 @@
       border-left: 3px solid transparent;
     }
     .drawer-item:hover { background: #F4F1ED; }
-    .drawer-item.active { background: #E8F5EE; color: #2D6A4F; border-left-color: #2D6A4F; }
+    .drawer-item.active { background: var(--v4); color: var(--v1); border-left-color: var(--v1); }
     .drawer-item .di { font-size: 20px; width: 28px; text-align: center; }
     .drawer-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid #E8E4DD; }
 
@@ -505,7 +505,7 @@
   .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
   .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: background .15s, color .15s; }
   .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
-  .sb-item.sb-active { background: rgba(82,183,136,0.28); color: white; }
+  .sb-item.sb-active { background: var(--sb-active); color: white; }
   .sb-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
   .sb-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,0.3); padding: 14px 23px 5px; }
   .sb-footer { padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
