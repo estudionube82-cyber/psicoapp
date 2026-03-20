@@ -1798,26 +1798,11 @@ function imprimirInforme(){
              margin: 2.5cm 3cm; color: #000; }
       pre { white-space: pre-wrap; font-family: inherit; font-size: inherit; }
       @media print { body { margin: 2cm; } }
-    </style></head><body>
+    <\/style></head><body>
     <pre>${texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
     ${firmaHtml}
     <script>window.onload=()=>{window.print();}<\/script>
-  <script>
-(function(){
-  var saved = localStorage.getItem('psicoapp-theme') || 'light';
-  document.documentElement.setAttribute('data-theme', saved);
-  var th = document.getElementById('toggle-thumb');
-  if(th) th.textContent = saved === 'dark' ? '🌙' : '☀️';
-})();
-function toggleTheme(){
-  var html = document.documentElement;
-  var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-  html.setAttribute('data-theme', next);
-  localStorage.setItem('psicoapp-theme', next);
-  var th = document.getElementById('toggle-thumb');
-  if(th) th.textContent = next === 'dark' ? '🌙' : '☀️';
-}
-</script>
+  
 </body></html>`);
   win.document.close();
 }
@@ -1895,6 +1880,22 @@ function compartirWhatsApp(){
     : `https://wa.me/?text=${mensaje}`;
 
   window.open(url, '_blank');
+}
+</script>
+<script>
+(function(){
+  var saved = localStorage.getItem('psicoapp-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  var th = document.getElementById('toggle-thumb');
+  if(th) th.textContent = saved === 'dark' ? '🌙' : '☀️';
+})();
+function toggleTheme(){
+  var html = document.documentElement;
+  var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('psicoapp-theme', next);
+  var th = document.getElementById('toggle-thumb');
+  if(th) th.textContent = next === 'dark' ? '🌙' : '☀️';
 }
 </script>
 </body>
