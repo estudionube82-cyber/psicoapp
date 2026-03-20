@@ -297,8 +297,70 @@ body {
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
+
+/* ===== SIDEBAR DESKTOP ===== */
+@media (min-width: 768px) {
+  .app-nav { display: none !important; }
+  #app-shell { display: flex; min-height: 100vh; }
+  #sidebar {
+    width: 220px; min-width: 220px; background: #2D6A4F;
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; height: 100vh;
+    z-index: 1000; padding: 0;
+  }
+  #sidebar .sb-logo {
+    padding: 24px 20px 16px;
+    font-size: 20px; font-weight: 800;
+    color: white; letter-spacing: -0.5px;
+  }
+  #sidebar .sb-logo span { color: #95D5B2; }
+  #sidebar nav { flex: 1; padding: 8px 0; }
+  #sidebar nav a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 20px; color: rgba(255,255,255,0.75);
+    text-decoration: none; font-size: 14px; font-weight: 600;
+    transition: background 0.15s, color 0.15s;
+  }
+  #sidebar nav a:hover { background: rgba(255,255,255,0.1); color: white; }
+  #sidebar nav a.sb-active { background: rgba(255,255,255,0.18); color: white; }
+  #sidebar nav a .sb-icon { font-size: 18px; width: 24px; text-align: center; }
+  #sidebar .sb-footer {
+    padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.6); font-size: 12px;
+  }
+  #sidebar .sb-user { font-weight: 700; color: white; font-size: 13px; margin-bottom: 2px; }
+  #main-content { margin-left: 220px; flex: 1; min-width: 0; }
+  .header { max-width: 100% !important; }
+  .page-wrap, .lista-pacientes, .stats-row { max-width: 100% !important; }
+}
+@media (max-width: 767px) {
+  #sidebar { display: none; }
+}
 </head>
 <body>
+
+<div id="app-shell">
+<div id="sidebar">
+  <div class="sb-logo">Psico<span>app</span></div>
+  <nav>
+    <a href="psicoapp-index.html"><span class="sb-icon">🏠</span>Inicio</a>
+    <a href="psicoapp-agenda.html"><span class="sb-icon">📅</span>Agenda</a>
+    <a href="psicoapp-pacientes.html" class="sb-active"><span class="sb-icon">👥</span>Pacientes</a>
+    <a href="psicoapp-historia.html"><span class="sb-icon">📋</span>Historia clínica</a>
+    <a href="psicoapp-pagos.html"><span class="sb-icon">💰</span>Pagos</a>
+    <a href="psicoapp-whatsapp.html"><span class="sb-icon">💬</span>WhatsApp</a>
+    <a href="psicoapp-pericias.html"><span class="sb-icon">⚖️</span>Pericias</a>
+    <a href="psicoapp-estadisticas.html"><span class="sb-icon">📊</span>Estadísticas</a>
+    <a href="psicoapp-consentimiento.html"><span class="sb-icon">✍️</span>Consentimiento</a>
+    <a href="psicoapp-perfil.html"><span class="sb-icon">👤</span>Perfil</a>
+    <a href="psicoapp-cuenta.html"><span class="sb-icon">⚙️</span>Cuenta</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user" id="sb-username">...</div>
+    <div>PsicoApp v1.0</div>
+  </div>
+</div>
+<div id="main-content">
 
 <!-- HEADER -->
 <div class="header">
@@ -866,7 +928,7 @@ function mostrarReprogramarIA(){
 
 function parsearFechaHoraTexto(texto){
   let fecha = null, hora = null;
-  const matchHora = texto.match(/(\d{1,2})[:\.\s]?(\d{2})?\s*hs?/i);
+  const matchHora = texto.match(/(\d{1,2})[:\.]?(\d{2})?\s*hs?/i);
   if(matchHora){
     const h = matchHora[1].padStart(2,'0');
     const m = matchHora[2] ? matchHora[2].padStart(2,'0') : '00';
@@ -896,7 +958,6 @@ async function procesarReprogramarPA(){
     ? `Turno ACTUAL del paciente: ${proximoTurnoData.fechaFormateada} a las ${proximoTurnoData.horaFormateada} hs.`
     : 'No hay turno previo registrado.';
 
-  // Actualizar turno en Supabase si tenemos el ID
   let agendaActualizada = false;
   if(proximoTurnoData && proximoTurnoData.id){
     const { fecha: nuevaFecha, hora: nuevaHora } = parsearFechaHoraTexto(nuevaFechaTexto);
@@ -920,7 +981,7 @@ async function procesarReprogramarPA(){
           document.getElementById('proximoTurnoTextoPA').textContent =
             `${proximoTurnoData.fechaFormateada} a las ${proximoTurnoData.horaFormateada} hs`;
         }
-      } catch(e){ /* continúa igual */ }
+      } catch(e){}
     }
   }
 
@@ -978,7 +1039,6 @@ async function llamarIAMensaje(prompt, agendaActualizada = false){
     const data = await resp.json();
     document.getElementById('iaLoadingPA').style.display = 'none';
     document.getElementById('iaMensajePA').textContent = data.texto || data.error || 'Sin respuesta';
-    // Mostrar badge si se actualizó la agenda
     let badge = document.getElementById('agendaBadgePA');
     if(!badge){
       badge = document.createElement('div');
@@ -986,12 +1046,8 @@ async function llamarIAMensaje(prompt, agendaActualizada = false){
       badge.style.cssText = 'margin-bottom:8px;padding:7px 12px;background:#D1FAE5;color:#065F46;border-radius:9px;font-size:13px;font-weight:700;display:none;';
       document.getElementById('iaResultadoPA').insertBefore(badge, document.getElementById('iaResultadoPA').firstChild);
     }
-    if(agendaActualizada){
-      badge.textContent = '✅ Turno actualizado en agenda';
-      badge.style.display = 'block';
-    } else {
-      badge.style.display = 'none';
-    }
+    badge.style.display = agendaActualizada ? 'block' : 'none';
+    if(agendaActualizada) badge.textContent = '✅ Turno actualizado en agenda';
     document.getElementById('iaResultadoPA').style.display = 'block';
   } catch(e) {
     document.getElementById('iaLoadingPA').style.display = 'none';
@@ -1024,6 +1080,18 @@ function enviarWAPA(){
   }
   window.open(url, '_blank');
 }
+
+// Cargar nombre en sidebar
+(async () => {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if(session){
+      const { data: prof } = await sb.from('profiles').select('nombre_completo').eq('id', session.user.id).single();
+      const el = document.getElementById('sb-username');
+      if(el && prof) el.textContent = prof.nombre_completo || session.user.email;
+    }
+  } catch(e){}
+})();
 </script>
-</body>
+</div></div></body>
 </html>
