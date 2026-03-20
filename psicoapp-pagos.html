@@ -215,6 +215,16 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
   .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
 }
 .sidebar { display: none; }
+
+/* ===== PAGOS PENDIENTES ===== */
+.badge-pendiente {
+  display: inline-block; background: #FEF3C7; color: #92400E;
+  font-size: 10px; font-weight: 800; padding: 2px 7px;
+  border-radius: 20px; margin-left: 6px; vertical-align: middle;
+}
+.pago-card.estado-pendiente { border-left: 3px solid #F59E0B; }
+.fchip-pendiente { background: #FEF3C7 !important; color: #92400E !important; border: 1.5px solid #F59E0B !important; }
+.fchip-pendiente.on { background: #F59E0B !important; color: white !important; }
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2D6A4F">
@@ -293,6 +303,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 <!-- FILTROS -->
 <div class="filter-bar">
   <div class="fchip on" onclick="setFiltro('todos',this)">Todos</div>
+  <div class="fchip fchip-pendiente" onclick="setFiltro('pendiente',this)">⏳ Pendientes</div>
   <div class="fchip" onclick="setFiltro('efectivo',this)">💵 Efectivo</div>
   <div class="fchip" onclick="setFiltro('transferencia',this)">🏦 Transferencia</div>
   <div class="fchip" onclick="setFiltro('debito',this)">💳 Débito</div>
@@ -338,6 +349,13 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
         <option value="transferencia">🏦 Transferencia</option>
         <option value="debito">💳 Débito</option>
         <option value="credito">💳 Crédito</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="field-label">Estado del pago</div>
+      <select class="field-input" id="f-estado">
+        <option value="cobrado">✅ Cobrado</option>
+        <option value="pendiente">⏳ Pendiente</option>
       </select>
     </div>
     <div class="field">
@@ -491,7 +509,9 @@ function actualizarBalance() {
 
 function renderLista() {
   const lista = document.getElementById('pagosList');
-  let pagos = filtroActual === 'todos' ? todosPagos : todosPagos.filter(p => p.metodo === filtroActual);
+  let pagos = filtroActual === 'todos' ? todosPagos
+    : filtroActual === 'pendiente' ? todosPagos.filter(p => p.estado === 'pendiente')
+    : todosPagos.filter(p => p.metodo === filtroActual);
 
   if (!pagos.length) {
     lista.innerHTML = `<div class="empty-sec"><div class="empty-sec-icon">💰</div>Sin pagos${filtroActual!=='todos'?' con este método':''} en ${MESES[mesActual]}.<br>Tocá + para registrar uno.</div>`;
@@ -515,14 +535,15 @@ function renderLista() {
       const metodo = p.metodo || 'efectivo';
       const clsArr = (METODO_CLS[metodo]||'pc-efectivo pi-efectivo').split(' ');
       const icon   = METODO_ICON[metodo] || '💵';
+      const esPendiente = p.estado === 'pendiente';
       html += `
-        <div class="pago-card ${clsArr[0]}" onclick="abrirDetalle('${p.id}')">
+        <div class="pago-card ${clsArr[0]}${esPendiente ? ' estado-pendiente' : ''}" onclick="abrirDetalle('${p.id}')">
           <div class="pago-icon ${clsArr[1]}">${icon}</div>
           <div class="pago-info">
-            <div class="pago-nombre">${nombre}</div>
+            <div class="pago-nombre">${nombre}${esPendiente ? '<span class="badge-pendiente">PENDIENTE</span>' : ''}</div>
             <div class="pago-meta">${p.concepto || 'Sesión'} · ${metodoLabel(metodo)}</div>
           </div>
-          <div class="pago-monto">${formatPeso(p.monto)}</div>
+          <div class="pago-monto" style="${esPendiente ? 'color:#F59E0B' : ''}">${formatPeso(p.monto)}</div>
         </div>`;
     });
   });
@@ -550,6 +571,7 @@ function abrirModal() {
   document.getElementById('f-paciente').value = '';
   document.getElementById('f-concepto').value = '';
   document.getElementById('f-metodo').value = 'efectivo';
+  document.getElementById('f-estado').value = 'cobrado';
   document.getElementById('msgError').style.display = 'none';
   document.getElementById('overlay').classList.add('open');
 }
@@ -576,6 +598,7 @@ async function guardarPago() {
     fecha,
     metodo:   document.getElementById('f-metodo').value,
     concepto: document.getElementById('f-concepto').value.trim() || null,
+    estado:   document.getElementById('f-estado').value || 'cobrado',
   });
 
   btn.disabled = false; btn.textContent = '✓ Guardar pago';
@@ -594,8 +617,11 @@ function abrirDetalle(id) {
   const p = pagoSeleccionado;
   const pac = p.pacientes;
   const nombre = pac ? `${pac.nombre} ${pac.apellido}` : 'Sin paciente';
+  const estadoLabel = p.estado === 'pendiente'
+    ? '<span style="background:#FEF3C7;color:#92400E;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800;margin-left:8px;">⏳ PENDIENTE</span>'
+    : '<span style="background:#D1FAE5;color:#065F46;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800;margin-left:8px;">✅ COBRADO</span>';
   document.getElementById('det-content').innerHTML = `
-    <div style="font-size:20px;font-weight:800;margin-bottom:4px">${nombre}</div>
+    <div style="font-size:20px;font-weight:800;margin-bottom:4px">${nombre}${estadoLabel}</div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${fmtFechaLinda(p.fecha)}</div>
     ${filaD('💰','Monto', formatPeso(p.monto))}
     ${filaD('💳','Método', metodoLabel(p.metodo))}
