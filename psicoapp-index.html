@@ -1009,6 +1009,7 @@ function renderStats(turnos, totalPacs, nuevos, totalMes, mesLabel) {
 
   // Pacientes activos
   cards[1].querySelector('.stat-num').textContent = totalPacs;
+  cards[1].querySelector('.stat-trend').textContent = 'En total';
   cards[1].onclick = () => location.href = 'psicoapp-pacientes.html';
   cards[1].style.cursor = 'pointer';
 
@@ -1111,8 +1112,8 @@ function renderIngresos(pagos, total, mesLabel) {
   const pct  = Math.min((total / meta) * 100, 100);
 
   const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-  setEl('income-total', total > 0 ? formatPesoLargo(total) : '/bin/sh');
-  setEl('income-sub',   `${pagos.length} pago${pagos.length!==1?'s':''} registrados este mes`);
+  setEl('income-total', formatPesoLargo(total));
+  setEl('income-sub', pagos.length > 0 ? `${pagos.length} pago${pagos.length!==1?'s':''} registrado${pagos.length!==1?'s':''} este mes` : '0 pagos registrados este mes');
   setEl('income-part',  formatPesoLargo(part));
   setEl('income-part-meta', cantPart + (cantPart===1?' sesión':' sesiones') + ' cobradas');
   setEl('income-os',    formatPesoLargo(os));
