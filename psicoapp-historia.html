@@ -1534,7 +1534,7 @@ REGLAS ABSOLUTAS DE REDACCIÓN:
   [título]
   [M.P. y/o M.N.]`
 
-    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe', {
+    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PSICOAPP_CONFIG.SUPA_KEY}` },
       body: JSON.stringify({ prompt })
@@ -1706,7 +1706,7 @@ ALERTA:
 Lenguaje técnico-clínico argentino.`;
 
   try {
-    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe', {
+    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PSICOAPP_CONFIG.SUPA_KEY}` },
       body: JSON.stringify({ prompt })
@@ -1748,7 +1748,7 @@ async function llamarIAExtra(loadingText, prompt) {
   cont.scrollIntoView({ behavior: 'smooth' });
 
   try {
-    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe', {
+    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PSICOAPP_CONFIG.SUPA_KEY}` },
       body: JSON.stringify({ prompt })

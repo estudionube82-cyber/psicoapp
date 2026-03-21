@@ -1197,7 +1197,7 @@ _Psicoapp_`;
     const puedeEnviar = await verificarLimiteWA(sb, session.user.id);
     if (!puedeEnviar) return;
 
-    await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/enviar-whatsapp', {
+    await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/enviar-whatsapp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
