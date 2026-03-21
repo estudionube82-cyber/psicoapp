@@ -850,7 +850,7 @@ document.getElementById('overlayPac').addEventListener('click', e => { if(e.targ
     if (typeof sb === 'undefined') return;
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
-    const { data: p } = await sb.from('perfiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
+    const { data: p } = await sb.from('profiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
     if (p) {
       const name = [p.titulo, p.nombre, p.apellido].filter(Boolean).join(' ');
       const el = document.getElementById('sb-user-name');

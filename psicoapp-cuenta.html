@@ -806,7 +806,7 @@ async function cerrarSesion() {
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
-    const { data: p } = await sb.from('perfiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
+    const { data: p } = await sb.from('profiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
     if (p) {
       const name = (p.titulo ? p.titulo + ' ' : '') + (p.nombre || '') + ' ' + (p.apellido || '');
       const el = document.getElementById('sb-user-name');
