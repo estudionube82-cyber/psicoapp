@@ -4,87 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Psicoapp — Mi Cuenta</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/psicoapp-shared.js"></script>
 <script src="psicoapp-limites.js"></script>
+<link rel="stylesheet" href="/psicoapp-shared.css">
 <style>
-:root {
-  --v1: #5B2FA8;
-  --v2: #7C3AED;
-  --v3: #A78BFA;
-  --v4: #EDE9FE;
-  --v5: #F5F3FF;
-  --accent: #F472B6;
-  --accent2: #34D399;
-  --radius: 16px;
-  --radius-sm: 11px;
-  --font: 'Plus Jakarta Sans', sans-serif;
-  --font-display: 'Fraunces', serif;
-  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
-}
-[data-theme="light"] {
-  --bg: #F8F7FF;
-  --surface: #FFFFFF;
-  --surface2: #F3F0FF;
-  --border: #E5E2F5;
-  --text: #1E1040;
-  --text-muted: #7C6FAE;
-  --shadow-sm: 0 2px 8px rgba(108,63,197,0.07);
-  --shadow-md: 0 6px 24px rgba(108,63,197,0.12);
-  --primary: #5B2FA8;
-  --primary-light: #EDE9FE;
-  --primary-mid: #A78BFA;
-  --sb-bg: #1E1040;
-  --sb-text: rgba(255,255,255,0.65);
-  --sb-active: rgba(255,255,255,0.1);
-  --sb-border: rgba(255,255,255,0.08);
-}
-[data-theme="dark"] {
-  --bg: #0F0B1E;
-  --surface: #1A1530;
-  --surface2: #221D3A;
-  --border: #2E2850;
-  --text: #EDE9FE;
-  --text-muted: #9D8EC7;
-  --shadow-sm: 0 2px 12px rgba(0,0,0,0.25);
-  --shadow-md: 0 8px 32px rgba(0,0,0,0.4);
-  --primary: #7C3AED;
-  --primary-light: rgba(124,58,237,0.15);
-  --primary-mid: #A78BFA;
-  --sb-bg: #13102A;
-  --sb-text: rgba(255,255,255,0.55);
-  --sb-active: rgba(124,58,237,0.2);
-  --sb-border: rgba(255,255,255,0.06);
-}
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  padding-bottom: 90px;
-}
 
 /* HEADER */
-.header {
-  background: var(--primary);
-  padding: 20px 20px 24px;
-  position: relative;
-  overflow: hidden;
-}
+
 .header::after {
   content: 'Ψ';
   position: absolute;
   right: -10px; top: -20px;
   font-size: 120px;
   color: rgba(255,255,255,0.06);
-  font-family: 'Playfair Display', serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   pointer-events: none;
 }
-.header-top {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
-}
-.logo { font-family: 'Playfair Display', serif; font-size: 20px; color: white; }
+
+.logo { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; color: white; }
 .logo span { color: var(--accent); }
 
 .user-card {
@@ -111,13 +50,13 @@ body {
 }
 .plan-badge.free { background: rgba(255,255,255,0.25); }
 .plan-badge.pro { background: var(--accent); }
-.plan-badge.max { background: linear-gradient(135deg, #F4A261, #E76F51); }
+.plan-badge.max { background: linear-gradient(135deg, #A78BFA, #7C3AED); }
 
 /* TRIAL BANNER */
 .trial-banner {
   margin: 16px 16px 0;
   background: linear-gradient(135deg, var(--accent-light), #FDE8D0);
-  border: 1.5px solid #F4A261;
+  border: 1.5px solid #A78BFA;
   border-radius: 14px;
   padding: 14px 16px;
   display: flex; align-items: center; gap: 12px;
@@ -197,7 +136,7 @@ body {
 }
 .btn-upgrade:active { transform: scale(0.98); }
 .btn-accent {
-  background: linear-gradient(135deg, #F4A261, #E76F51); color: white;
+  background: linear-gradient(135deg, #A78BFA, #7C3AED); color: white;
 }
 
 /* STATS */
@@ -247,7 +186,7 @@ body {
   padding: 20px 20px 40px; width: 100%; max-width: 430px;
   animation: slideUp 0.25s ease;
 }
-@keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
+@keyframes slideUp {   }
 .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
 .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
 .modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
@@ -279,13 +218,7 @@ body {
 
 
 /* ===== NAV 5 ÍTEMS + HAMBURGUESA ===== */
-.app-nav {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 430px; height: 64px;
-  background: #fff; border-top: 1.5px solid #E8E4DD;
-  display: flex; align-items: center;
-  z-index: 2147483647; box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
-}
+
 .app-nav a, .app-nav button.nav-menu-btn {
   flex: 1; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 2px; text-decoration: none; 
@@ -294,143 +227,120 @@ body {
 .app-nav a .ni, .app-nav button.nav-menu-btn .ni { font-size: 22px; line-height: 1; display: block; }
 .app-nav a .nl, .app-nav button.nav-menu-btn .nl { font-size: 10px; font-weight: 700; display: block; }
 .app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(244,162,97,0.5)); }
-.app-nav a.on .nl { color: #2D6A4F; }
+.app-nav a.on .nl { color: #5B2FA8; }
 
 /* OVERLAY */
-.menu-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5); z-index: 9998;
-  backdrop-filter: blur(2px);
-}
-.menu-overlay.open { display: block; }
 
 /* DRAWER */
-.side-drawer {
-  position: fixed; top: 0; left: -280px; width: 280px; height: 100vh;
-  background: #fff; z-index: 9999;
-  box-shadow: 4px 0 24px rgba(0,0,0,0.15);
-  transition: left 0.3s cubic-bezier(0.4,0,0.2,1);
-  display: flex; flex-direction: column;
-  overflow-y: auto;
-}
+
 .side-drawer.open { left: 0; }
 
-.drawer-header {
-  background: linear-gradient(135deg, #2D6A4F 0%, #3A7D5F 50%, #F4A261 100%);
-  padding: 48px 20px 24px;
-  display: flex; align-items: center; gap: 12px;
-}
+
 .drawer-header img { width: 48px; height: 48px; object-fit: contain; }
-.drawer-logo-txt { font-size: 22px; font-weight: 800; color: white; font-family: serif; }
-.drawer-logo-txt span { color: #FFD580; }
-.drawer-tagline { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; letter-spacing: 0.5px; }
-
-.drawer-section-title {
-  font-size: 10px; font-weight: 800; color: #8A8FA8;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  padding: 16px 20px 6px;
-}
-.drawer-item {
-  display: flex; align-items: center; gap: 14px;
-  padding: 13px 20px; text-decoration: none; color: #1A1A2E;
-  font-size: 15px; font-weight: 600;
-  transition: background 0.15s;
-  border-left: 3px solid transparent;
-}
-.drawer-item:hover { background: #F4F1ED; }
-.drawer-item.active { 
-  background: #E8F5EE; color: #2D6A4F; 
-  border-left-color: #2D6A4F;
-}
-.drawer-item .di { font-size: 20px; width: 28px; text-align: center; }
-
-.drawer-footer {
-  margin-top: auto; padding: 16px 20px;
-  border-top: 1px solid #E8E4DD;
-}
-.drawer-logout {
-  display: flex; align-items: center; gap: 10px;
-  color: #E53935; font-size: 14px; font-weight: 600;
-  cursor: pointer; padding: 8px 0; background: none; border: none; width: 100%;
-}
-
 
 /* ── RESPONSIVE DESKTOP ── */
 @media (min-width: 768px) {
-  body { display: flex !important; max-width: none !important; margin: 0 !important; padding-bottom: 0 !important; }
-  #app-shell { flex: 1; max-width: none !important; padding-bottom: 0 !important; overflow-y: auto; height: 100vh; min-width: 0; }
-  .app-nav, .unified-bnav, .bottom-nav { display: none !important; }
-  .sidebar {
-    display: flex !important;
-    flex-direction: column;
-    width: 220px;
-    min-width: 220px;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    background: var(--sb-bg);
-    padding: 28px 0 20px;
-    z-index: 100;
-    overflow-y: auto;
-    flex-shrink: 0;
-  }
-  .sb-logo { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; color: white; padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
-  .sb-logo span { color: #52B788; }
-  .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
-  .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: background .15s, color .15s; }
-  .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
-  .sb-item.sb-active { background: rgba(82,183,136,0.28); color: white; }
-  .sb-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
-  .sb-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,0.3); padding: 14px 23px 5px; }
-  .sb-footer { padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
-  .sb-user { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); cursor: pointer; text-decoration: none; }
-  .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
-  .sb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
-  .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 }
-.sidebar { display: none; }
+
 
 /* ══ TEMA CLARO/OSCURO ══ */
-.theme-toggle {
-  width: 50px; height: 26px; border-radius: 20px;
-  background: var(--surface2); border: 1.5px solid var(--border);
-  cursor: pointer; position: relative; display: flex;
-  align-items: center; padding: 0 3px;
-  transition: all var(--transition); flex-shrink: 0;
-}
-[data-theme="dark"] .theme-toggle { background: var(--v2); border-color: var(--v2); }
-.toggle-thumb {
-  width: 19px; height: 19px; border-radius: 50%; background: white;
-  transition: transform var(--transition);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-}
-[data-theme="dark"] .toggle-thumb { transform: translateX(22px); }
+
+[data-theme="dark"] 
+
+
 /* Sidebar violeta */
-.sidebar, aside.sidebar {
-  background: var(--sb-bg) !important;
-  transition: background var(--transition) !important;
-}
-.sb-item, .sb-item a { color: var(--sb-text) !important; }
-.sb-item:hover, .sb-item.active, .sb-item.sb-active { background: var(--sb-active) !important; color: white !important; }
-.sb-logo, .sidebar .sb-logo { color: white !important; }
-.sb-logo span { color: var(--v3) !important; }
-.sb-section { color: var(--sb-text) !important; }
-.sb-footer { border-top-color: var(--sb-border) !important; }
-.sb-user-name { color: white !important; }
-.sb-user-role { color: var(--sb-text) !important; }
+.sidebar, aside
+
+.sb-item:hover, .sb-item.active, 
+.sb-logo, .sidebar 
+
 /* Body transitions */
-body { transition: background var(--transition), color var(--transition); }
-.header, .app-nav { transition: background var(--transition), border-color var(--transition); }
 
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#2D6A4F">
+<meta name="theme-color" content="#5B2FA8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="/icon-192.png">
 </head>
+
+<!-- ── BANNER SIN CONEXIÓN ─────────────────────────────────── -->
+<style>
+#pa-offline-banner {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: #1A1040;
+  color: #fff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .82rem; font-weight: 600;
+  text-align: center;
+  padding: 10px 16px;
+  z-index: 99997;
+  display: none;
+  align-items: center; justify-content: center; gap: 7px;
+  animation: pa-slide-down .25s ease;
+}
+@keyframes pa-slide-down { from{transform:translateY(-100%)} to{transform:translateY(0)} }
+#pa-offline-banner.visible { display: flex; }
+#pa-offline-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #EF4444; flex-shrink: 0;
+  animation: pa-pulse-dot 1.4s ease-in-out infinite;
+}
+@keyframes pa-pulse-dot {
+  0%,100%{ opacity:1; transform:scale(1) }
+  50%    { opacity:.5; transform:scale(.7) }
+}
+</style>
+<div id="pa-offline-banner">
+  <span id="pa-offline-dot"></span>
+  <span id="pa-offline-msg">Sin conexión — los cambios no se guardarán</span>
+</div>
+<script>
+(function(){
+  const banner = document.getElementById('pa-offline-banner');
+  const msg    = document.getElementById('pa-offline-msg');
+  const dot    = document.getElementById('pa-offline-dot');
+
+  function update() {
+    if (!navigator.onLine) {
+      banner.classList.add('visible');
+      msg.textContent = 'Sin conexión — los cambios no se guardarán';
+      dot.style.background = '#EF4444';
+    } else {
+      if (banner.classList.contains('visible')) {
+        msg.textContent = '✓ Conexión restaurada';
+        dot.style.background = '#22C55E';
+        dot.style.animation = 'none';
+        setTimeout(() => banner.classList.remove('visible'), 2200);
+      }
+    }
+  }
+
+  window.addEventListener('online',  update);
+  window.addEventListener('offline', update);
+  update(); // check inicial
+})();
+</script>
+<!-- ──────────────────────────────────────────────────────────── -->
+
 <body>
 
 <!-- SIDEBAR desktop -->
@@ -581,7 +491,7 @@ body { transition: background var(--transition), color var(--transition); }
           <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Para estudios y clínicas</div>
         </div>
         <div class="plan-price">
-          <div class="plan-amount" style="color:#E76F51">$20.000</div>
+          <div class="plan-amount" style="color:#7C3AED">$20.000</div>
           <div class="plan-period">ARS / mes</div>
         </div>
       </div>
@@ -677,7 +587,7 @@ body { transition: background var(--transition), color var(--transition); }
       <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:10px">¿Preferís coordinar por WhatsApp?</div>
       <a id="linkWA" href="https://wa.me/5492346699176?text=Hola%2C%20quiero%20activar%20el%20plan%20Pro%20de%20PsicoApp" 
          target="_blank"
-         style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:12px;background:#E8F8EE;color:#2D6A4F;font-size:14px;font-weight:700;text-decoration:none">
+         style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:12px;background:#EDE9FE;color:#5B2FA8;font-size:14px;font-weight:700;text-decoration:none">
         💬 Escribirnos por WhatsApp
       </a>
     </div>
@@ -729,26 +639,12 @@ body { transition: background var(--transition), color var(--transition); }
 
 
 <script>
-function toggleDrawer() {
-  document.getElementById('sideDrawer').classList.toggle('open');
-  document.getElementById('menuOverlay').classList.toggle('open');
-}
-function closeDrawer() {
-  document.getElementById('sideDrawer').classList.remove('open');
-  document.getElementById('menuOverlay').classList.remove('open');
-}
-async function doLogout() {
-  const {createClient} = supabase;
-  const sb = createClient('https://terlbqrcampdqtxjbihg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8');
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
+
 </script>
 
 
 <script>
-const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
+const { SUPA_URL, SUPA_KEY } = PSICOAPP_CONFIG;
 const { createClient } = supabase;
 const sb = createClient(SUPA_URL, SUPA_KEY);
 
@@ -844,7 +740,7 @@ const planesInfo = {
 // 4. Copiá el link (formato: https://mpago.la/XXXXXX) y pegalo acá
 const MP_LINKS = {
   pro: 'https://mpago.la/21qpD68',   // ← Plan Pro $15.000/mes
-  max: 'https://mpago.la/2una14K',   // ← Plan Max $20.000/mes
+  max: 'https://mpago.la/2una14K',   // ← Plan Max $22.000/mes
 };
 const PRECIOS  = { pro: '$15.000', max: '$22.000' };
 const WA_MSGS  = {
@@ -929,14 +825,7 @@ async function cerrarSesion() {
   var th = document.getElementById('toggle-thumb');
   if(th) th.textContent = saved === 'dark' ? '🌙' : '☀️';
 })();
-function toggleTheme(){
-  var html = document.documentElement;
-  var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-  html.setAttribute('data-theme', next);
-  localStorage.setItem('psicoapp-theme', next);
-  var th = document.getElementById('toggle-thumb');
-  if(th) th.textContent = next === 'dark' ? '🌙' : '☀️';
-}
+
 </script>
 </body>
 </html>

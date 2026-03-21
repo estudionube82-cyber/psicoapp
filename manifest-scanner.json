@@ -1,5 +1,5 @@
 {
-  "name": "Scanner — Pérez Aré",
+  "name": "PsicoApp — Scanner",
   "short_name": "Scanner",
   "description": "Escaneá documentos y exportá a PDF",
   "start_url": "/scanner.html",
@@ -12,12 +12,14 @@
     {
       "src": "/icon-scanner.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-scanner.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

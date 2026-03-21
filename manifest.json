@@ -2,7 +2,7 @@
   "name": "PsicoApp",
   "short_name": "PsicoApp",
   "description": "Gestión de consultorio psicológico",
-  "start_url": "/psicoapp-index.html",
+  "start_url": "/login.html",
   "display": "standalone",
   "background_color": "#F4F1ED",
   "theme_color": "#2D6A4F",
@@ -12,13 +12,25 @@
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

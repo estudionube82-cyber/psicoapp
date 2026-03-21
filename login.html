@@ -4,19 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PsicoApp — Ingresar</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
+  <link rel="stylesheet" href="/psicoapp-shared.css">
+<style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --orange:  #F4A261;
-      --orange-d:#E76F51;
-      --green:   #2D6A4F;
-      --green-l: #40916C;
-      --bg:      #FDF8F3;
+      --primary: #5B2FA8;
+      --primary-d: #7C3AED;
+      --primary-dk: #3B1A7A;
+      --primary-l: #7C3AED;
+      --bg: #F5F3FF;
       --card:    #FFFFFF;
-      --text:    #1A2E24;
+      --text: #1A1040;
       --muted:   #8A8FA8;
       --border:  #E8E4DD;
       --err:     #B94A48;
@@ -75,13 +77,13 @@
     }
     .logo-icon img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 16px rgba(244,162,97,0.45)); }
     .logo-text {
-      font-family: 'DM Serif Display', serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 1.8rem;
       color: #1A2E24;
       letter-spacing: -.01em;
       line-height: 1;
     }
-    .logo-text span { color: #F4A261; }
+    .logo-text span { color: #A78BFA; }
     .logo-tagline {
       font-size: 11px;
       color: #8A8FA8;
@@ -92,7 +94,7 @@
     }
 
     h1 {
-      font-family: 'DM Serif Display', serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 1.7rem;
       color: var(--text);
       line-height: 1.2;
@@ -125,7 +127,7 @@
     }
     .tab.active {
       background: var(--card);
-      color: var(--green);
+      color: var(--primary);
       box-shadow: 0 2px 8px rgba(0,0,0,.08);
     }
 
@@ -151,8 +153,8 @@
       transition: border-color .15s, box-shadow .15s;
     }
     input:focus {
-      border-color: var(--orange);
-      box-shadow: 0 0 0 3px rgba(244,162,97,0.15);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(91,47,168,0.15);
       background: #fff;
     }
     input::placeholder { color: #C5C0B8; }
@@ -168,12 +170,12 @@
       display: flex; align-items: center; justify-content: center; gap: .5rem;
     }
     .btn-primary {
-      background: linear-gradient(135deg, var(--green) 0%, var(--green-l) 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-l) 100%);
       color: #fff;
-      box-shadow: 0 4px 16px rgba(45,106,79,0.3);
+      box-shadow: 0 4px 16px rgba(91,47,168,0.3);
     }
     .btn-primary:hover { 
-      box-shadow: 0 6px 20px rgba(45,106,79,0.4);
+      box-shadow: 0 6px 20px rgba(91,47,168,0.4);
       transform: translateY(-1px);
     }
     .btn-primary:active { transform: translateY(0); }
@@ -200,7 +202,7 @@
       font-weight: 500;
     }
     .msg.error   { background: #fdf0ef; color: var(--err); border: 1px solid #f0c8c7; }
-    .msg.success { background: #EDFBF3; color: var(--green); border: 1px solid #B7DFC8; }
+    .msg.success { background: #F5F3FF; color: var(--primary); border: 1px solid #C4B5FD; }
 
     .divider {
       text-align: center;
@@ -210,7 +212,7 @@
     }
   </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#2D6A4F">
+<meta name="theme-color" content="#5B2FA8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
@@ -251,6 +253,9 @@
       <span class="spinner" id="spin-login"></span>
       <span id="lbl-login">Ingresar</span>
     </button>
+    <p style="text-align:center;margin-top:1rem;">
+      <a href="#" onclick="doForgotPassword()" style="font-size:.82rem;color:var(--muted);text-decoration:none;font-weight:600;">¿Olvidaste tu contraseña?</a>
+    </p>
   </div>
 
   <!-- REGISTER -->
@@ -263,20 +268,55 @@
       <label>Contraseña</label>
       <input id="reg-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
     </div>
+    <div class="field">
+      <label>Confirmá la contraseña</label>
+      <input id="reg-pass2" type="password" placeholder="Repetí la contraseña" autocomplete="new-password"/>
+    </div>
     <button class="btn btn-primary" id="btn-reg" onclick="doRegister()">
       <span class="spinner" id="spin-reg"></span>
       <span id="lbl-reg">Crear cuenta</span>
     </button>
   </div>
 
-  <p class="divider">PsicoApp © 2025</p>
+  <p class="divider">PsicoApp © 2026 · <a href="/privacidad.html" style="color:var(--muted);text-decoration:none;font-size:.75rem;font-weight:600;">Privacidad</a></p>
 </div>
 
 <script>
-  const SUPA_URL = 'https://terlbqrcampdqtxjbihg.supabase.co';
-  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8';
   const { createClient } = supabase;
-  const sb = createClient(SUPA_URL, SUPA_KEY);
+  const sb = createClient(PSICOAPP_CONFIG.SUPA_URL, PSICOAPP_CONFIG.SUPA_KEY);
+
+  // ── RATE LIMITING LOGIN ──────────────────────────────────────
+  const _RL_KEY = 'psicoapp_login_attempts';
+  const _RL_MAX = 5;
+  const _RL_WINDOW = 15 * 60 * 1000; // 15 minutos
+
+  function rlCheck() {
+    const raw = localStorage.getItem(_RL_KEY);
+    if (!raw) return true;
+    const { count, since } = JSON.parse(raw);
+    if (Date.now() - since > _RL_WINDOW) {
+      localStorage.removeItem(_RL_KEY); return true;
+    }
+    if (count >= _RL_MAX) {
+      const mins = Math.ceil((_RL_WINDOW - (Date.now() - since)) / 60000);
+      showMsg(`Demasiados intentos. Esperá ${mins} min antes de volver a intentar.`, 'error');
+      return false;
+    }
+    return true;
+  }
+
+  function rlRegister() {
+    const raw = localStorage.getItem(_RL_KEY);
+    if (!raw) { localStorage.setItem(_RL_KEY, JSON.stringify({ count:1, since:Date.now() })); return; }
+    const obj = JSON.parse(raw);
+    if (Date.now() - obj.since > _RL_WINDOW) { localStorage.setItem(_RL_KEY, JSON.stringify({ count:1, since:Date.now() })); return; }
+    obj.count++;
+    localStorage.setItem(_RL_KEY, JSON.stringify(obj));
+  }
+
+  function rlClear() { localStorage.removeItem(_RL_KEY); }
+  // ────────────────────────────────────────────────────────────
+
 
   // redirect if already logged in
   sb.auth.getSession().then(({ data }) => {
@@ -311,6 +351,7 @@
 
   async function doLogin() {
     hideMsg();
+    if (!rlCheck()) return;
     const email = document.getElementById('login-email').value.trim();
     const pass  = document.getElementById('login-pass').value;
     if (!email || !pass) { showMsg('Completá email y contraseña.', 'error'); return; }
@@ -319,16 +360,30 @@
     const { error } = await sb.auth.signInWithPassword({ email, password: pass });
     setLoading('btn-login','spin-login','lbl-login', false, 'Ingresar');
 
-    if (error) { showMsg(translateError(error.message), 'error'); return; }
+    if (error) { rlRegister(); showMsg(translateError(error.message), 'error'); return; }
+    rlClear();
     window.location.href = 'psicoapp-agenda.html';
+  }
+
+  async function doForgotPassword() {
+    const email = document.getElementById('login-email').value.trim();
+    if (!email) { showMsg('Ingresá tu email primero para recuperar la contraseña.', 'error'); return; }
+    hideMsg();
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/login.html',
+    });
+    if (error) { showMsg(translateError(error.message), 'error'); return; }
+    showMsg('Te enviamos un email para restablecer tu contraseña. Revisá tu bandeja.', 'success');
   }
 
   async function doRegister() {
     hideMsg();
     const email = document.getElementById('reg-email').value.trim();
     const pass  = document.getElementById('reg-pass').value;
-    if (!email || !pass) { showMsg('Completá todos los campos.', 'error'); return; }
+    const pass2 = document.getElementById('reg-pass2').value;
+    if (!email || !pass || !pass2) { showMsg('Completá todos los campos.', 'error'); return; }
     if (pass.length < 6)  { showMsg('La contraseña debe tener al menos 6 caracteres.', 'error'); return; }
+    if (pass !== pass2)   { showMsg('Las contraseñas no coinciden.', 'error'); return; }
 
     setLoading('btn-reg','spin-reg','lbl-reg', true, 'Crear cuenta');
     const { error } = await sb.auth.signUp({ email, password: pass });

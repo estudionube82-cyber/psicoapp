@@ -1,7 +1,8 @@
 // ============================================================
 //  PSICOAPP — SISTEMA DE LÍMITES DE PLAN
 //  Incluir en todas las páginas que usen WA o IA:
-//  <script src="psicoapp-limites.js"></script>
+//  <script src="/config.js"></script>
+//  <script src="/psicoapp-limites.js"></script>
 // ============================================================
 
 const PLANES = {
@@ -79,7 +80,6 @@ async function registrarUsoWA(sb, userId, paciente_id = null) {
 }
 
 function mostrarModalLimiteWA(plan, usado, limite) {
-  const esMax = plan === 'max';
   const html = `
     <div id="modalLimiteWA" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-end;justify-content:center;">
       <div style="background:#fff;border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:430px;">
@@ -95,7 +95,7 @@ function mostrarModalLimiteWA(plan, usado, limite) {
             <button onclick="window.location.href='psicoapp-cuenta.html'" style="background:linear-gradient(135deg,#F4A261,#E76F51);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;">🚀 Plan Max — WA ilimitado</button>
           ` : `
             <button onclick="comprarPackWA()" style="background:#2D6A4F;color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;">📦 Comprar 100 WA extra — $5.000</button>
-            <button onclick="window.location.href='psicoapp-cuenta.html'" style="background:linear-gradient(135deg,#F4A261,#E76F51);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;">🚀 Pasarme a Max — WA ilimitado</button>
+            <button onclick="window.location.href='psicoapp-cuenta.html'" style="background:linear-gradient(135deg,#F4A261,#E76F51);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;">🚀 Pasarme a Max — $22.000/mes</button>
           `}
           <button onclick="document.getElementById('modalLimiteWA').remove()" style="background:none;border:none;padding:12px;font-size:14px;color:#999;cursor:pointer;">Cerrar</button>
         </div>
@@ -105,8 +105,16 @@ function mostrarModalLimiteWA(plan, usado, limite) {
 }
 
 function comprarPackWA() {
-  // Link de MercadoPago para pack WA — reemplazar con link real
-  window.open('https://mpago.la/PACKWA', '_blank');
+  // ⚠️ Reemplazar con el link real de MercadoPago para el pack WA
+  const linkPackWA = (typeof PSICOAPP_CONFIG !== 'undefined' && PSICOAPP_CONFIG.MP_PACK_WA)
+    ? PSICOAPP_CONFIG.MP_PACK_WA
+    : null;
+
+  if (!linkPackWA) {
+    alert('El link de compra no está configurado aún. Contactá al soporte.');
+    return;
+  }
+  window.open(linkPackWA, '_blank');
 }
 
 // ── IA ──────────────────────────────────────────────────────
