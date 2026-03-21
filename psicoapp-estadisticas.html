@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>PsicoApp — Estadísticas</title>
-<script>const PSICOAPP_CONFIG={VERSION:'1.0.0',BUILD_DATE:'2026-03-21',SUPA_URL:'https://terlbqrcampdqtxjbihg.supabase.co',SUPA_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8'};</script>
+<script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/psicoapp-shared.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -629,7 +629,7 @@ function formatPesosCorto(n) {
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
-    const { data: p } = await sb.from('profiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
+    const { data: p } = await sb.from('perfiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
     if (p) {
       const name = (p.titulo ? p.titulo + ' ' : '') + (p.nombre || '') + ' ' + (p.apellido || '');
       const el = document.getElementById('sb-user-name');

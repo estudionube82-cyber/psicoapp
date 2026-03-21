@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>PsicoApp — Historia Clínica</title>
-<script>const PSICOAPP_CONFIG={VERSION:'1.0.0',BUILD_DATE:'2026-03-21',SUPA_URL:'https://terlbqrcampdqtxjbihg.supabase.co',SUPA_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8'};</script>
+<script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/psicoapp-shared.js"></script>
 <script src="psicoapp-limites.js"></script>
@@ -580,7 +580,6 @@
           <button class="btn-copiar" style="flex:1;min-width:120px;" onclick="exportarPDF()">📄 Exportar PDF</button>
           <button class="btn-copiar" style="flex:1;min-width:120px;background:#25D366;color:white;" onclick="compartirWhatsApp()">📱 WhatsApp</button>
         </div>
-        <button id="btnRegenerarInforme" onclick="regenerarInforme()" style="display:none;width:100%;margin-top:10px;padding:11px;border:2px dashed #7c3aed;border-radius:11px;background:transparent;color:#7c3aed;font-size:13px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;">🔄 No me gustó el resultado — Regenerar</button>
       </div>
 
       <!-- HISTORIAL DE INFORMES GUARDADOS -->
@@ -671,17 +670,6 @@
       <button class="modal-close" onclick="cerrarModalSesion()">✕</button>
     </div>
     <div class="modal-body">
-      <!-- Panel sesión anterior -->
-      <div id="panelSesionAnterior" style="display:none;margin-bottom:14px;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
-        <div id="panelSesionAnteriorHeader" onclick="togglePanelSesionAnterior()" style="background:#f5f3ff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-          <span style="font-size:13px;font-weight:700;color:#5B2FA8;">📋 Última sesión</span>
-          <span id="panelSesionAnteriorArrow" style="font-size:12px;color:#7c3aed;transition:transform .2s;">▼</span>
-        </div>
-        <div id="panelSesionAnteriorBody" style="background:#faf8ff;padding:12px 14px;border-top:1px solid #ede9fe;display:none;">
-          <div id="panelSesionAnteriorContent" style="font-size:13px;color:#374151;line-height:1.6;"></div>
-        </div>
-      </div>
-
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Fecha</label>
@@ -1159,34 +1147,7 @@ function abrirModalNuevaSesion(){
   document.getElementById('sesionEstado').value = 'realizada';
   document.getElementById('btnEliminarSesion').style.display = 'none';
   resetMoodUI(); resetDiagUI();
-  // Panel sesion anterior
-  const realizadas = sesionesActuales.filter(s=>s.estado==='realizada').sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
-  const panelEl = document.getElementById('panelSesionAnterior');
-  if(realizadas.length > 0){
-    const ult = realizadas[0];
-    const moodLabels = {1:'😞 Muy mal',2:'😕 Mal',3:'😐 Regular',4:'🙂 Bien',5:'😄 Muy bien'};
-    let html = '';
-    html += '<div style="margin-bottom:6px"><span style="color:#6b7280;font-size:12px">Fecha:</span> <strong>' + (ult.fecha||'') + '</strong></div>';
-    if(ult.estado_animo) html += '<div style="margin-bottom:6px"><span style="color:#6b7280;font-size:12px">Estado de ánimo:</span> <strong>' + (moodLabels[ult.estado_animo]||ult.estado_animo) + '</strong></div>';
-    if(ult.motivo) html += '<div style="margin-bottom:6px"><span style="color:#6b7280;font-size:12px">Motivo:</span> ' + ult.motivo + '</div>';
-    if(ult.notas) html += '<div style="margin-bottom:6px"><span style="color:#6b7280;font-size:12px">Notas clínicas:</span> ' + ult.notas + '</div>';
-    if(ult.tareas) html += '<div style="margin-bottom:0"><span style="color:#6b7280;font-size:12px">Tareas pendientes:</span> <span style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:6px;font-size:12px">' + ult.tareas + '</span></div>';
-    document.getElementById('panelSesionAnteriorContent').innerHTML = html;
-    panelEl.style.display = 'block';
-    document.getElementById('panelSesionAnteriorBody').style.display = 'none';
-    document.getElementById('panelSesionAnteriorArrow').style.transform = '';
-  } else {
-    panelEl.style.display = 'none';
-  }
   document.getElementById('modalSesion').classList.add('open');
-}
-
-function togglePanelSesionAnterior(){
-  const body = document.getElementById('panelSesionAnteriorBody');
-  const arrow = document.getElementById('panelSesionAnteriorArrow');
-  const open = body.style.display === 'block';
-  body.style.display = open ? 'none' : 'block';
-  arrow.style.transform = open ? '' : 'rotate(180deg)';
 }
 
 function abrirModalEditarSesion(s){
@@ -1534,7 +1495,7 @@ REGLAS ABSOLUTAS DE REDACCIÓN:
   [título]
   [M.P. y/o M.N.]`
 
-    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe`, {
+    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PSICOAPP_CONFIG.SUPA_KEY}` },
       body: JSON.stringify({ prompt })
@@ -1549,7 +1510,6 @@ REGLAS ABSOLUTAS DE REDACCIÓN:
       const textoInforme = data.texto || 'Sin respuesta';
       output.textContent = textoInforme;
       resultCard.style.display = 'block';
-      document.getElementById('btnRegenerarInforme').style.display = 'block';
       await registrarUsoIA(sb, userId, 'informe');
       // AUTO-GUARDAR en Supabase
       await guardarInformeEnDB(textoInforme, tipoInformeSeleccionado);
@@ -1562,12 +1522,6 @@ REGLAS ABSOLUTAS DE REDACCIÓN:
 
   btn.disabled = false;
   btn.innerHTML = '✨ Generar Informe con IA';
-}
-
-function regenerarInforme(){
-  document.getElementById('informeOutput').textContent = '';
-  document.getElementById('btnRegenerarInforme').style.display = 'none';
-  generarInformeIA();
 }
 
 async function guardarInformeEnDB(texto, tipo) {
@@ -1706,7 +1660,7 @@ ALERTA:
 Lenguaje técnico-clínico argentino.`;
 
   try {
-    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe`, {
+    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PSICOAPP_CONFIG.SUPA_KEY}` },
       body: JSON.stringify({ prompt })
@@ -1748,7 +1702,7 @@ async function llamarIAExtra(loadingText, prompt) {
   cont.scrollIntoView({ behavior: 'smooth' });
 
   try {
-    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe`, {
+    const response = await fetch(`${PSICOAPP_CONFIG.SUPA_URL}/functions/v1/generar-informe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PSICOAPP_CONFIG.SUPA_KEY}` },
       body: JSON.stringify({ prompt })
