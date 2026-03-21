@@ -446,6 +446,7 @@ body { transition: background var(--transition), color var(--transition); }
     <button class="fchip active" onclick="setFiltro('todos', this)">Todos (<span id="cnt-todos">0</span>)</button>
     <button class="fchip" onclick="setFiltro('os', this)">🏥 Obra social</button>
     <button class="fchip" onclick="setFiltro('particular', this)">💳 Particular</button>
+    <button class="fchip" onclick="setFiltro('archivados', this)">📦 Archivados</button>
   
   <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" style="margin-left:4px;"><div class="toggle-thumb" id="toggle-thumb">☀️</div></button></div>
 </div>
@@ -458,7 +459,7 @@ body { transition: background var(--transition), color var(--transition); }
 </div>
 
 <!-- LIST -->
-<div class="patient-list" id="patientList">
+<div class="patient-list" id="patientList" style="padding-bottom:80px;">
   <div class="loading-state">Cargando pacientes...</div>
 </div>
 
@@ -554,7 +555,7 @@ body { transition: background var(--transition), color var(--transition); }
     <div id="det-body" style="display:flex;flex-direction:column;gap:8px;font-size:14px"></div>
     <div class="detail-actions">
       <button class="btn-action btn-wp" id="det-wp-btn">💬 WhatsApp</button>
-      <button class="btn-action btn-del" onclick="eliminarPaciente()">🗑 Eliminar</button>
+      <button class="btn-action btn-del" id="btnArchivarDetalle" onclick="archivarRestaurarPaciente()">📦 Archivar</button>
     </div>
 
     <!-- PANEL IA MENSAJES -->
@@ -667,6 +668,8 @@ body { transition: background var(--transition), color var(--transition); }
   <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
 </nav>
 
+<div id="toast" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1A2E;color:white;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;"></div>
+<div id="guardandoBarP" style="position:fixed;top:0;left:0;right:0;background:var(--primary);color:white;text-align:center;font-size:12px;font-weight:700;padding:6px;z-index:9999;transform:translateY(-100%);transition:transform 0.25s;"></div>
 
 <script>
 function toggleDrawer() {
@@ -707,7 +710,7 @@ async function cargarPacientes() {
   const { data, error } = await sb
     .from('pacientes')
     .select('*')
-    .eq('activo', true)
+    .eq('user_id', (await sb.auth.getSession()).data.session.user.id)
     .order('apellido', { ascending: true });
 
   if (error) {
@@ -717,13 +720,15 @@ async function cargarPacientes() {
   }
   todosLosPacientes = data || [];
   actualizarStats();
-  renderLista(todosLosPacientes);
+  renderLista(todosLosPacientes.filter(p => p.activo !== false && !p.archivado));
 }
 
 function actualizarStats() {
-  const total = todosLosPacientes.length;
-  const conOS  = todosLosPacientes.filter(p => p.obra_social).length;
+  const activos = todosLosPacientes.filter(p => p.activo !== false && !p.archivado);
+  const total = activos.length;
+  const conOS  = activos.filter(p => p.obra_social).length;
   const part   = total - conOS;
+  const archivados = todosLosPacientes.filter(p => p.archivado).length;
   document.getElementById('stat-activos').textContent = total;
   document.getElementById('stat-os').textContent = conOS;
   document.getElementById('stat-part').textContent = part;
@@ -772,9 +777,14 @@ function renderLista(lista) {
 
 function filtrarPacientes() {
   const q = document.getElementById('searchInput').value.toLowerCase();
-  let lista = todosLosPacientes;
-  if (filtroActual === 'os')         lista = lista.filter(p => p.obra_social);
-  if (filtroActual === 'particular') lista = lista.filter(p => !p.obra_social);
+  let lista;
+  if (filtroActual === 'archivados') {
+    lista = todosLosPacientes.filter(p => p.archivado);
+  } else {
+    lista = todosLosPacientes.filter(p => p.activo !== false && !p.archivado);
+    if (filtroActual === 'os')         lista = lista.filter(p => p.obra_social);
+    if (filtroActual === 'particular') lista = lista.filter(p => !p.obra_social);
+  }
   if (q) lista = lista.filter(p =>
     (p.nombre + ' ' + p.apellido).toLowerCase().includes(q) ||
     (p.telefono || '').includes(q)
@@ -799,6 +809,7 @@ function abrirModal() {
   if (fnac) fnac.value = '';
   document.getElementById('msgError').style.display = 'none';
   document.getElementById('overlay').classList.add('open');
+  history.pushState({modal:'nuevo'}, '');
   setTimeout(() => document.getElementById('f-nombre').focus(), 300);
 }
 
@@ -817,6 +828,8 @@ async function crearPaciente() {
   const btn = document.getElementById('btnCrear');
   btn.disabled = true;
   btn.textContent = 'Guardando...';
+  const gb = document.getElementById('guardandoBarP');
+  if (gb) { gb.textContent = '💾 Guardando paciente…'; gb.style.transform = 'translateY(0)'; }
 
   const { data: { session } } = await sb.auth.getSession();
   const { error } = await sb.from('pacientes').insert({
@@ -834,6 +847,7 @@ async function crearPaciente() {
 
   btn.disabled = false;
   btn.textContent = '✓ Crear paciente';
+  if (gb) gb.style.transform = 'translateY(-100%)';
 
   if (error) { mostrarError('Error al guardar. Intentá de nuevo.'); return; }
   cerrarModal();
@@ -882,6 +896,19 @@ function abrirDetalle(id) {
   }
 
   document.getElementById('overlayDetalle').classList.add('open');
+  history.pushState({modal:'detalle'}, '');
+
+  // Actualizar botón archivar/restaurar
+  const btnArchivar = document.getElementById('btnArchivarDetalle');
+  if (p.archivado) {
+    btnArchivar.textContent = '♻️ Restaurar';
+    btnArchivar.style.background = '#E8F8EE';
+    btnArchivar.style.color = '#1B5E20';
+  } else {
+    btnArchivar.textContent = '📦 Archivar';
+    btnArchivar.style.background = '';
+    btnArchivar.style.color = '';
+  }
 
   // Guardar paciente actual para IA
   pacienteActualPA = p;
@@ -916,12 +943,18 @@ function irAHistoriaClinica() {
   window.location.href = `psicoapp-historia.html?id=${pacienteSeleccionado.id}`;
 }
 
-async function eliminarPaciente() {
+async function archivarRestaurarPaciente() {
   if (!pacienteSeleccionado) return;
-  if (!confirm(`¿Eliminar a ${pacienteSeleccionado.nombre} ${pacienteSeleccionado.apellido}?`)) return;
-  await sb.from('pacientes').update({ activo: false }).eq('id', pacienteSeleccionado.id);
+  const estaArchivado = pacienteSeleccionado.archivado;
+  const accion = estaArchivado ? 'restaurar' : 'archivar';
+  if (!confirm(`¿${accion.charAt(0).toUpperCase()+accion.slice(1)} a ${pacienteSeleccionado.nombre} ${pacienteSeleccionado.apellido}?`)) return;
+  const { error } = await sb.from('pacientes')
+    .update({ archivado: !estaArchivado })
+    .eq('id', pacienteSeleccionado.id);
+  if (error) { alert('Error: ' + error.message); return; }
   cerrarDetalle();
   await cargarPacientes();
+  showToast(estaArchivado ? '♻️ Paciente restaurado' : '📦 Paciente archivado');
 }
 
 function formatFecha(f) {
@@ -1147,6 +1180,34 @@ function enviarWAPA(){
     }
   } catch(e){}
 })();
+
+function showToast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(20px)';
+  }, dur);
+}
+
+// ---- ANDROID BACK BUTTON ----
+window.addEventListener('popstate', function() {
+  const overlayDetalle = document.getElementById('overlayDetalle');
+  const overlay = document.getElementById('overlay');
+  if (overlayDetalle && overlayDetalle.classList.contains('open')) {
+    overlayDetalle.classList.remove('open');
+    pacienteSeleccionado = null;
+    return;
+  }
+  if (overlay && overlay.classList.contains('open')) {
+    cerrarModal();
+    return;
+  }
+});
+// Push state when opening modals (ya hecho en abrirModal y abrirDetalle)
 </script>
 </div></div>
 <script>

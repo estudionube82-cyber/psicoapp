@@ -168,6 +168,14 @@ body{font-family: 'Plus Jakarta Sans', sans-serif;background:var(--bg);color:var
 .sesion-section-title{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-top:14px;}
 .sesion-content{background:var(--surface);border-radius:12px;padding:13px 14px;font-size:14px;line-height:1.7;color:var(--text);box-shadow:var(--sh);}
 .sesion-content.empty{color:var(--muted);font-style:italic;}
+/* Panel sesión anterior */
+.panel-sesion-ant{background:var(--primary-light);border-radius:12px;padding:12px 14px;margin-bottom:14px;border-left:4px solid var(--primary);}
+.panel-sesion-ant-title{font-size:10px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.panel-sesion-ant-body{font-size:13px;color:var(--text);line-height:1.55;}
+.panel-sesion-ant-meta{font-size:11px;color:var(--muted);margin-top:4px;}
+/* Guardando indicator */
+.guardando-bar{position:fixed;top:0;left:0;right:0;background:var(--primary);color:white;text-align:center;font-size:12px;font-weight:700;padding:6px;z-index:9999;transform:translateY(-100%);transition:transform 0.25s;}
+.guardando-bar.show{transform:translateY(0);}
 .sesion-diag-list{display:flex;flex-wrap:wrap;gap:6px;}
 .sesion-mood-display{display:flex;align-items:center;gap:10px;}
 .sesion-mood-emoji{font-size:28px;}
@@ -471,6 +479,7 @@ body { transition: background var(--transition), color var(--transition); }
           <button class="btn-copiar" style="flex:1;min-width:120px;" onclick="imprimirInforme()">🖨️ Imprimir</button>
           <button class="btn-copiar" style="flex:1;min-width:120px;" onclick="exportarPDF()">📄 Exportar PDF</button>
           <button class="btn-copiar" style="flex:1;min-width:120px;background:#25D366;color:white;" onclick="compartirWhatsApp()">📱 WhatsApp</button>
+          <button class="btn-copiar" style="flex:1;min-width:120px;background:var(--primary);color:white;" id="btnRegenerarInforme" onclick="regenerarInforme()">🔄 Regenerar</button>
         </div>
       </div>
 
@@ -562,6 +571,12 @@ body { transition: background var(--transition), color var(--transition); }
       <button class="modal-close" onclick="cerrarModalSesion()">✕</button>
     </div>
     <div class="modal-body">
+      <!-- Panel sesión anterior -->
+      <div class="panel-sesion-ant" id="panelSesionAnt" style="display:none;">
+        <div class="panel-sesion-ant-title">📋 Última sesión registrada</div>
+        <div class="panel-sesion-ant-body" id="panelSesionAntBody"></div>
+        <div class="panel-sesion-ant-meta" id="panelSesionAntMeta"></div>
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Fecha</label>
@@ -713,6 +728,7 @@ body { transition: background var(--transition), color var(--transition); }
 </nav>
 
 <div class="toast" id="toast"></div>
+<div class="guardando-bar" id="guardandoBar">💾 Guardando sesión…</div>
 
 <script>
 const { SUPA_URL, SUPA_KEY } = PSICOAPP_CONFIG;
@@ -842,9 +858,10 @@ function checkURLParams() {
 
 async function cargarPacientes(){
   const { data, error } = await sb.from('pacientes')
-    .select('id,nombre,apellido,telefono,activo')
+    .select('id,nombre,apellido,telefono,activo,archivado')
     .eq('user_id', userId)
     .eq('activo', true)
+    .neq('archivado', true)
     .order('apellido');
   if(error){ document.getElementById('pacList').innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Error al cargar</div></div>'; return; }
   todosPacientes = data || [];
@@ -1040,7 +1057,23 @@ function abrirModalNuevaSesion(){
   document.getElementById('sesionEstado').value = 'realizada';
   document.getElementById('btnEliminarSesion').style.display = 'none';
   resetMoodUI(); resetDiagUI();
+  // Mostrar panel sesión anterior
+  const panelAnt = document.getElementById('panelSesionAnt');
+  const realizadas = sesionesActuales.filter(s => s.estado === 'realizada');
+  if (realizadas.length) {
+    const ultima = realizadas[0]; // ya vienen ordenadas desc por fecha
+    const partes = [];
+    if (ultima.motivo) partes.push(`<b>Motivo:</b> ${ultima.motivo}`);
+    if (ultima.notas) partes.push(`<b>Notas:</b> ${ultima.notas.substring(0,120)}${ultima.notas.length>120?'…':''}`);
+    if (ultima.tareas) partes.push(`<b>Tareas pendientes:</b> ${ultima.tareas}`);
+    document.getElementById('panelSesionAntBody').innerHTML = partes.join('<br>') || '(Sin detalle registrado)';
+    document.getElementById('panelSesionAntMeta').textContent = `Sesión N°${ultima.numero_sesion||'—'} · ${formatFecha(ultima.fecha)}`;
+    panelAnt.style.display = 'block';
+  } else {
+    panelAnt.style.display = 'none';
+  }
   document.getElementById('modalSesion').classList.add('open');
+  history.pushState({modal:'sesion'}, '');
 }
 
 function abrirModalEditarSesion(s){
@@ -1070,9 +1103,20 @@ function abrirModalEditarSesion(s){
   });
   renderDiagCustomList();
   document.getElementById('modalSesion').classList.add('open');
+  history.pushState({modal:'sesion'}, '');
 }
 
 function cerrarModalSesion(){document.getElementById('modalSesion').classList.remove('open');}
+
+function mostrarGuardando(show){
+  document.getElementById('guardandoBar').classList.toggle('show', show);
+}
+
+function regenerarInforme(){
+  const output = document.getElementById('informeOutput');
+  if(!output.textContent.trim()) return;
+  generarInformeIA();
+}
 
 function selMood(v){
   moodSeleccionado = v;
@@ -1107,6 +1151,7 @@ function resetDiagUI(){ document.querySelectorAll('.diag-chip').forEach(c=>c.cla
 async function guardarSesion(){
   const btn = document.getElementById('btnGuardarSesion');
   btn.disabled = true; btn.textContent = 'Guardando…';
+  mostrarGuardando(true);
   const allDiags = [...diagsSeleccionados, ...diagsCustom];
   const payload = {
     user_id: userId,
@@ -1128,6 +1173,7 @@ async function guardarSesion(){
     ({error} = await sb.from('sesiones_clinicas').insert(payload));
   }
   btn.disabled=false; btn.textContent='💾 Guardar sesión';
+  mostrarGuardando(false);
   if(error){ showToast('❌ Error: '+error.message); return; }
   cerrarModalSesion();
   showToast(editandoSesionId?'✅ Sesión actualizada':'✅ Sesión guardada');
@@ -1189,6 +1235,7 @@ function abrirModalInfo(){
   document.getElementById('infoObjetivos').value = info.objetivos||'';
   document.getElementById('infoNotas').value = info.notas_generales||'';
   document.getElementById('modalInfo').classList.add('open');
+  history.pushState({modal:'info'}, '');
 }
 
 function cerrarModalInfo(){document.getElementById('modalInfo').classList.remove('open');}
@@ -1881,6 +1928,28 @@ function compartirWhatsApp(){
 
   window.open(url, '_blank');
 }
+// ---- ANDROID BACK BUTTON ----
+window.addEventListener('popstate', function(e) {
+  // Cerrar cualquier modal abierto
+  if (document.getElementById('modalSesion').classList.contains('open')) {
+    document.getElementById('modalSesion').classList.remove('open');
+    return;
+  }
+  if (document.getElementById('modalInfo').classList.contains('open')) {
+    document.getElementById('modalInfo').classList.remove('open');
+    return;
+  }
+  // Si estamos en viewSesion, volver a detalle
+  if (document.getElementById('viewSesion') && document.getElementById('viewSesion').classList.contains('active')) {
+    volverADetalle();
+    return;
+  }
+  // Si estamos en detalle, volver a lista
+  if (document.getElementById('viewDetalle') && document.getElementById('viewDetalle').classList.contains('active')) {
+    volverALista();
+    return;
+  }
+});
 </script>
 <script>
 (function(){
