@@ -4,16 +4,81 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Psicoapp — Pacientes</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/psicoapp-shared.js"></script>
-<link rel="stylesheet" href="/psicoapp-shared.css">
 <style>
+:root {
+  --v1: #5B2FA8;
+  --v2: #7C3AED;
+  --v3: #A78BFA;
+  --v4: #EDE9FE;
+  --v5: #F5F3FF;
+  --accent: #F472B6;
+  --accent2: #34D399;
+  --radius: 16px;
+  --radius-sm: 11px;
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Fraunces', serif;
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg: #F8F7FF;
+  --surface: #FFFFFF;
+  --surface2: #F3F0FF;
+  --border: #E5E2F5;
+  --text: #1E1040;
+  --text-muted: #7C6FAE;
+  --shadow-sm: 0 2px 8px rgba(108,63,197,0.07);
+  --shadow-md: 0 6px 24px rgba(108,63,197,0.12);
+  --primary: #5B2FA8;
+  --primary-light: #EDE9FE;
+  --primary-mid: #A78BFA;
+  --sb-bg: #1E1040;
+  --sb-text: rgba(255,255,255,0.65);
+  --sb-active: rgba(255,255,255,0.1);
+  --sb-border: rgba(255,255,255,0.08);
+}
+[data-theme="dark"] {
+  --bg: #0F0B1E;
+  --surface: #1A1530;
+  --surface2: #221D3A;
+  --border: #2E2850;
+  --text: #EDE9FE;
+  --text-muted: #9D8EC7;
+  --shadow-sm: 0 2px 12px rgba(0,0,0,0.25);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.4);
+  --primary: #7C3AED;
+  --primary-light: rgba(124,58,237,0.15);
+  --primary-mid: #A78BFA;
+  --sb-bg: #13102A;
+  --sb-text: rgba(255,255,255,0.55);
+  --sb-active: rgba(124,58,237,0.2);
+  --sb-border: rgba(255,255,255,0.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
 
 /* HEADER */
-
-
-.logo { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; color: var(--primary); }
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+.header-top {
+  display: flex; align-items: center;
+  padding: 14px 18px 10px; gap: 10px;
+}
+.logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--primary); }
 .logo span { color: var(--accent); }
 .header-title { flex: 1; text-align: center; font-size: 16px; font-weight: 800; }
 .icon-btn-sm {
@@ -71,7 +136,7 @@
   width: 44px; height: 44px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
   font-size: 15px; font-weight: 800; flex-shrink: 0;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Playfair Display', serif;
 }
 .av-green  { background: var(--primary-light); color: var(--primary); }
 .av-blue   { background: #E3F2FD; color: #1565C0; }
@@ -124,7 +189,7 @@
   max-height: 92vh; overflow-y: auto;
   animation: slideUp 0.25s ease;
 }
-@keyframes slideUp {   }
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
 .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 2px; }
@@ -179,13 +244,19 @@
   font-family: var(--font); font-size: 14px; font-weight: 700;
   cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.btn-wp   { background: #EDE9FE; color: #1B5E20; }
+.btn-wp   { background: #E8F8EE; color: #1B5E20; }
 .btn-edit { background: var(--primary-light); color: var(--primary); }
 .btn-del  { background: #fdf0ef; color: #B94A48; }
 
 
 /* ===== NAV 5 ÍTEMS + HAMBURGUESA ===== */
-
+.app-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; height: 64px;
+  background: #fff; border-top: 1.5px solid #E8E4DD;
+  display: flex; align-items: center;
+  z-index: 2147483647; box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
+}
 .app-nav a, .app-nav button.nav-menu-btn {
   flex: 1; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 2px; text-decoration: none; 
@@ -194,29 +265,83 @@
 .app-nav a .ni, .app-nav button.nav-menu-btn .ni { font-size: 22px; line-height: 1; display: block; }
 .app-nav a .nl, .app-nav button.nav-menu-btn .nl { font-size: 10px; font-weight: 700; display: block; }
 .app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(244,162,97,0.5)); }
-.app-nav a.on .nl { color: #5B2FA8; }
+.app-nav a.on .nl { color: #2D6A4F; }
 
 /* OVERLAY */
+.menu-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 9998;
+  backdrop-filter: blur(2px);
+}
+.menu-overlay.open { display: block; }
 
 /* DRAWER */
-
+.side-drawer {
+  position: fixed; top: 0; left: -280px; width: 280px; height: 100vh;
+  background: #fff; z-index: 9999;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+  transition: left 0.3s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
 .side-drawer.open { left: 0; }
 
-
+.drawer-header {
+  background: linear-gradient(135deg, #2D6A4F 0%, #3A7D5F 50%, #F4A261 100%);
+  padding: 48px 20px 24px;
+  display: flex; align-items: center; gap: 12px;
+}
 .drawer-header img { width: 48px; height: 48px; object-fit: contain; }
+.drawer-logo-txt { font-size: 22px; font-weight: 800; color: white; font-family: serif; }
+.drawer-logo-txt span { color: #FFD580; }
+.drawer-tagline { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; letter-spacing: 0.5px; }
+
+.drawer-section-title {
+  font-size: 10px; font-weight: 800; color: #8A8FA8;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 16px 20px 6px;
+}
+.drawer-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 20px; text-decoration: none; color: #1A1A2E;
+  font-size: 15px; font-weight: 600;
+  transition: background 0.15s;
+  border-left: 3px solid transparent;
+}
+.drawer-item:hover { background: #F4F1ED; }
+.drawer-item.active { 
+  background: #E8F5EE; color: #2D6A4F; 
+  border-left-color: #2D6A4F;
+}
+.drawer-item .di { font-size: 20px; width: 28px; text-align: center; }
+
+.drawer-footer {
+  margin-top: auto; padding: 16px 20px;
+  border-top: 1px solid #E8E4DD;
+}
+.drawer-logout {
+  display: flex; align-items: center; gap: 10px;
+  color: #E53935; font-size: 14px; font-weight: 600;
+  cursor: pointer; padding: 8px 0; background: none; border: none; width: 100%;
+}
+
 
 /* ===== SIDEBAR DESKTOP ===== */
 @media (min-width: 768px) {
-  
-  
+  .app-nav { display: none !important; }
+  #app-shell { display: flex; min-height: 100vh; }
   #sidebar {
     width: 220px; min-width: 220px; background: var(--sb-bg);
     display: flex; flex-direction: column;
     position: fixed; top: 0; left: 0; height: 100vh;
     z-index: 1000; padding: 0;
   }
-  #sidebar 
-  #sidebar 
+  #sidebar .sb-logo {
+    padding: 24px 20px 16px;
+    font-size: 20px; font-weight: 800;
+    color: white; letter-spacing: -0.5px;
+  }
+  #sidebar .sb-logo span { color: #95D5B2; }
   #sidebar nav { flex: 1; padding: 8px 0; }
   #sidebar nav a {
     display: flex; align-items: center; gap: 10px;
@@ -226,12 +351,15 @@
   }
   #sidebar nav a:hover { background: rgba(255,255,255,0.1); color: white; }
   #sidebar nav a.sb-active { background: rgba(255,255,255,0.18); color: white; }
-  #sidebar nav a 
-  #sidebar 
-  #sidebar 
+  #sidebar nav a .sb-icon { font-size: 18px; width: 24px; text-align: center; }
+  #sidebar .sb-footer {
+    padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.6); font-size: 12px;
+  }
+  #sidebar .sb-user { font-weight: 700; color: white; font-size: 13px; margin-bottom: 2px; }
   #main-content { margin-left: 220px; flex: 1; min-width: 0; }
-  
-  
+  body { max-width: 100% !important; margin: 0 !important; }
+  .header { max-width: 100% !important; left: 220px !important; width: calc(100% - 220px) !important; }
   .page-wrap, .lista-pacientes, .stats-row { max-width: 100% !important; }
 }
 @media (max-width: 767px) {
@@ -239,198 +367,45 @@
 }
 
 /* ══ TEMA CLARO/OSCURO ══ */
-
-[data-theme="dark"] 
-
-
+.theme-toggle {
+  width: 50px; height: 26px; border-radius: 20px;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  cursor: pointer; position: relative; display: flex;
+  align-items: center; padding: 0 3px;
+  transition: all var(--transition); flex-shrink: 0;
+}
+[data-theme="dark"] .theme-toggle { background: var(--v2); border-color: var(--v2); }
+.toggle-thumb {
+  width: 19px; height: 19px; border-radius: 50%; background: white;
+  transition: transform var(--transition);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+[data-theme="dark"] .toggle-thumb { transform: translateX(22px); }
 /* Sidebar violeta */
-.sidebar, aside
-
-.sb-item:hover, .sb-item.active, 
-.sb-logo, .sidebar 
-
+.sidebar, aside.sidebar {
+  background: var(--sb-bg) !important;
+  transition: background var(--transition) !important;
+}
+.sb-item, .sb-item a { color: var(--sb-text) !important; }
+.sb-item:hover, .sb-item.active, .sb-item.sb-active { background: var(--sb-active) !important; color: white !important; }
+.sb-logo, .sidebar .sb-logo { color: white !important; }
+.sb-logo span { color: var(--v3) !important; }
+.sb-section { color: var(--sb-text) !important; }
+.sb-footer { border-top-color: var(--sb-border) !important; }
+.sb-user-name { color: white !important; }
+.sb-user-role { color: var(--sb-text) !important; }
 /* Body transitions */
+body { transition: background var(--transition), color var(--transition); }
+.header, .app-nav { transition: background var(--transition), border-color var(--transition); }
 
-/* ── EMPTY STATES ─────────────────────────────────────────── */
-.pa-empty {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 56px 28px 48px;
-  text-align: center;
-  animation: pa-empty-in .35s cubic-bezier(.32,1.1,.55,1) both;
-}
-@keyframes pa-empty-in {
-  
-  
-}
-.pa-empty-illu {
-  width: 96px; height: 96px;
-  border-radius: 28px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 44px;
-  margin-bottom: 20px;
-  position: relative;
-}
-.pa-empty-illu::after {
-  content: '';
-  position: absolute; inset: -6px;
-  border-radius: 34px;
-  border: 2px dashed currentColor;
-  opacity: .18;
-}
-.pa-empty-title {
-  font-size: 1.05rem; font-weight: 800;
-  color: var(--text);
-  margin-bottom: 8px;
-  line-height: 1.3;
-}
-.pa-empty-sub {
-  font-size: .875rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-  max-width: 260px;
-  margin-bottom: 24px;
-}
-.pa-empty-btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 12px 22px;
-  border-radius: 12px;
-  border: none;
-  font-family: var(--font, 'Plus Jakarta Sans', sans-serif);
-  font-size: .9rem; font-weight: 700;
-  cursor: pointer;
-  transition: transform .12s, box-shadow .12s;
-  color: #fff;
-  background: var(--primary, #5B2FA8);
-  box-shadow: 0 4px 16px rgba(91,47,168,.28);
-}
-.pa-empty-btn:active { transform: scale(.96); }
-/* ─────────────────────────────────────────────────────────── */
-
-/* ── CONFIRM MODAL ─────────────────────────────────────────── */
-#pa-confirm-overlay {
-  position: fixed; inset: 0;
-  background: rgba(14,8,36,.65);
-  backdrop-filter: blur(4px);
-  z-index: 99999;
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px;
-  animation: pa-fade-in .18s ease;
-}
-@keyframes pa-fade-in {   }
-#pa-confirm-box {
-  background: var(--surface, #fff);
-  border-radius: 20px;
-  padding: 28px 24px 20px;
-  width: 100%; max-width: 340px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-  animation: pa-scale-in .22s cubic-bezier(.32,1.2,.55,1);
-}
-@keyframes pa-scale-in {   }
-#pa-confirm-icon {
-  font-size: 40px; text-align: center; margin-bottom: 14px;
-}
-#pa-confirm-title {
-  font-size: 1rem; font-weight: 800;
-  color: var(--text, #1A1040);
-  text-align: center; margin-bottom: 8px;
-}
-#pa-confirm-msg {
-  font-size: .875rem; color: var(--text-muted, #6B6490);
-  text-align: center; line-height: 1.55; margin-bottom: 22px;
-}
-.pa-confirm-actions {
-  display: flex; gap: 10px;
-}
-.pa-confirm-cancel {
-  flex: 1; padding: 12px;
-  border: 1.5px solid var(--border, #E5E2F5);
-  border-radius: 12px; background: none;
-  font-family: var(--font,'Plus Jakarta Sans',sans-serif);
-  font-size: .9rem; font-weight: 600;
-  color: var(--text-muted, #6B6490);
-  cursor: pointer; transition: background .12s;
-}
-.pa-confirm-cancel:hover { background: var(--surface2, #F5F3FF); }
-.pa-confirm-ok {
-  flex: 1; padding: 12px;
-  border: none; border-radius: 12px;
-  background: #DC2626;
-  font-family: var(--font,'Plus Jakarta Sans',sans-serif);
-  font-size: .9rem; font-weight: 700;
-  color: #fff; cursor: pointer;
-  transition: transform .1s, box-shadow .1s;
-  box-shadow: 0 4px 14px rgba(220,38,38,.35);
-}
-.pa-confirm-ok:active { transform: scale(.96); }
-/* ─────────────────────────────────────────────────────────── */
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#5B2FA8">
+<meta name="theme-color" content="#2D6A4F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
 </head>
-
-<!-- ── BANNER SIN CONEXIÓN ─────────────────────────────────── -->
-<style>
-#pa-offline-banner {
-  position: fixed; top: 0; left: 0; right: 0;
-  background: #1A1040;
-  color: #fff;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: .82rem; font-weight: 600;
-  text-align: center;
-  padding: 10px 16px;
-  z-index: 99997;
-  display: none;
-  align-items: center; justify-content: center; gap: 7px;
-  animation: pa-slide-down .25s ease;
-}
-@keyframes pa-slide-down { from{transform:translateY(-100%)} to{transform:translateY(0)} }
-#pa-offline-banner.visible { display: flex; }
-#pa-offline-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #EF4444; flex-shrink: 0;
-  animation: pa-pulse-dot 1.4s ease-in-out infinite;
-}
-@keyframes pa-pulse-dot {
-  0%,100%{ opacity:1; transform:scale(1) }
-  50%    { opacity:.5; transform:scale(.7) }
-}
-</style>
-<div id="pa-offline-banner">
-  <span id="pa-offline-dot"></span>
-  <span id="pa-offline-msg">Sin conexión — los cambios no se guardarán</span>
-</div>
-<script>
-(function(){
-  const banner = document.getElementById('pa-offline-banner');
-  const msg    = document.getElementById('pa-offline-msg');
-  const dot    = document.getElementById('pa-offline-dot');
-
-  function update() {
-    if (!navigator.onLine) {
-      banner.classList.add('visible');
-      msg.textContent = 'Sin conexión — los cambios no se guardarán';
-      dot.style.background = '#EF4444';
-    } else {
-      if (banner.classList.contains('visible')) {
-        msg.textContent = '✓ Conexión restaurada';
-        dot.style.background = '#22C55E';
-        dot.style.animation = 'none';
-        setTimeout(() => banner.classList.remove('visible'), 2200);
-      }
-    }
-  }
-
-  window.addEventListener('online',  update);
-  window.addEventListener('offline', update);
-  update(); // check inicial
-})();
-</script>
-<!-- ──────────────────────────────────────────────────────────── -->
-
 <body>
 <div id="app-shell">
 <div id="sidebar">
@@ -464,7 +439,7 @@
   <div class="search-bar">
     <div class="search-wrap">
       <div class="search-icon">🔍</div>
-      <input class="search-input" id="searchInput" placeholder="Buscar paciente..." oninput="debouncedFiltrar(filtrarPacientes)">
+      <input class="search-input" id="searchInput" placeholder="Buscar paciente..." oninput="filtrarPacientes()">
     </div>
   </div>
   <div class="filter-row">
@@ -489,11 +464,6 @@
 
 <!-- FAB -->
 <button class="fab" onclick="abrirModal()">＋</button>
-<button onclick="exportarPacientesCSV()" title="Exportar a CSV"
-  style="position:fixed;bottom:72px;right:82px;width:40px;height:40px;
-  background:var(--surface);border:1.5px solid var(--border);border-radius:12px;
-  display:flex;align-items:center;justify-content:center;font-size:18px;
-  cursor:pointer;z-index:40;box-shadow:var(--shadow-sm)">📊</button>
 
 <!-- MODAL NUEVO PACIENTE -->
 <div class="overlay" id="overlay">
@@ -597,16 +567,16 @@
       <div id="panelIA" style="display:none;margin-top:10px;background:#F4F1ED;border-radius:14px;padding:14px;">
 
         <!-- Próximo turno (se muestra cuando hay turno agendado) -->
-        <div id="proximoTurnoPA" style="display:none;background:white;border-radius:11px;padding:10px 12px;margin-bottom:10px;border-left:3px solid #5B2FA8;">
+        <div id="proximoTurnoPA" style="display:none;background:white;border-radius:11px;padding:10px 12px;margin-bottom:10px;border-left:3px solid #2D6A4F;">
           <div style="font-size:11px;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Próximo turno agendado</div>
-          <div id="proximoTurnoTextoPA" style="font-size:13px;font-weight:700;color:#5B2FA8;"></div>
+          <div id="proximoTurnoTextoPA" style="font-size:13px;font-weight:700;color:#2D6A4F;"></div>
         </div>
 
         <!-- Tipos de mensaje -->
         <div id="iaOpcionesWrap">
           <div style="font-size:12px;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Tipo de mensaje</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
-            <button onclick="generarMensajePacienteIA('recordatorio')" style="background:#EDE9FE;color:#5B2FA8;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">⏰ Recordatorio de turno</button>
+            <button onclick="generarMensajePacienteIA('recordatorio')" style="background:#E8F5EE;color:#2D6A4F;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">⏰ Recordatorio de turno</button>
             <button onclick="generarMensajePacienteIA('ausente')" style="background:#FEE2E2;color:#991B1B;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">❌ Paciente ausente</button>
             <button onclick="generarMensajePacienteIA('seguimiento')" style="background:#ECFDF5;color:#065F46;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">💚 Seguimiento / Cómo estás</button>
             <button onclick="mostrarReprogramarIA()" style="background:#FEF3C7;color:#92400E;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">🔄 Reprogramar turno</button>
@@ -638,7 +608,7 @@
         <div id="iaResultadoPA" style="display:none;margin-top:10px;">
           <div id="iaMensajePA" style="background:white;border-radius:11px;padding:12px 14px;font-size:13px;line-height:1.7;color:#1A1A2E;white-space:pre-wrap;"></div>
           <div style="display:flex;gap:8px;margin-top:10px;">
-            <button onclick="copiarMensajePA()" style="flex:1;background:#EDE9FE;color:#5B2FA8;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">📋 Copiar</button>
+            <button onclick="copiarMensajePA()" style="flex:1;background:#E8F5EE;color:#2D6A4F;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">📋 Copiar</button>
             <button id="btnEnviarWAPA" onclick="enviarWAPA()" style="flex:1;background:#25D366;color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">📱 Enviar por WhatsApp</button>
           </div>
           <button onclick="document.getElementById('iaResultadoPA').style.display='none';document.getElementById('iaOpcionesWrap').style.display='block';" style="width:100%;background:none;border:none;padding:8px;font-size:12px;color:#8A8FA8;cursor:pointer;margin-top:4px;">← Otro mensaje</button>
@@ -699,7 +669,20 @@
 
 
 <script>
-
+function toggleDrawer() {
+  document.getElementById('sideDrawer').classList.toggle('open');
+  document.getElementById('menuOverlay').classList.toggle('open');
+}
+function closeDrawer() {
+  document.getElementById('sideDrawer').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('open');
+}
+async function doLogout() {
+  const {createClient} = supabase;
+  const sb = createClient(PSICOAPP_CONFIG.SUPA_URL, PSICOAPP_CONFIG.SUPA_KEY);
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
 </script>
 
 
@@ -750,7 +733,12 @@ function actualizarStats() {
 function renderLista(lista) {
   const container = document.getElementById('patientList');
   if (!lista.length) {
-    container.innerHTML = `<div class=\"pa-empty\"><div class=\"pa-empty-illu\" style=\"background:#EDE9FE;color:#5B2FA8\">👥</div><div class=\"pa-empty-title\">Todavía no tenés pacientes</div><div class=\"pa-empty-sub\">Agregá tu primer paciente para gestionar sesiones, pagos e historia clínica.</div><button class=\"pa-empty-btn\" onclick=\"document.querySelector(&quot;[onclick*=abrirModal]&quot;) &amp;&amp; document.querySelector(&quot;[onclick*=abrirModal]&quot;).click()\" style=\"background:#5B2FA8;box-shadow:0 4px 16px #5B2FA844\">+ Agregar primer paciente</button></div>`;
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <div class="empty-title">Sin pacientes aún</div>
+        <div class="empty-sub">Tocá el botón + para agregar tu primer paciente.</div>
+      </div>`;
     return;
   }
 
@@ -821,24 +809,15 @@ function cerrarModal() {
 async function crearPaciente() {
   const nombre   = document.getElementById('f-nombre').value.trim();
   const apellido = document.getElementById('f-apellido').value.trim();
-  const telefono = document.getElementById('f-telefono').value.trim();
-  const email    = document.getElementById('f-email').value.trim();
-  const dni      = document.getElementById('f-dni').value.trim();
-
-  // Validaciones
-  let valid = true;
-  if (!nombre)              { paFieldError('f-nombre',   'El nombre es obligatorio');   valid = false; }
-  if (!apellido)            { paFieldError('f-apellido', 'El apellido es obligatorio'); valid = false; }
-  if (!PA.telefono(telefono))  { paFieldError('f-telefono', 'Teléfono inválido (ej: 11 5555-1234)'); valid = false; }
-  if (!PA.email(email))     { paFieldError('f-email',    'Email inválido');             valid = false; }
-  if (!PA.dni(dni))         { paFieldError('f-dni',      'DNI inválido (solo números)'); valid = false; }
-  if (!valid) return;
+  if (!nombre || !apellido) {
+    mostrarError('Nombre y apellido son obligatorios.');
+    return;
+  }
 
   const btn = document.getElementById('btnCrear');
   btn.disabled = true;
   btn.textContent = 'Guardando...';
 
-  try {
   const { data: { session } } = await sb.auth.getSession();
   const { error } = await sb.from('pacientes').insert({
     user_id:         session.user.id,
@@ -937,20 +916,9 @@ function irAHistoriaClinica() {
   window.location.href = `psicoapp-historia.html?id=${pacienteSeleccionado.id}`;
 }
 
-
-async function _doEliminarPaciente() {
-  await sb.from('pacientes').update({ activo: false
-}
-
 async function eliminarPaciente() {
   if (!pacienteSeleccionado) return;
-  paConfirm({
-    icon: '👥',
-    title: `¿Eliminar a ${pacienteSeleccionado.nombre} ${pacienteSeleccionado.apellido}?`,
-    msg: 'Se eliminarán también todas sus sesiones, pagos e historia clínica. Esta acción no se puede deshacer.',
-    okLabel: 'Sí, eliminar',
-    onOk: async () => { await _doEliminarPaciente(); }
-  }); return;
+  if (!confirm(`¿Eliminar a ${pacienteSeleccionado.nombre} ${pacienteSeleccionado.apellido}?`)) return;
   await sb.from('pacientes').update({ activo: false }).eq('id', pacienteSeleccionado.id);
   cerrarDetalle();
   await cargarPacientes();
@@ -1189,48 +1157,14 @@ function enviarWAPA(){
   var th = document.getElementById('toggle-thumb');
   if(th) th.textContent = saved === 'dark' ? '🌙' : '☀️';
 })();
-
-
-
-// ──────────────────────────────────────────────────────────────
-
-
-let _searchTimer = null;
-
-// ──────────────────────────────────────────────────────────────
-
-
-// ── EXPORTAR PACIENTES CSV ─────────────────────────────────────
-function exportarPacientesCSV() {
-  if (!todosLosPacientes || !todosLosPacientes.length) {
-    showToast('No hay pacientes para exportar'); return;
-  }
-
-  const cols = ['Apellido','Nombre','Teléfono','Email','DNI','Fecha Nacimiento','Obra Social','Nº Afiliado','Notas'];
-  const rows = todosLosPacientes.map(p => [
-    p.apellido   || '',
-    p.nombre     || '',
-    p.telefono   || '',
-    p.email      || '',
-    p.dni        || '',
-    p.fecha_nacimiento || '',
-    p.obra_social || '',
-    p.nro_afiliado || '',
-    (p.notas || '').replace(/[\n\r]/g,' '),
-  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
-
-  const csv = [cols.join(','), ...rows].join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `pacientes_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('📊 CSV exportado correctamente');
+function toggleTheme(){
+  var html = document.documentElement;
+  var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('psicoapp-theme', next);
+  var th = document.getElementById('toggle-thumb');
+  if(th) th.textContent = next === 'dark' ? '🌙' : '☀️';
 }
-// ──────────────────────────────────────────────────────────────
-
 </script>
 </body>
 </html>

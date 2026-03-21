@@ -4,21 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PsicoApp — Ingresar</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
   <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="/psicoapp-shared.css">
-<style>
+  <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --primary: #5B2FA8;
-      --primary-d: #7C3AED;
-      --primary-dk: #3B1A7A;
-      --primary-l: #7C3AED;
-      --bg: #F5F3FF;
+      --orange:  #F4A261;
+      --orange-d:#E76F51;
+      --green:   #2D6A4F;
+      --green-l: #40916C;
+      --bg:      #FDF8F3;
       --card:    #FFFFFF;
-      --text: #1A1040;
+      --text:    #1A2E24;
       --muted:   #8A8FA8;
       --border:  #E8E4DD;
       --err:     #B94A48;
@@ -77,13 +76,13 @@
     }
     .logo-icon img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 16px rgba(244,162,97,0.45)); }
     .logo-text {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'DM Serif Display', serif;
       font-size: 1.8rem;
       color: #1A2E24;
       letter-spacing: -.01em;
       line-height: 1;
     }
-    .logo-text span { color: #A78BFA; }
+    .logo-text span { color: #F4A261; }
     .logo-tagline {
       font-size: 11px;
       color: #8A8FA8;
@@ -94,7 +93,7 @@
     }
 
     h1 {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'DM Serif Display', serif;
       font-size: 1.7rem;
       color: var(--text);
       line-height: 1.2;
@@ -127,7 +126,7 @@
     }
     .tab.active {
       background: var(--card);
-      color: var(--primary);
+      color: var(--green);
       box-shadow: 0 2px 8px rgba(0,0,0,.08);
     }
 
@@ -153,8 +152,8 @@
       transition: border-color .15s, box-shadow .15s;
     }
     input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(91,47,168,0.15);
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(244,162,97,0.15);
       background: #fff;
     }
     input::placeholder { color: #C5C0B8; }
@@ -170,12 +169,12 @@
       display: flex; align-items: center; justify-content: center; gap: .5rem;
     }
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-l) 100%);
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-l) 100%);
       color: #fff;
-      box-shadow: 0 4px 16px rgba(91,47,168,0.3);
+      box-shadow: 0 4px 16px rgba(45,106,79,0.3);
     }
     .btn-primary:hover { 
-      box-shadow: 0 6px 20px rgba(91,47,168,0.4);
+      box-shadow: 0 6px 20px rgba(45,106,79,0.4);
       transform: translateY(-1px);
     }
     .btn-primary:active { transform: translateY(0); }
@@ -202,7 +201,7 @@
       font-weight: 500;
     }
     .msg.error   { background: #fdf0ef; color: var(--err); border: 1px solid #f0c8c7; }
-    .msg.success { background: #F5F3FF; color: var(--primary); border: 1px solid #C4B5FD; }
+    .msg.success { background: #EDFBF3; color: var(--green); border: 1px solid #B7DFC8; }
 
     .divider {
       text-align: center;
@@ -212,7 +211,7 @@
     }
   </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#5B2FA8">
+<meta name="theme-color" content="#2D6A4F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
@@ -285,39 +284,6 @@
   const { createClient } = supabase;
   const sb = createClient(PSICOAPP_CONFIG.SUPA_URL, PSICOAPP_CONFIG.SUPA_KEY);
 
-  // ── RATE LIMITING LOGIN ──────────────────────────────────────
-  const _RL_KEY = 'psicoapp_login_attempts';
-  const _RL_MAX = 5;
-  const _RL_WINDOW = 15 * 60 * 1000; // 15 minutos
-
-  function rlCheck() {
-    const raw = localStorage.getItem(_RL_KEY);
-    if (!raw) return true;
-    const { count, since } = JSON.parse(raw);
-    if (Date.now() - since > _RL_WINDOW) {
-      localStorage.removeItem(_RL_KEY); return true;
-    }
-    if (count >= _RL_MAX) {
-      const mins = Math.ceil((_RL_WINDOW - (Date.now() - since)) / 60000);
-      showMsg(`Demasiados intentos. Esperá ${mins} min antes de volver a intentar.`, 'error');
-      return false;
-    }
-    return true;
-  }
-
-  function rlRegister() {
-    const raw = localStorage.getItem(_RL_KEY);
-    if (!raw) { localStorage.setItem(_RL_KEY, JSON.stringify({ count:1, since:Date.now() })); return; }
-    const obj = JSON.parse(raw);
-    if (Date.now() - obj.since > _RL_WINDOW) { localStorage.setItem(_RL_KEY, JSON.stringify({ count:1, since:Date.now() })); return; }
-    obj.count++;
-    localStorage.setItem(_RL_KEY, JSON.stringify(obj));
-  }
-
-  function rlClear() { localStorage.removeItem(_RL_KEY); }
-  // ────────────────────────────────────────────────────────────
-
-
   // redirect if already logged in
   sb.auth.getSession().then(({ data }) => {
     if (data.session) window.location.href = 'psicoapp-agenda.html';
@@ -351,7 +317,6 @@
 
   async function doLogin() {
     hideMsg();
-    if (!rlCheck()) return;
     const email = document.getElementById('login-email').value.trim();
     const pass  = document.getElementById('login-pass').value;
     if (!email || !pass) { showMsg('Completá email y contraseña.', 'error'); return; }
@@ -360,8 +325,7 @@
     const { error } = await sb.auth.signInWithPassword({ email, password: pass });
     setLoading('btn-login','spin-login','lbl-login', false, 'Ingresar');
 
-    if (error) { rlRegister(); showMsg(translateError(error.message), 'error'); return; }
-    rlClear();
+    if (error) { showMsg(translateError(error.message), 'error'); return; }
     window.location.href = 'psicoapp-agenda.html';
   }
 
