@@ -724,7 +724,7 @@ body { transition: background var(--transition), color var(--transition); }
       <div class="stat-icon si-green">📅</div>
       <div class="stat-trend trend-up">4 confirmados</div>
     </div>
-    <div class="stat-num">6</div>
+    <div class="stat-num">—</div>
     <div class="stat-label">Turnos hoy</div>
   </div>
   <div class="stat-card">
@@ -732,7 +732,7 @@ body { transition: background var(--transition), color var(--transition); }
       <div class="stat-icon si-blue">👥</div>
       <div class="stat-trend trend-neutral">En curso</div>
     </div>
-    <div class="stat-num" style="color:#1976D2">20</div>
+    <div class="stat-num" style="color:#1976D2">—</div>
     <div class="stat-label">Pacientes activos</div>
   </div>
   <div class="stat-card">
@@ -740,7 +740,7 @@ body { transition: background var(--transition), color var(--transition); }
       <div class="stat-icon" style="background:#F3FFF6">🌱</div>
       <div class="stat-trend trend-up">Este mes</div>
     </div>
-    <div class="stat-num" style="color:#388E3C">2</div>
+    <div class="stat-num" style="color:#388E3C">—</div>
     <div class="stat-label">Pacientes nuevos</div>
   </div>
   <div class="stat-card">
@@ -748,8 +748,8 @@ body { transition: background var(--transition), color var(--transition); }
       <div class="stat-icon si-orange">💰</div>
       <div class="stat-trend trend-up">↑ 12%</div>
     </div>
-    <div class="stat-num" style="font-size:18px">$900k</div>
-    <div class="stat-label">Facturado Feb</div>
+    <div class="stat-num" style="font-size:18px">—</div>
+    <div class="stat-label">Facturado</div>
   </div>
 </div>
 
@@ -760,60 +760,7 @@ body { transition: background var(--transition), color var(--transition); }
     <a href="psicoapp-agenda.html" class="section-link">Ver agenda →</a>
   </div>
   <div class="turnos-list">
-
-    <!-- Pasados -->
-    <div class="turno-card tc-pac tc-past" onclick="location.href='psicoapp-agenda.html'" style="cursor:pointer">
-      <div class="turno-time">9:00</div>
-      <div class="turno-info">
-        <div class="turno-name">María González</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-done">Realizada</div>
-    </div>
-
-    <div class="turno-card tc-pac tc-past" onclick="location.href='psicoapp-agenda.html'" style="cursor:pointer">
-      <div class="turno-time">10:00</div>
-      <div class="turno-info">
-        <div class="turno-name">Carlos Fernández</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-done">Realizada</div>
-    </div>
-
-    <!-- Ahora -->
-    <div class="now-indicator">
-      <div class="now-dot-h"></div>
-      <div class="now-label">AHORA · 8:47</div>
-      <div class="now-line-h"></div>
-    </div>
-
-    <div class="turno-card tc-pac tc-now" onclick="location.href='psicoapp-agenda.html'" style="cursor:pointer">
-      <div class="turno-time now">15:00</div>
-      <div class="turno-info">
-        <div class="turno-name">Ana Rodríguez</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-ok">✓ Confirmó</div>
-    </div>
-
-    <!-- Próximos -->
-    <div class="turno-card tc-pac" onclick="location.href='psicoapp-agenda.html'" style="cursor:pointer">
-      <div class="turno-time">18:00</div>
-      <div class="turno-info">
-        <div class="turno-name">Diego Martínez</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-ok">✓ Confirmó</div>
-    </div>
-
-    <div class="turno-card tc-pac" onclick="location.href='psicoapp-agenda.html'" style="cursor:pointer">
-      <div class="turno-time">19:00</div>
-      <div class="turno-info">
-        <div class="turno-name">Laura Pérez</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-wait">⏳ Sin confirmar</div>
-    </div>
+    <div style="text-align:center;padding:24px 16px;color:var(--text-muted);font-size:14px;">Cargando turnos…</div>
 
   </div>
 </div>
@@ -821,16 +768,16 @@ body { transition: background var(--transition), color var(--transition); }
 <!-- INGRESOS DEL MES -->
 <div class="section" style="margin-top:16px">
   <div class="section-title">
-    Ingresos — Febrero
+    Ingresos — <span id="income-mes-label">este mes</span>
     <a href="psicoapp-pagos.html" class="section-link">Ver detalle →</a>
   </div>
   <div class="income-card">
     <div class="income-main">
-      <div class="income-amount">$900.000</div>
-      <div class="income-sub">de $1.550.000 esperados</div>
+      <div class="income-amount" id="income-total">Cargando…</div>
+      <div class="income-sub" id="income-sub"></div>
     </div>
     <div class="income-bar-container">
-      <div class="income-bar"></div>
+      <div class="income-bar" id="income-bar"></div>
     </div>
     <div class="income-rows">
       <div class="income-row">
@@ -839,8 +786,8 @@ body { transition: background var(--transition), color var(--transition); }
           Sesiones particulares
         </div>
         <div>
-          <div class="income-val">$720.000</div>
-          <div class="income-meta">16 sesiones cobradas</div>
+          <div class="income-val" id="income-part">—</div>
+          <div class="income-meta" id="income-part-meta"></div>
         </div>
       </div>
       <div class="income-row">
@@ -849,18 +796,18 @@ body { transition: background var(--transition), color var(--transition); }
           Obras sociales
         </div>
         <div>
-          <div class="income-val">$180.000</div>
-          <div class="income-meta">⏳ Pendiente presentación</div>
+          <div class="income-val" id="income-os">—</div>
+          <div class="income-meta" id="income-os-meta"></div>
         </div>
       </div>
       <div class="income-row">
         <div class="income-row-label">
           <div class="income-dot" style="background:var(--accent)"></div>
-          Pericias judiciales
+          Otros / Pericias
         </div>
         <div>
-          <div class="income-val">$0</div>
-          <div class="income-meta">1 en curso</div>
+          <div class="income-val" id="income-otros">—</div>
+          <div class="income-meta" id="income-otros-meta"></div>
         </div>
       </div>
     </div>
@@ -873,30 +820,11 @@ body { transition: background var(--transition), color var(--transition); }
     WhatsApp
     <a href="psicoapp-whatsapp.html" class="section-link">Ver historial →</a>
   </div>
-  <div class="wp-pending-list">
-    <div class="wp-pending-item">
-      <div class="wp-pi-avatar">👤</div>
-      <div class="wp-pi-info">
-        <div class="wp-pi-name">Recordatorio enviado — Ana Rodríguez</div>
-        <div class="wp-pi-meta">Turno hoy 15:00 · Entregado y leído ✓✓</div>
-      </div>
-      <div class="wp-pi-time">08:00</div>
-    </div>
-    <div class="wp-pending-item">
-      <div class="wp-pi-avatar">👤</div>
-      <div class="wp-pi-info">
-        <div class="wp-pi-name">Recordatorio enviado — Diego Martínez</div>
-        <div class="wp-pi-meta">Turno hoy 18:00 · Entregado ✓</div>
-      </div>
-      <div class="wp-pi-time">08:00</div>
-    </div>
-    <div class="wp-pending-item" style="border-left-color:var(--danger);background:#FFF8F8">
-      <div class="wp-pi-avatar" style="background:#FFCDD2">⚠️</div>
-      <div class="wp-pi-info">
-        <div class="wp-pi-name" style="color:var(--danger)">Error — Laura Pérez</div>
-        <div class="wp-pi-meta">Número inválido · Actualizá el teléfono</div>
-      </div>
-      <div class="wp-pi-time" style="color:var(--danger)">Error</div>
+  <div class="wp-pending-list" id="wa-list">
+    <div style="text-align:center;padding:20px 16px;color:var(--text-muted);font-size:14px;">
+      <div style="font-size:28px;margin-bottom:8px">💬</div>
+      Enviá recordatorios de turnos a tus pacientes por WhatsApp.
+      <br><a href="psicoapp-whatsapp.html" style="color:var(--primary);font-weight:600;text-decoration:none;display:inline-block;margin-top:8px;">Ir a WhatsApp →</a>
     </div>
   </div>
 </div>
@@ -1001,13 +929,13 @@ async function init() {
       .eq('user_id', userId).eq('fecha', hoyStr).order('hora'),
     sb.from('pacientes')
       .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId).eq('activo', true),
+      .eq('user_id', userId).neq('archivado', true),
     sb.from('pagos')
       .select('monto, tipo')
       .eq('user_id', userId).gte('fecha', mesInicio).lte('fecha', mesFin),
     sb.from('pacientes')
       .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId).eq('activo', true).gte('created_at', mesInicio + 'T00:00:00')
+      .eq('user_id', userId).neq('archivado', true).gte('created_at', mesInicio + 'T00:00:00')
   ]);
 
   const turnos    = turnosRes.data  || [];
@@ -1025,21 +953,47 @@ async function init() {
   // ── Ingresos ──
   renderIngresos(pagos, totalMes, mesLabel);
 
-  // ── WhatsApp (sección estática, se actualiza desde psicoapp-whatsapp.html) ──
-  // Dejamos la sección visual original, solo arreglamos links
-  document.querySelectorAll('.section-link').forEach(el => {
-    const txt = el.textContent.trim();
-    if (txt.includes('agenda'))    el.href = 'psicoapp-agenda.html';
-    if (txt.includes('detalle'))   el.href = 'psicoapp-pagos.html';
-    if (txt.includes('historial')) el.href = 'psicoapp-whatsapp.html';
-  });
-  document.querySelectorAll('.qa-item').forEach(el => {
-    const lbl = el.querySelector('.qa-label')?.textContent.trim() || '';
-    if (lbl.includes('turno'))    el.onclick = () => location.href = 'psicoapp-agenda.html';
-    if (lbl.includes('paciente')) el.onclick = () => location.href = 'psicoapp-pacientes.html';
-    if (lbl.includes('pago'))     el.onclick = () => location.href = 'psicoapp-pagos.html';
-    if (lbl.includes('WhatsApp')) el.onclick = () => location.href = 'psicoapp-whatsapp.html';
-  });
+  // ── WhatsApp: últimos 5 usos reales ──
+  renderWA(userId);
+}
+
+async function renderWA(userId) {
+  const waList = document.getElementById('wa-list');
+  if (!waList) return;
+  try {
+    const { data } = await sb.from('wa_usos')
+      .select('tipo, paciente_id, created_at, pacientes(nombre, apellido)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (!data || !data.length) {
+      waList.innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:14px;">
+        <div style="font-size:28px;margin-bottom:8px">💬</div>
+        Aún no enviaste recordatorios.<br>
+        <a href="psicoapp-whatsapp.html" style="color:var(--primary);font-weight:600;text-decoration:none;">Ir a WhatsApp →</a>
+      </div>`;
+      return;
+    }
+    const MESES_CORTO = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    waList.innerHTML = data.map(w => {
+      const pac = w.pacientes;
+      const nombre = pac ? `${pac.nombre} ${pac.apellido}` : '—';
+      const fecha = new Date(w.created_at);
+      const cuando = `${fecha.getDate()} ${MESES_CORTO[fecha.getMonth()]} · ${String(fecha.getHours()).padStart(2,'0')}:${String(fecha.getMinutes()).padStart(2,'0')}`;
+      const tipo = w.tipo || 'Recordatorio';
+      return `<div class="wp-pending-item">
+        <div class="wp-pi-avatar">💬</div>
+        <div class="wp-pi-info">
+          <div class="wp-pi-name">${tipo} — ${nombre}</div>
+          <div class="wp-pi-meta">${cuando}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    waList.innerHTML = `<div style="padding:12px;color:var(--text-muted);font-size:13px;text-align:center;">
+      <a href="psicoapp-whatsapp.html" style="color:var(--primary);font-weight:600;text-decoration:none;">Ver WhatsApp →</a>
+    </div>`;
+  }
 }
 
 function renderStats(turnos, totalPacs, nuevos, totalMes, mesLabel) {
@@ -1142,44 +1096,32 @@ function renderTurnos(turnos, hoy) {
 }
 
 function renderIngresos(pagos, total, mesLabel) {
-  // Actualizar título del mes
-  const tituloIngresos = document.querySelector('.section-title');
-  document.querySelectorAll('.section-title').forEach(el => {
-    if (el.textContent.includes('Ingresos') || el.textContent.includes('INGRESOS')) {
-      const link = el.querySelector('.section-link');
-      el.innerHTML = `Ingresos — ${mesLabel} ${link ? link.outerHTML : ''}`;
-    }
-  });
-
-  const incomeCard = document.querySelector('.income-card');
-  if (!incomeCard) return;
+  // Título del mes
+  const lblEl = document.getElementById('income-mes-label');
+  if (lblEl) lblEl.textContent = mesLabel;
 
   const part = pagos.filter(p => !p.tipo || p.tipo==='particular' || p.tipo==='Particular').reduce((a,p)=>a+(parseFloat(p.monto)||0),0);
   const os   = pagos.filter(p => p.tipo==='obra_social'||p.tipo==='Obra social').reduce((a,p)=>a+(parseFloat(p.monto)||0),0);
   const otros= total - part - os;
+  const cantPart = pagos.filter(p=>!p.tipo||p.tipo==='particular'||p.tipo==='Particular').length;
+  const cantOs   = pagos.filter(p=>p.tipo==='obra_social'||p.tipo==='Obra social').length;
+  const cantOtros= pagos.length - cantPart - cantOs;
 
-  // Meta estimada (valor_sesion * turnos planificados no disponible aquí, usamos total+30%)
   const meta = total > 0 ? total * 1.4 : 100000;
   const pct  = Math.min((total / meta) * 100, 100);
 
-  incomeCard.querySelector('.income-amount').textContent = formatPesoLargo(total);
-  incomeCard.querySelector('.income-sub').textContent    = `${pagos.length} pago${pagos.length!==1?'s':''} registrados`;
-  const bar = incomeCard.querySelector('.income-bar');
-  if (bar) bar.style.width = pct + '%';
+  const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  setEl('income-total', total > 0 ? formatPesoLargo(total) : '/bin/sh');
+  setEl('income-sub',   `${pagos.length} pago${pagos.length!==1?'s':''} registrados este mes`);
+  setEl('income-part',  formatPesoLargo(part));
+  setEl('income-part-meta', cantPart + (cantPart===1?' sesión':' sesiones') + ' cobradas');
+  setEl('income-os',    formatPesoLargo(os));
+  setEl('income-os-meta', os > 0 ? cantOs + (cantOs===1?' cobro':' cobros') : '⏳ Sin registrar');
+  setEl('income-otros', formatPesoLargo(otros));
+  setEl('income-otros-meta', cantOtros > 0 ? cantOtros + (cantOtros===1?' cobro':' cobros') : '');
 
-  const rows = incomeCard.querySelectorAll('.income-row');
-  if (rows[0]) {
-    rows[0].querySelector('.income-val').textContent  = formatPesoLargo(part);
-    rows[0].querySelector('.income-meta').textContent = pagos.filter(p=>!p.tipo||p.tipo==='particular'||p.tipo==='Particular').length + ' sesiones cobradas';
-  }
-  if (rows[1]) {
-    rows[1].querySelector('.income-val').textContent  = formatPesoLargo(os);
-    rows[1].querySelector('.income-meta').textContent = os > 0 ? '' : '⏳ Sin registrar';
-  }
-  if (rows[2]) {
-    rows[2].querySelector('.income-val').textContent  = formatPesoLargo(otros);
-    rows[2].querySelector('.income-meta').textContent = '';
-  }
+  const bar = document.getElementById('income-bar');
+  if (bar) bar.style.width = pct + '%';
 }
 
 init();

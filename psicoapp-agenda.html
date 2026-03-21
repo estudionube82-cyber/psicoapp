@@ -792,7 +792,6 @@ async function cargarPacientes() {
   const { data } = await sb.from('pacientes')
     .select('id,nombre,apellido')
     .eq('user_id', userId)
-    .eq('activo', true)
     .neq('archivado', true)
     .order('apellido');
   todosPacientes = data || [];

@@ -770,7 +770,6 @@ async function init() {
   const paramId = new URLSearchParams(window.location.search).get('id');
   if (paramId) {
     document.getElementById('pacList').innerHTML = '<div class="loading">Cargando paciente…</div>';
-    console.log('[PsicoApp] init() con paramId:', paramId, 'userId:', userId);
 
     const { data, error } = await sb.from('pacientes')
       .select('id,nombre,apellido,telefono,activo')
@@ -778,29 +777,17 @@ async function init() {
       .eq('user_id', userId)
       .maybeSingle();
 
-    console.log('[PsicoApp] resultado:', data, 'error:', error);
-
     if (data) {
       todosPacientes = [data];
       abrirDetalle(data, 0);
-      sb.from('pacientes').select('id,nombre,apellido,telefono,activo')
-        .eq('user_id', userId).eq('activo', true).order('apellido')
+      sb.from('pacientes').select('id,nombre,apellido,telefono,activo,archivado')
+        .eq('user_id', userId).neq('archivado', true).order('apellido')
         .then(({ data: todos }) => { if (todos) todosPacientes = todos; });
     } else if (error) {
-      document.getElementById('pacList').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Error: ${error.message}</div><div class="empty-sub">userId: ${userId}<br>pacienteId: ${paramId}</div></div>`;
+      document.getElementById('pacList').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Error al cargar paciente</div><div class="empty-sub">Intentá de nuevo o buscalo en la lista.</div></div>`;
     } else {
-      // data es null — intentar sin filtro user_id por si hay problema de RLS
-      const { data: data2, error: error2 } = await sb.from('pacientes')
-        .select('id,nombre,apellido,telefono,activo,user_id')
-        .eq('id', paramId)
-        .maybeSingle();
-      console.log('[PsicoApp] sin filtro user_id:', data2, error2);
-      if (data2) {
-        todosPacientes = [data2];
-        abrirDetalle(data2, 0);
-      } else {
-        document.getElementById('pacList').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Paciente no encontrado</div><div class="empty-sub">userId: ${userId}<br>pacienteId: ${paramId}</div></div>`;
-      }
+      // Paciente no encontrado o no pertenece al usuario
+      document.getElementById('pacList').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Paciente no encontrado</div><div class="empty-sub">Buscalo desde la lista o verificá que sea tuyo.</div></div>`;
     }
   } else {
     cargarPacientes();
@@ -860,7 +847,6 @@ async function cargarPacientes(){
   const { data, error } = await sb.from('pacientes')
     .select('id,nombre,apellido,telefono,activo,archivado')
     .eq('user_id', userId)
-    .eq('activo', true)
     .neq('archivado', true)
     .order('apellido');
   if(error){ document.getElementById('pacList').innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Error al cargar</div></div>'; return; }
