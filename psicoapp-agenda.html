@@ -805,10 +805,698 @@ let todosPacientes = [];
 let turnoSeleccionado = null;
 
 // ── INIT ──
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  await Promise.all([cargarPacientes(), cargarTurnos()]);
+  actualizarHeader();
+  buildDayStrip();
+  renderDia();
+})();
+
+async function cargarPacientes() {
+  const { data } = await sb.from('pacientes').select('id,nombre,apellido').eq('activo', true).order('apellido');
+  todosPacientes = data || [];
+  const sel = document.getElementById('f-paciente');
+  todosPacientes.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.apellido}, ${p.nombre}`;
+    sel.appendChild(opt);
+  });
+}
+
+async function cargarTurnos() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  const { data, error } = await sb
+    .from('turnos')
+    .select('*, pacientes(nombre, apellido, telefono)')
+    .eq('user_id', session.user.id)
+    .order('fecha').order('hora');
+  if (error) console.error('Error cargando turnos:', error.message);
+  todosTurnos = data || [];
+}
+
+function turnosDeFecha(fecha) {
+  const key = fmtDate(fecha);
+  return todosTurnos.filter(t => t.fecha === key);
+}
+
+// ── HEADER ──
+function actualizarHeader() {
+  const d = fechaActual;
+  document.getElementById('headerDateMain').textContent =
+    `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;
+  document.getElementById('headerDateSub').textContent = d.getFullYear();
+}
+
+// ── DAY STRIP ──
+function buildDayStrip() {
+  const strip = document.getElementById('dayStrip');
+  strip.innerHTML = '';
+  const lunes = new Date(fechaActual);
+  lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lunes); d.setDate(lunes.getDate() + i);
+    const tieneT = todosTurnos.some(t => t.fecha === fmtDate(d));
+    const esSel  = fmtDate(d) === fmtDate(fechaActual);
+    const esHoy  = fmtDate(d) === fmtDate(hoy);
+    const pill = document.createElement('div');
+    pill.className = 'day-pill' + (esSel ? ' selected' : '') + (esHoy && !esSel ? ' today-marker' : '');
+    pill.innerHTML = `<div class="day-name">${DIAS[d.getDay()]}</div><div class="day-num">${d.getDate()}</div>${tieneT ? '<div class="day-pip"></div>' : ''}`;
+    pill.addEventListener('click', () => {
+      fechaActual = new Date(d);
+      actualizarHeader();
+      buildDayStrip();
+      renderDia();
+    });
+    strip.appendChild(pill);
+  }
+}
+
+// ── DAY GRID ──
+function renderDia() {
+  const grid = document.getElementById('timeGrid');
+  const turnos = turnosDeFecha(fechaActual);
+  const ahora  = new Date();
+  const esHoy  = fmtDate(fechaActual) === fmtDate(hoy);
+
+  document.getElementById('turnosCount').textContent =
+    turnos.length ? `${turnos.length} turno${turnos.length > 1 ? 's' : ''}` : '';
+
+  let html = '';
+  HORAS.forEach(h => {
+    const turno = turnos.find(t => parseInt(t.hora) === h);
+    const label = `${h}:00`;
+    const esAhora = esHoy && ahora.getHours() === h;
+    let rowStyle = esAhora ? ' style="position:relative"' : '';
+
+    html += `<div class="time-row"${rowStyle}>`;
+    if (esAhora) html += `<div class="now-line"><div class="now-dot"></div></div>`;
+    html += `<div class="time-label" ${esAhora ? 'style="color:#E53935;font-weight:800"' : ''}>${label}</div>`;
+    html += `<div class="slot-area">`;
+
+    if (turno) {
+      const pac = turno.pacientes;
+      const nombre = pac ? `${pac.nombre} ${pac.apellido}` : turno.tipo;
+      const tipo   = evClass(turno.tipo);
+      const badge  = badgeEstado(turno.estado);
+      const icono  = turno.tipo === 'judicial' ? '⚖️' : '👤';
+      html += `
+        <div class="event-block ${tipo}" onclick="abrirDetalle('${turno.id}')">
+          <div class="ev-name">${icono} ${nombre}</div>
+          <div class="ev-meta">${label} · ${turno.duracion || 50} min · ${tipoLabel(turno.tipo)}</div>
+          ${badge}
+        </div>`;
+    } else if (h < 20) {
+      html += `<div class="free-slot" onclick="abrirModalConHora('${h}:00')">Turno disponible</div>`;
+    }
+    html += `</div></div>`;
+  });
+  grid.innerHTML = html;
+}
+
+// ── WEEK GRID ──
+function renderSemana() {
+  const lunes = new Date(fechaActual);
+  lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+
+  // Header
+  let hdr = '<div class="week-col-header" style="flex:0 0 48px"></div>';
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(lunes); d.setDate(lunes.getDate() + i);
+    const esHoy = fmtDate(d) === fmtDate(hoy);
+    hdr += `<div class="week-col-header">
+      <div class="wch-day">${DIAS[d.getDay()]}</div>
+      <div class="wch-num ${esHoy ? 'today' : ''}">${d.getDate()}</div>
+      ${esHoy ? '<div class="week-pip"></div>' : ''}
+    </div>`;
+  }
+  document.getElementById('weekHeader').innerHTML = hdr;
+
+  let grid = '';
+  HORAS.forEach(h => {
+    grid += `<div class="week-row"><div class="week-time">${h}:00</div>`;
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(lunes); d.setDate(lunes.getDate() + i);
+      const turno = todosTurnos.find(t => t.fecha === fmtDate(d) && parseInt(t.hora) === h);
+      grid += '<div class="week-cell">';
+      if (turno) {
+        const pac = turno.pacientes;
+        const nombre = pac ? `${pac.apellido}` : turno.tipo;
+        const cls = weClass(turno.tipo);
+        grid += `<div class="week-event ${cls}" onclick="abrirDetalle('${turno.id}')">${nombre} ${h}:00</div>`;
+      }
+      grid += '</div>';
+    }
+    grid += '</div>';
+  });
+  document.getElementById('weekGrid').innerHTML = grid;
+}
+
+// ── MONTH GRID ──
+function renderMes() {
+  const grid = document.getElementById('monthGrid');
+  grid.innerHTML = '';
+  const y = fechaActual.getFullYear(), m = fechaActual.getMonth();
+  const primerDia = new Date(y, m, 1).getDay();
+  const diasEnMes = new Date(y, m + 1, 0).getDate();
+
+  for (let i = 0; i < primerDia; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'month-cell other-month';
+    grid.appendChild(cell);
+  }
+  for (let d = 1; d <= diasEnMes; d++) {
+    const fecha = new Date(y, m, d);
+    const esHoy = fmtDate(fecha) === fmtDate(hoy);
+    const turnos = turnosDeFecha(fecha);
+    const cell = document.createElement('div');
+    cell.className = 'month-cell' + (esHoy ? ' today-cell' : '');
+    cell.innerHTML = `<div class="month-num">${d}</div>`;
+    turnos.slice(0, 2).forEach(t => {
+      const pac = t.pacientes;
+      const nombre = pac ? pac.apellido : t.tipo;
+      const cls = mpClass(t.tipo);
+      const pill = document.createElement('div');
+      pill.className = `month-event-pill ${cls}`;
+      pill.textContent = nombre;
+      cell.appendChild(pill);
+    });
+    if (turnos.length > 2) {
+      const mas = document.createElement('div');
+      mas.style.cssText = 'font-size:10px;color:#8A8FA8;font-weight:700;padding:2px 4px';
+      mas.textContent = `+${turnos.length - 2} más`;
+      cell.appendChild(mas);
+    }
+    cell.addEventListener('click', () => {
+      fechaActual = fecha;
+      setView('dia');
+    });
+    grid.appendChild(cell);
+  }
+}
+
+// ── VIEWS ──
+function setView(v) {
+  currentView = v;
+  ['dia','semana','mes'].forEach(x => {
+    document.getElementById(x === 'dia' ? 'dayView' : x === 'semana' ? 'weekView' : 'monthView').classList.toggle('active', x === v);
+    document.getElementById('btn' + x.charAt(0).toUpperCase() + x.slice(1)).classList.toggle('active', x === v);
+  });
+  actualizarHeader();
+  if (v === 'dia')    { buildDayStrip(); renderDia(); }
+  if (v === 'semana') renderSemana();
+  if (v === 'mes')    renderMes();
+}
+
+function navBack() {
+  if (currentView === 'dia')    fechaActual.setDate(fechaActual.getDate() - 1);
+  if (currentView === 'semana') fechaActual.setDate(fechaActual.getDate() - 7);
+  if (currentView === 'mes')    fechaActual.setMonth(fechaActual.getMonth() - 1);
+  setView(currentView);
+}
+function navFwd() {
+  if (currentView === 'dia')    fechaActual.setDate(fechaActual.getDate() + 1);
+  if (currentView === 'semana') fechaActual.setDate(fechaActual.getDate() + 7);
+  if (currentView === 'mes')    fechaActual.setMonth(fechaActual.getMonth() + 1);
+  setView(currentView);
+}
+
+// ── MODAL NUEVO TURNO ──
+function horaActualRedondeada() {
+  return String(new Date().getHours()).padStart(2,'0') + ':00';
+}
+function abrirModal(tipo) {
+  modoModal = tipo || 'turno';
+  document.getElementById('f-fecha').value = fmtDate(fechaActual);
+  document.getElementById('f-hora').value  = horaActualRedondeada();
+  document.getElementById('f-paciente').value = '';
+  document.getElementById('f-notas').value = '';
+  document.getElementById('msgError').style.display = 'none';
+  // mostrar/ocultar secciones según modo
+  const esTurno = modoModal === 'turno';
+  document.getElementById('seccion-paciente').style.display = esTurno ? '' : 'none';
+  document.getElementById('seccion-tipo').style.display = esTurno ? '' : 'none';
+  document.getElementById('seccion-titulo').style.display = esTurno ? 'none' : '';
+  document.getElementById('modal-title').textContent = esTurno ? '📅 Nuevo turno' : '🗓 Nuevo evento';
+  document.getElementById('btnCrear').textContent = esTurno ? '✓ Agendar turno' : '✓ Guardar evento';
+  document.getElementById('overlay').classList.add('open');
+}
+function abrirModalConHora(hora) {
+  abrirModal('turno');
+  document.getElementById('f-hora').value = hora;
+}
+function cerrarModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+let modoModal = 'turno';
+let fabOpen = false;
+function toggleFabMenu() {
+  fabOpen = !fabOpen;
+  const menu = document.getElementById('fabMenu');
+  const ov   = document.getElementById('fabOverlay');
+  const btn  = document.getElementById('fabBtn');
+  if (fabOpen) {
+    menu.style.cssText = 'display:flex;flex-direction:column;position:fixed;bottom:140px;right:16px;z-index:42;gap:8px;align-items:flex-end';
+    ov.style.display = 'block';
+    btn.textContent = '✕';
+  } else {
+    menu.style.display = 'none';
+    ov.style.display = 'none';
+    btn.textContent = '＋';
+  }
+}
+function closeFabMenu() {
+  fabOpen = false;
+  document.getElementById('fabMenu').style.display = 'none';
+  document.getElementById('fabOverlay').style.display = 'none';
+  document.getElementById('fabBtn').textContent = '＋';
+}
+
+async function crearTurno() {
+  const fecha  = document.getElementById('f-fecha').value;
+  const hora   = document.getElementById('f-hora').value;
+  if (!fecha || !hora) { mostrarError('Fecha y hora son obligatorios.'); return; }
+
+  const btn = document.getElementById('btnCrear');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  const { data: { session } } = await sb.auth.getSession();
+  let insertData = {
+    user_id: session.user.id,
+    fecha,
+    hora: hora + ':00',
+    duracion: parseInt(document.getElementById('f-duracion').value),
+    estado: 'pendiente',
+    notas: document.getElementById('f-notas').value.trim() || null,
+  };
+
+  if (modoModal === 'turno') {
+    const pacId = document.getElementById('f-paciente').value;
+    if (!pacId) { btn.disabled = false; btn.textContent = '✓ Agendar turno'; mostrarError('Seleccioná un paciente.'); return; }
+    insertData.paciente_id = pacId;
+    insertData.tipo = document.getElementById('f-tipo').value;
+    insertData.recordatorio = document.getElementById('f-recordatorio')?.value || '24hs';
+  } else {
+    const titulo = document.getElementById('f-titulo').value.trim();
+    if (!titulo) { btn.disabled = false; btn.textContent = '✓ Guardar evento'; mostrarError('Escribí un título para el evento.'); return; }
+    insertData.tipo = 'evento';
+    insertData.notas = titulo + (insertData.notas ? ' — ' + insertData.notas : '');
+  }
+
+  const { error } = await sb.from('turnos').insert(insertData);
+  btn.disabled = false; btn.textContent = modoModal === 'turno' ? '✓ Agendar turno' : '✓ Guardar evento';
+  if (error) { mostrarError('Error al guardar.'); return; }
+
+  // ── ENVÍO AUTOMÁTICO WHATSAPP al agendar turno ──
+  if (modoModal === 'turno' && insertData.paciente_id) {
+    enviarWAppConfirmacion(insertData.paciente_id, fecha, hora, session);
+  }
+
+  // ── GOOGLE CALENDAR ──
+  if (modoModal === 'turno' && gcalToken) {
+    const { data: turnos } = await sb.from('turnos')
+      .select('*, pacientes(nombre,apellido)')
+      .eq('fecha', fecha).eq('hora', hora + ':00')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (turnos?.length) {
+      const t = turnos[0];
+      const nombre = t.pacientes ? `${t.pacientes.nombre} ${t.pacientes.apellido}` : t.tipo;
+      await crearEventoGCal(t, nombre);
+    }
+  }
+
+  cerrarModal();
+  await cargarTurnos();
+  buildDayStrip();
+  renderDia();
+}
+
+async function enviarWAppConfirmacion(pacienteId, fecha, hora, session) {
+  try {
+    // obtener datos del paciente
+    const { data: pac } = await sb.from('pacientes').select('nombre,apellido,telefono').eq('id', pacienteId).maybeSingle();
+    if (!pac?.telefono) return;
+
+    // obtener perfil del profesional
+    const { data: perfil } = await sb.from('profiles').select('titulo,nombre_completo,direccion,telefono_profesional').eq('id', session.user.id).maybeSingle();
+    const nombreProf = `${perfil?.titulo || ''} ${perfil?.nombre_completo || ''}`.trim() || 'el profesional';
+    const dir   = perfil?.direccion || '';
+    const telProf = perfil?.telefono_profesional || '';
+
+    // armar mensaje
+    const [y,m,d] = fecha.split('-');
+    const fechaLinda = `${d}/${m}/${y}`;
+    const horaStr = hora.slice(0,5);
+
+    const mensaje =
+`📅 *Tu turno está confirmado*
+
+Hola ${pac.nombre}, te confirmamos tu sesión con el *${nombreProf}*.
+
+📆 ${fechaLinda}
+🕘 ${horaStr} hs${dir ? '\n📍 ' + dir : ''}
+
+Ante cualquier inconveniente avisanos con anticipación.${telProf ? '\n📱 ' + telProf : ''}
+_Psicoapp_`;
+
+    // normalizar teléfono
+    let tel = pac.telefono.replace(/\D/g,'');
+    if (tel.startsWith('0')) tel = tel.slice(1);
+    if (!tel.startsWith('54')) tel = '54' + tel;
+    if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
+    tel = '+' + tel;
+
+    // Verificar límite WA antes de enviar
+    const puedeEnviar = await verificarLimiteWA(sb, session.user.id);
+    if (!puedeEnviar) return;
+
+    await fetch('https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        to: tel,
+        nombre: pac.nombre,
+        fecha: fechaLinda,
+        hora: horaStr,
+      }),
+    });
+    // Registrar uso WA
+    await registrarUsoWA(sb, session.user.id, pac.id || null);
+  } catch(e) {
+    console.log('WhatsApp no enviado:', e.message);
+  }
+}
+
+function mostrarError(msg) {
+  const el = document.getElementById('msgError');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+// ── DETALLE ──
+function abrirDetalle(id) {
+  turnoSeleccionado = todosTurnos.find(t => t.id === id);
+  if (!turnoSeleccionado) return;
+  const t = turnoSeleccionado;
+  const pac = t.pacientes;
+  const nombre = pac ? `${pac.nombre} ${pac.apellido}` : t.tipo;
+
+  document.getElementById('det-header').innerHTML = `
+    <div style="font-size:20px;font-weight:800">${nombre}</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${tipoLabel(t.tipo)} · ${fmtFechaLinda(t.fecha)} · ${t.hora?.slice(0,5)}</div>`;
+
+  let body = '';
+  body += filaD('🕐', 'Duración', `${t.duracion || 50} min`);
+  body += filaD('📋', 'Estado', estadoLabel(t.estado));
+  if (t.notas) body += filaD('📝', 'Notas', t.notas);
+  document.getElementById('det-body').innerHTML = body;
+
+  // botón confirmar / realizada
+  document.getElementById('btn-confirmar').style.display = t.estado === 'pendiente' ? '' : 'none';
+  document.getElementById('btn-realizada').style.display = t.estado !== 'realizado' ? '' : 'none';
+
+  document.getElementById('overlayDetalle').classList.add('open');
+}
+function cerrarDetalle() {
+  document.getElementById('overlayDetalle').classList.remove('open');
+  turnoSeleccionado = null;
+}
+async function cambiarEstado(estado) {
+  if (!turnoSeleccionado) return;
+  const t = turnoSeleccionado;
+  await sb.from('turnos').update({ estado }).eq('id', t.id);
+
+  // Si se marca como REALIZADO → crear pago automático si no existe
+  if (estado === 'realizado' && t.tipo !== 'evento' && t.tipo !== 'otro') {
+    // Verificar si ya hay un pago para este turno
+    const { data: pagoExist } = await sb.from('pagos')
+      .select('id').eq('turno_id', t.id).maybeSingle();
+
+    if (!pagoExist) {
+      // Leer valor de sesión del perfil
+      const { data: { session } } = await sb.auth.getSession();
+      const { data: perfil } = await sb.from('profiles')
+        .select('valor_sesion').eq('id', session.user.id).maybeSingle();
+      const monto = perfil?.valor_sesion || 0;
+
+      await sb.from('pagos').insert({
+        paciente_id: t.paciente_id,
+        turno_id:    t.id,
+        fecha:       t.fecha,
+        monto:       monto,
+        metodo:      'pendiente',
+        concepto:    'Sesión',
+        notas:       'Generado automáticamente al marcar sesión como realizada',
+      });
+
+      if (monto > 0) {
+        mostrarToastAgenda('✅ Sesión realizada — pago de $' + monto.toLocaleString('es-AR') + ' registrado');
+      } else {
+        mostrarToastAgenda('✅ Sesión realizada — pago pendiente registrado (configurá el valor en Perfil)');
+      }
+    } else {
+      mostrarToastAgenda('✅ Sesión marcada como realizada');
+    }
+  }
+
+  cerrarDetalle();
+  await cargarTurnos();
+  renderDia();
+}
+
+function mostrarToastAgenda(msg) {
+  let t = document.getElementById('toastAgenda');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toastAgenda';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;max-width:320px;text-align:center;transition:opacity 0.3s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.display = 'block';
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.style.display='none', 300); }, 3500);
+}
+async function eliminarTurno() {
+  if (!turnoSeleccionado) return;
+  if (!confirm('¿Eliminar este turno?')) return;
+  await sb.from('turnos').delete().eq('id', turnoSeleccionado.id);
+  cerrarDetalle();
+  await cargarTurnos();
+  buildDayStrip();
+  renderDia();
+}
+
+// ── SETTINGS ──
+function openSettings()  { document.getElementById('drawerOverlay').classList.add('open'); }
+function closeSettings() { document.getElementById('drawerOverlay').classList.remove('open'); }
+
+// ── HELPERS ──
+function fmtDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+function fmtFechaLinda(f) {
+  if (!f) return '';
+  const [y, m, d] = f.split('-');
+  return `${d}/${m}/${y}`;
+}
+function tipoLabelLegacy(t) {
+  return { sesion: 'Sesión', online: 'Online', judicial: 'Judicial', evaluacion: 'Evaluación', evento: 'Evento', otro: 'Otro' }[t] || t;
+}
+function estadoLabel(e) {
+  return { pendiente: '⏳ Pendiente', confirmado: '✓ Confirmado', realizado: '✅ Realizado', cancelado: '❌ Cancelado' }[e] || e;
+}
+function badgeEstado(e) {
+  const map = {
+    pendiente:  '<span class="ev-badge badge-wait">⏳ Sin confirmar</span>',
+    confirmado: '<span class="ev-badge badge-ok">✓ Confirmado</span>',
+    realizado:  '<span class="ev-badge badge-done">✅ Realizado</span>',
+    cancelado:  '<span class="ev-badge badge-done">❌ Cancelado</span>',
+  };
+  return map[e] || '';
+}
+function filaD(icon, label, val) {
+  return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:16px">${icon}</span>
+    <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">${label}</div>
+    <div style="font-size:14px;font-weight:600;margin-top:2px">${val}</div></div>
+  </div>`;
+}
+
+// cerrar overlays al tocar fuera
+['overlay','overlayDetalle'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target.id === id) {
+      if (id === 'overlay') cerrarModal(); else cerrarDetalle();
+    }
+  });
+});
+</script>
+<!-- GOOGLE CALENDAR INTEGRATION -->
+<script src="https://apis.google.com/js/api.js"></script>
+<script>
+const GCAL_CLIENT_ID = '258644442158-gid3k8d4ga7a9lem9e4tjl4aif33gsu1.apps.googleusercontent.com';
+const GCAL_SCOPES    = 'https://www.googleapis.com/auth/calendar';
+const GCAL_KEY       = 'gcal_token';
+
+let gcalToken = localStorage.getItem(GCAL_KEY) || null;
+
+// ── Inicializar Google API ──
+function initGoogleAPI() {
+  gapi.load('client:auth2', async () => {
+    await gapi.client.init({
+      clientId: GCAL_CLIENT_ID,
+      scope: GCAL_SCOPES,
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']
+    });
+    const auth = gapi.auth2.getAuthInstance();
+    if (auth.isSignedIn.get()) {
+      gcalToken = auth.currentUser.get().getAuthResponse().access_token;
+      localStorage.setItem(GCAL_KEY, gcalToken);
+      actualizarEstadoGCal(true);
+    }
+    auth.isSignedIn.listen(signed => {
+      if (signed) {
+        gcalToken = auth.currentUser.get().getAuthResponse().access_token;
+        localStorage.setItem(GCAL_KEY, gcalToken);
+        actualizarEstadoGCal(true);
+        sincronizarTodosLosEventos();
+      } else {
+        gcalToken = null;
+        localStorage.removeItem(GCAL_KEY);
+        actualizarEstadoGCal(false);
+      }
+    });
+  });
+}
+
+function actualizarEstadoGCal(conectado) {
+  const txt = document.getElementById('gcal-drawer-txt');
+  if (txt) txt.textContent = conectado ? '✅ Google Calendar conectado' : 'Conectar Google Calendar';
+}
+
+async function conectarGoogleCalendar() {
+  if (!window.gapi?.auth2) {
+    mostrarToastAgenda('Cargando Google...', false);
+    setTimeout(conectarGoogleCalendar, 1500);
+    return;
+  }
+  const auth = gapi.auth2.getAuthInstance();
+  if (auth.isSignedIn.get()) {
+    if (confirm('¿Desconectar Google Calendar?')) {
+      await auth.signOut();
+      mostrarToastAgenda('Google Calendar desconectado');
+    }
+  } else {
+    try {
+      await auth.signIn();
+      mostrarToastAgenda('✅ Google Calendar conectado');
+      closeDrawer();
+    } catch(e) {
+      mostrarToastAgenda('Error al conectar Google Calendar');
+    }
+  }
+}
+
+// ── Crear evento en Google Calendar ──
+async function crearEventoGCal(turno, pacNombre) {
+  if (!gcalToken) return;
+  try {
+    const [y, m, d] = turno.fecha.split('-');
+    const [h, min]  = (turno.hora || '09:00').slice(0,5).split(':');
+    const durMin    = turno.duracion || 50;
+    const start     = new Date(y, m-1, d, h, min);
+    const end       = new Date(start.getTime() + durMin * 60000);
+
+    const fmt = dt => dt.toISOString();
+
+    const evento = {
+      summary:     `${pacNombre} — ${tipoLabel(turno.tipo)}`,
+      description: turno.notas || '',
+      start:  { dateTime: fmt(start), timeZone: 'America/Argentina/Buenos_Aires' },
+      end:    { dateTime: fmt(end),   timeZone: 'America/Argentina/Buenos_Aires' },
+      colorId: turno.tipo === 'judicial' ? '3' : '2',
+    };
+
+    const res = await gapi.client.calendar.events.insert({
+      calendarId: 'primary',
+      resource: evento,
+    });
+
+    // Guardar el gcal_event_id en Supabase
+    if (res.result?.id && turno.id) {
+      await sb.from('turnos').update({ gcal_event_id: res.result.id }).eq('id', turno.id);
+    }
+    mostrarToastAgenda('📅 Evento creado en Google Calendar');
+  } catch(e) {
+    console.error('GCal error:', e);
+  }
+}
+
+// ── Eliminar evento de Google Calendar ──
+async function eliminarEventoGCal(gcalEventId) {
+  if (!gcalToken || !gcalEventId) return;
+  try {
+    await gapi.client.calendar.events.delete({
+      calendarId: 'primary',
+      eventId: gcalEventId,
+    });
+  } catch(e) {
+    console.error('GCal delete error:', e);
+  }
+}
+
+// ── Sincronizar todos los turnos futuros ──
+async function sincronizarTodosLosEventos() {
+  if (!gcalToken) return;
+  const hoy = fmtDate(new Date());
+  const { data } = await sb.from('turnos')
+    .select('*, pacientes(nombre, apellido)')
+    .gte('fecha', hoy)
+    .neq('estado', 'cancelado')
+    .is('gcal_event_id', null);
+
+  if (!data?.length) return;
+  mostrarToastAgenda(`Sincronizando ${data.length} turnos con Google Calendar...`, false);
+  for (const t of data) {
+    const nombre = t.pacientes ? `${t.pacientes.nombre} ${t.pacientes.apellido}` : t.tipo;
+    await crearEventoGCal(t, nombre);
+    await new Promise(r => setTimeout(r, 200));
+  }
+  mostrarToastAgenda('✅ Sincronización completada');
+}
+
+function mostrarToastAgenda(msg, autoHide=true) {
+  let t = document.getElementById('toast-agenda');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-agenda';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;transition:opacity 0.3s;max-width:320px;text-align:center;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1'; t.style.display = 'block';
+  if (autoHide) setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.style.display='none',300); }, 3000);
+}
+
+// Iniciar cuando carga la página
+window.addEventListener('load', initGoogleAPI);
+</script>
+</div>
+<script>
 // Load sidebar user name + foto
 (async () => {
   try {
-    // Mostrar cache instantáneo
     const cachedNombre = localStorage.getItem('psicoapp-nombre');
     const cachedFoto   = localStorage.getItem('psicoapp-foto');
     const elN = document.getElementById('sb-user-name');
@@ -822,7 +1510,6 @@ let turnoSeleccionado = null;
         elA.textContent = cachedNombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
       }
     }
-    // Luego actualizar desde Supabase
     if (typeof sb === 'undefined') return;
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
