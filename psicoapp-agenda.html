@@ -801,6 +801,7 @@ let hoy         = new Date();
 let fechaActual = new Date(hoy);
 let currentView = 'dia';
 let todosTurnos = [];
+let _userId     = null;
 let todosPacientes = [];
 let turnoSeleccionado = null;
 
@@ -808,14 +809,15 @@ let turnoSeleccionado = null;
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return; }
-  await Promise.all([cargarPacientes(), cargarTurnos()]);
+  _userId = session.user.id;
+  await Promise.all([cargarPacientes(_userId), cargarTurnos(_userId)]);
   actualizarHeader();
   buildDayStrip();
   renderDia();
 })();
 
-async function cargarPacientes() {
-  const { data } = await sb.from('pacientes').select('id,nombre,apellido').eq('activo', true).order('apellido');
+async function cargarPacientes(userId) {
+  const { data } = await sb.from('pacientes').select('id,nombre,apellido').eq('user_id', userId).neq('archivado', true).order('apellido');
   todosPacientes = data || [];
   const sel = document.getElementById('f-paciente');
   todosPacientes.forEach(p => {
@@ -826,13 +828,11 @@ async function cargarPacientes() {
   });
 }
 
-async function cargarTurnos() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) return;
+async function cargarTurnos(userId) {
   const { data, error } = await sb
     .from('turnos')
     .select('*, pacientes(nombre, apellido, telefono)')
-    .eq('user_id', session.user.id)
+    .eq('user_id', userId)
     .order('fecha').order('hora');
   if (error) console.error('Error cargando turnos:', error.message);
   todosTurnos = data || [];
@@ -1132,7 +1132,7 @@ async function crearTurno() {
   }
 
   cerrarModal();
-  await cargarTurnos();
+  await cargarTurnos(_userId);
   buildDayStrip();
   renderDia();
 }
@@ -1268,7 +1268,7 @@ async function cambiarEstado(estado) {
   }
 
   cerrarDetalle();
-  await cargarTurnos();
+  await cargarTurnos(_userId);
   renderDia();
 }
 
@@ -1290,7 +1290,7 @@ async function eliminarTurno() {
   if (!confirm('¿Eliminar este turno?')) return;
   await sb.from('turnos').delete().eq('id', turnoSeleccionado.id);
   cerrarDetalle();
-  await cargarTurnos();
+  await cargarTurnos(_userId);
   buildDayStrip();
   renderDia();
 }
