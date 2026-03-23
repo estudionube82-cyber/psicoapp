@@ -278,7 +278,7 @@ body { transition: background var(--transition), color var(--transition); }
 <!-- SIDEBAR desktop -->
 <aside class="sidebar">
   <a href="psicoapp-index.html" class="sb-logo">Psico<span>app</span></a>
-  <nav class="sb-nav">
+    <nav class="sb-nav">
     <div class="sb-section">Principal</div>
     <a href="psicoapp-index.html" class="sb-item"><span class="sb-icon">🏠</span> Inicio</a>
     <a href="psicoapp-agenda.html" class="sb-item"><span class="sb-icon">📅</span> Agenda</a>
@@ -289,10 +289,9 @@ body { transition: background var(--transition), color var(--transition); }
     <a href="psicoapp-whatsapp.html" class="sb-item sb-active"><span class="sb-icon">💬</span> WhatsApp</a>
     <a href="psicoapp-pericias.html" class="sb-item"><span class="sb-icon">⚖️</span> Pericias</a>
     <a href="psicoapp-estadisticas.html" class="sb-item"><span class="sb-icon">📈</span> Estadísticas</a>
-    <div class="sb-section">Clínico</div>
-    <a href="psicoapp-consentimiento.html" class="sb-item"><span class="sb-icon">📋</span> Consentimiento</a>
-    <a href="psicoapp-perfil.html" class="sb-item"><span class="sb-icon">⚙️</span> Perfil</a>
-    <a href="psicoapp-cuenta.html" class="sb-item"><span class="sb-icon">👤</span> Cuenta</a>
+    <div class="sb-section">Cuenta</div>
+    <a href="psicoapp-perfil.html" class="sb-item"><span class="sb-icon">👤</span> Mi perfil</a>
+    <a href="psicoapp-cuenta.html" class="sb-item"><span class="sb-icon">⚙️</span> Configuración</a>
   </nav>
   <div class="sb-footer">
     <a href="psicoapp-perfil.html" class="sb-user">
@@ -512,388 +511,43 @@ function toggleDrawer(){document.getElementById('sideDrawer').classList.toggle('
 function closeDrawer(){document.getElementById('sideDrawer').classList.remove('open');document.getElementById('menuOverlay').classList.remove('open');}
 async function doLogout(){await sb.auth.signOut();window.location.href='login.html';}
 
+// Load sidebar user name + foto
 (async () => {
-  const { data:{ session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-
-  const { data: perfil } = await sb.from('profiles')
-    .select('titulo,nombre_completo,direccion,telefono_profesional,recordatorio_auto,confirmacion_auto')
-    .eq('id', session.user.id).maybeSingle();
-  if (perfil) {
-    perfilPro = perfil;
-    if (perfil.recordatorio_auto) document.getElementById('toggle-recordatorio').checked = true;
-    if (perfil.confirmacion_auto) document.getElementById('toggle-confirmacion').checked = true;
-  }
-  actualizarPlantillas();
-  await Promise.all([cargarPacientes(), cargarTurnosProximos()]);
-})();
-
-// ── PLANTILLAS ──────────────────────────────────────────────────────────────
-function actualizarPlantillas() {
-  const prof = `${perfilPro.titulo||''} ${perfilPro.nombre_completo||''}`.trim() || 'el profesional';
-  const tel  = perfilPro.telefono_profesional || '[teléfono]';
-  const dir  = perfilPro.direccion || '[dirección consultorio]';
-
-  document.getElementById('prev-confirmacion').textContent =
-`📅 *Turno confirmado*
-
-Hola {nombre}, confirmamos tu sesión con *${prof}*.
-
-📆 {fecha} a las {hora} hs
-📍 ${dir}
-
-Ante cualquier inconveniente avisanos con anticipación al ${tel}.
-_PsicoApp_`;
-
-  document.getElementById('prev-recordatorio').textContent =
-`🔔 *Recordatorio de turno*
-
-Hola {nombre}, mañana tenés sesión con *${prof}*.
-
-📆 {fecha} a las {hora} hs
-
-¿No podés asistir? Avisanos al *${tel}*
-_PsicoApp_`;
-
-  document.getElementById('prev-pago').textContent =
-`💰 *Saldo pendiente*
-
-Hola {nombre}, te recordamos que tenés un saldo pendiente con *${prof}*.
-
-Podés abonarlo en el próximo turno o consultarnos por transferencia.
-_PsicoApp_`;
-}
-
-// ── PACIENTES ───────────────────────────────────────────────────────────────
-async function cargarPacientes() {
-  const { data } = await sb.from('pacientes').select('id,nombre,apellido,telefono').eq('activo',true).order('apellido');
-  todosPacientes = data || [];
-  pacientesFiltrados = [...todosPacientes];
-  renderPacientes();
-}
-async function cargarTurnosProximos() {
-  const hoy = fmtDate(new Date());
-  const en7 = fmtDate(new Date(Date.now() + 7*86400000));
-  const { data } = await sb.from('turnos').select('paciente_id,fecha,hora').gte('fecha',hoy).lte('fecha',en7).order('fecha').order('hora');
-  (data||[]).forEach(t => { if (!turnosProximos[t.paciente_id]) turnosProximos[t.paciente_id] = t; });
-  renderPacientes();
-}
-function renderPacientes() {
-  const list = document.getElementById('pacList');
-  if (!pacientesFiltrados.length) {
-    list.innerHTML = '<div class="empty-sec"><div class="empty-icon">👥</div>No hay pacientes.</div>'; return;
-  }
-  list.innerHTML = pacientesFiltrados.map((p,i) => {
-    const ini   = (p.apellido||p.nombre||'?')[0].toUpperCase();
-    const color = COLORES[i % COLORES.length];
-    const turno = turnosProximos[p.id];
-    const tel   = !!p.telefono;
-    return `<div class="pac-card">
-      <div class="pac-avatar" style="background:${color}">${ini}</div>
-      <div class="pac-info">
-        <div class="pac-nombre">${p.apellido}, ${p.nombre}</div>
-        ${tel ? `<div class="pac-tel">📱 ${p.telefono}</div>` : `<div class="pac-sin-tel">⚠️ Sin teléfono</div>`}
-        ${turno ? `<div class="next-badge">📅 ${fmtFechaCorta(turno.fecha)} ${turno.hora?.slice(0,5)}</div>` : ''}
-      </div>
-      <button class="btn-wp" onclick="enviarDirecto('${p.id}')" ${!tel?'disabled':''}>💬</button>
-    </div>`;
-  }).join('');
-}
-function filtrarPacientes() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  pacientesFiltrados = todosPacientes.filter(p => `${p.nombre} ${p.apellido}`.toLowerCase().includes(q));
-  renderPacientes();
-}
-function enviarDirecto(pacId) {
-  const p = todosPacientes.find(x => x.id === pacId);
-  if (!p?.telefono) return;
-  const turno = turnosProximos[pacId];
-  const prof  = `${perfilPro.titulo||''} ${perfilPro.nombre_completo||''}`.trim() || 'el profesional';
-  const msg = turno
-    ? `🔔 *Recordatorio de turno*\n\nHola ${p.nombre}, te recordamos tu turno el ${fmtFechaLinda(turno.fecha)} a las ${turno.hora?.slice(0,5)} hs con *${prof}*.\n\n¿No podés asistir? Avisanos al ${perfilPro.telefono_profesional||'[teléfono]'}\n_PsicoApp_`
-    : `Hola ${p.nombre}, te contacta el consultorio de *${prof}*.\n_PsicoApp_`;
-  abrirWA(p, msg, 'libre');
-}
-
-// ── PLANTILLAS MODAL ────────────────────────────────────────────────────────
-function usarPlantilla(tipo) {
-  plantillaActual = tipo;
-  if (tipo === 'libre') {
-    const msg = document.getElementById('msg-libre').value.trim();
-    if (!msg) { mostrarToast('✏️ Escribí el mensaje primero'); return; }
-  }
-  abrirModalPac();
-}
-function abrirModalPac() {
-  const list = document.getElementById('modalPacList');
-  const conTel = todosPacientes.filter(p => p.telefono);
-  if (!conTel.length) {
-    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px">Ningún paciente tiene teléfono.</div>';
-  } else {
-    list.innerHTML = conTel.map((p,i) => {
-      const color = COLORES[i % COLORES.length];
-      const ini   = (p.apellido||p.nombre||'?')[0].toUpperCase();
-      return `<div class="modal-pac-item" onclick="seleccionarPaciente('${p.id}')">
-        <div style="width:36px;height:36px;border-radius:10px;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-weight:800;flex-shrink:0">${ini}</div>
-        <div style="flex:1;font-size:14px;font-weight:700">${p.apellido}, ${p.nombre}</div>
-        <div style="font-size:12px;color:var(--muted)">${p.telefono}</div>
-      </div>`;
-    }).join('');
-  }
-  document.getElementById('overlayPac').classList.add('open');
-}
-function cerrarModalPac() { document.getElementById('overlayPac').classList.remove('open'); }
-function seleccionarPaciente(pacId) {
-  cerrarModalPac();
-  const p = todosPacientes.find(x => x.id === pacId);
-  if (!p) return;
-  const turno = turnosProximos[pacId];
-  let msg = '';
-  if (plantillaActual === 'confirmacion') {
-    msg = document.getElementById('prev-confirmacion').textContent
-      .replace('{nombre}', p.nombre)
-      .replace('{fecha}', turno ? fmtFechaLinda(turno.fecha) : '[fecha]')
-      .replace('{hora}',  turno ? turno.hora?.slice(0,5) : '[hora]');
-  } else if (plantillaActual === 'recordatorio') {
-    msg = document.getElementById('prev-recordatorio').textContent
-      .replace('{nombre}', p.nombre)
-      .replace('{fecha}', turno ? fmtFechaLinda(turno.fecha) : '[fecha]')
-      .replace('{hora}',  turno ? turno.hora?.slice(0,5) : '[hora]');
-  } else if (plantillaActual === 'pago') {
-    msg = document.getElementById('prev-pago').textContent.replace('{nombre}', p.nombre);
-  } else if (plantillaActual === 'libre') {
-    msg = document.getElementById('msg-libre').value.trim();
-  }
-  abrirWA(p, msg, plantillaActual);
-}
-
-// ── ENVÍO WHATSAPP ──────────────────────────────────────────────────────────
-async function abrirWA(paciente, mensaje, tipo) {
-  let tel = (paciente.telefono||'').replace(/\D/g, '');
-  if (tel.startsWith('0')) tel = tel.slice(1);
-  if (!tel.startsWith('54')) tel = '54' + tel;
-  if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
-  tel = '+' + tel;
-
   try {
-    mostrarToast('📤 Enviando...', false);
-    const { data:{ session } } = await sb.auth.getSession();
-
-    // Verificar límite WA
-    const puedeEnviar = await verificarLimiteWA(sb, session.user.id);
-    if (!puedeEnviar) return;
-
-    const resp = await fetch(`${SUPA_URL}/functions/v1/enviar-whatsapp`, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${session.access_token}` },
-      body: JSON.stringify({ to: tel, message: mensaje }),
-    });
-    const res = await resp.json();
-
-    if (res.sid) {
-      mostrarToast('✅ Mensaje enviado');
-      await registrarUsoWA(sb, session.user.id, paciente?.id || null);
-      // Guardar en historial
-      await registrarEnHistorial(paciente, mensaje, tipo, 'enviado', res.sid);
-    } else {
-      mostrarToast('⚠️ Abriendo WhatsApp...');
-      await registrarEnHistorial(paciente, mensaje, tipo, 'manual', null);
-      setTimeout(() => window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(mensaje)}`, '_blank'), 800);
-    }
-  } catch(e) {
-    await registrarEnHistorial(paciente, mensaje, tipo, 'manual', null);
-    window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(mensaje)}`, '_blank');
-  }
-}
-
-async function registrarEnHistorial(paciente, mensaje, tipo, estado, sid) {
-  try {
-    const { data:{ session } } = await sb.auth.getSession();
-    await sb.from('notificaciones_wa').insert({
-      user_id:     session.user.id,
-      paciente_id: paciente.id,
-      mensaje,
-      tipo:        tipo || 'libre',
-      estado,
-      twilio_sid:  sid,
-      enviado_at:  new Date().toISOString(),
-    });
-  } catch(e) { /* no bloquear */ }
-}
-
-// ── HISTORIAL ───────────────────────────────────────────────────────────────
-async function cargarHistorial() {
-  document.getElementById('histList').innerHTML = '<div class="empty-sec"><div class="empty-icon">⏳</div>Cargando...</div>';
-  const { data } = await sb.from('notificaciones_wa')
-    .select('*, pacientes(nombre,apellido)')
-    .order('enviado_at', { ascending: false })
-    .limit(100);
-  historialTodos = data || [];
-  document.getElementById('hist-count').textContent = `${historialTodos.length} mensajes`;
-  renderHistorial();
-}
-function filtrarHistorial(filtro, el) {
-  filtroHistorial = filtro;
-  document.querySelectorAll('.hist-filtro').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
-  renderHistorial();
-}
-function renderHistorial() {
-  const list = document.getElementById('histList');
-  const items = filtroHistorial === 'todos'
-    ? historialTodos
-    : historialTodos.filter(h => h.tipo === filtroHistorial);
-  if (!items.length) {
-    list.innerHTML = '<div class="empty-sec"><div class="empty-icon">📭</div>No hay mensajes aún.</div>'; return;
-  }
-  list.innerHTML = items.map((h,i) => {
-    const pac   = h.pacientes;
-    const nombre = pac ? `${pac.apellido}, ${pac.nombre}` : 'Paciente';
-    const ini   = nombre[0].toUpperCase();
-    const color = COLORES[i % COLORES.length];
-    const fecha = h.enviado_at ? new Date(h.enviado_at).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
-    const estado = h.estado === 'enviado' ? '<span class="hist-estado estado-ok">✓ Enviado</span>'
-                 : h.estado === 'manual'  ? '<span class="hist-estado estado-pending">↗ Manual</span>'
-                 : h.estado === 'error'   ? '<span class="hist-estado estado-err">✗ Error</span>'
-                 : '<span class="hist-estado estado-pending">— Pendiente</span>';
-    const tipoClass = `tipo-${h.tipo||'libre'}`;
-    const tipoLabel = {confirmacion:'Confirmación',recordatorio:'Recordatorio',pago:'Pago',libre:'Libre',automatico:'Automático'}[h.tipo]||h.tipo;
-    const msgPreview = (h.mensaje||'').length > 120 ? h.mensaje.slice(0,120)+'…' : h.mensaje;
-    return `<div class="hist-card">
-      <div class="hist-top">
-        <div class="hist-avatar" style="background:${color}">${ini}</div>
-        <div class="hist-nombre">${nombre}</div>
-        <div class="hist-hora">${fecha}</div>
-      </div>
-      <div class="hist-msg">${msgPreview}</div>
-      <div class="hist-footer">
-        <span class="hist-tipo ${tipoClass}">${tipoLabel}</span>
-        ${estado}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── AUTOMATIZACIÓN ──────────────────────────────────────────────────────────
-async function cargarTurnosMañana() {
-  const mañana = fmtDate(new Date(Date.now() + 86400000));
-  const { data } = await sb.from('turnos')
-    .select('hora, pacientes(nombre,apellido,telefono)')
-    .eq('fecha', mañana)
-    .neq('estado','cancelado')
-    .order('hora');
-
-  const list = document.getElementById('turnosMañanaList');
-  const turnos = (data||[]).filter(t => t.pacientes);
-  if (!turnos.length) {
-    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:16px;font-size:13px">Sin turnos mañana.</div>'; return;
-  }
-  list.innerHTML = `<div class="turnos-mañana">` + turnos.map(t => {
-    const tel = t.pacientes?.telefono;
-    return `<div class="tm-row">
-      <div>
-        <div class="tm-pac">${t.pacientes?.apellido}, ${t.pacientes?.nombre}</div>
-        ${tel ? `<div class="tm-tel">📱 ${tel}</div>` : '<div style="font-size:11px;color:#E65100">Sin teléfono</div>'}
-      </div>
-      <div class="tm-hora">${(t.hora||'').slice(0,5)} hs</div>
-    </div>`;
-  }).join('') + '</div>';
-}
-
-async function enviarRecordatoriosManual() {
-  const mañana = fmtDate(new Date(Date.now() + 86400000));
-  const { data } = await sb.from('turnos')
-    .select('hora, paciente_id, pacientes(nombre,apellido,telefono)')
-    .eq('fecha', mañana)
-    .neq('estado','cancelado')
-    .order('hora');
-
-  const turnos = (data||[]).filter(t => t.pacientes?.telefono);
-  if (!turnos.length) { mostrarToast('Sin turnos con teléfono para mañana'); return; }
-
-  mostrarToast(`📤 Enviando ${turnos.length} recordatorio(s)...`, false);
-  let ok = 0, err = 0;
-  const { data:{ session } } = await sb.auth.getSession();
-
-  for (const t of turnos) {
-    const p = t.pacientes;
-    let tel = (p.telefono||'').replace(/\D/g,'');
-    if (tel.startsWith('0')) tel = tel.slice(1);
-    if (!tel.startsWith('54')) tel = '54' + tel;
-    if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
-
-    try {
-      const resp = await fetch(`${SUPA_URL}/functions/v1/enviar-whatsapp`, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${session.access_token}` },
-        body: JSON.stringify({
-          to: '+' + tel,
-          nombre: p.nombre,
-          fecha: fmtFechaLinda(mañana),
-          hora: (t.hora||'').slice(0,5)
-        }),
-      });
-      const res = await resp.json();
-      if (res.sid || res.status === 'accepted' || res.status === 'queued') {
-        ok++;
-        await registrarEnHistorial({...p, id: t.paciente_id},
-          `Recordatorio automático ${fmtFechaLinda(mañana)} ${(t.hora||'').slice(0,5)}hs`,
-          'automatico', 'enviado', res.sid);
-      } else {
-        err++;
-        console.warn('WA error:', res);
+    // Mostrar cache instantáneo
+    const cachedNombre = localStorage.getItem('psicoapp-nombre');
+    const cachedFoto   = localStorage.getItem('psicoapp-foto');
+    const elN = document.getElementById('sb-user-name');
+    const elA = document.getElementById('sb-avatar-sb');
+    if (cachedNombre && elN) elN.textContent = cachedNombre;
+    if (elA) {
+      if (cachedFoto) {
+        elA.innerHTML = `<img src="${cachedFoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        elA.style.padding = '0';
+      } else if (cachedNombre) {
+        elA.textContent = cachedNombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
       }
-    } catch(e) { err++; console.error(e); }
-    await new Promise(r => setTimeout(r, 600));
-  }
-  mostrarToast(`✅ ${ok} enviado${ok!==1?'s':''}${err ? ` · ⚠️ ${err} error${err!==1?'es':''}` : ''}`);
-}
-
-async function guardarConfig(campo, valor) {
-  const { data:{ session } } = await sb.auth.getSession();
-  await sb.from('profiles').upsert({ id: session.user.id, [campo]: valor, updated_at: new Date().toISOString() });
-  mostrarToast(valor ? '✅ Automatización activada' : 'Automatización desactivada');
-}
-
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-function setTab(t) {
-  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + t).classList.add('active');
-  document.getElementById('view-' + t).classList.add('active');
-}
-function mostrarToast(msg, autoHide=true) {
-  let t = document.getElementById('toast-wp');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'toast-wp';
-    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;transition:opacity 0.3s;max-width:320px;text-align:center;';
-    document.body.appendChild(t);
-  }
-  t.textContent = msg; t.style.opacity = '1'; t.style.display = 'block';
-  if (autoHide) setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.style.display='none',300); }, 3000);
-}
-function fmtDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function fmtFechaLinda(f) { if(!f)return''; const[y,m,d]=f.split('-'); return `${d}/${m}/${y}`; }
-function fmtFechaCorta(f) { if(!f)return''; const[,m,d]=f.split('-'); return `${d}/${m}`; }
-
-document.getElementById('overlayPac').addEventListener('click', e => { if(e.target.id==='overlayPac') cerrarModalPac(); });
-</script>
-</div>
-
-<script>
-(async () => {
-  try {
+    }
+    // Luego actualizar desde Supabase
     if (typeof sb === 'undefined') return;
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
-    const { data: p } = await sb.from('perfiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
+    const { data: p } = await sb.from('profiles').select('nombre_completo, titulo, foto_url').eq('id', session.user.id).maybeSingle();
     if (p) {
-      const name = [p.titulo, p.nombre, p.apellido].filter(Boolean).join(' ');
-      const el = document.getElementById('sb-user-name');
-      const av = document.getElementById('sb-avatar-sb');
-      if (el) el.textContent = name || 'Mi perfil';
-      if (av && p.nombre && p.apellido) av.textContent = (p.nombre[0]+p.apellido[0]).toUpperCase();
+      const nombre = p.nombre_completo || '';
+      const titulo = p.titulo || '';
+      const nombreFinal = [titulo, nombre].filter(Boolean).join(' ').trim();
+      if (elN && nombreFinal) { elN.textContent = nombreFinal; localStorage.setItem('psicoapp-nombre', nombreFinal); }
+      if (elA) {
+        if (p.foto_url) {
+          elA.innerHTML = `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+          elA.style.padding = '0';
+          localStorage.setItem('psicoapp-foto', p.foto_url);
+        } else {
+          localStorage.removeItem('psicoapp-foto');
+          if (nombre) elA.textContent = nombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+        }
+      }
     }
   } catch(e) {}
 })();
