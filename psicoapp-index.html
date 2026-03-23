@@ -678,8 +678,8 @@ body { transition: background var(--transition), color var(--transition); }
       <span class="sb-icon">📈</span> Estadísticas
     </a>
     <div class="sb-section">Clínico</div>
-    <a href="psicoapp-consentimiento.html" class="sb-item">
-      <span class="sb-icon">📋</span> Consentimiento
+    <a href="psicoapp-pericias.html" class="sb-item">
+      <span class="sb-icon">⚖️</span> Pericias
     </a>
   </nav>
   <div class="sb-footer">
@@ -758,7 +758,7 @@ body { transition: background var(--transition), color var(--transition); }
   <div class="stat-card">
     <div class="stat-card-top">
       <div class="stat-icon si-orange">💰</div>
-      <div class="stat-trend trend-up">↑ 12%</div>
+      <div class="stat-trend trend-neutral" id="trend-facturado">Este mes</div>
     </div>
     <div class="stat-num" style="font-size:18px">—</div>
     <div class="stat-label">Facturado</div>
@@ -1340,14 +1340,56 @@ init();
 
 
 
+<!-- SIDE DRAWER MOBILE -->
+<div id="menuOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9998;transition:opacity 0.3s;opacity:0;" class=""></div>
+<div id="sideDrawer" class="side-drawer">
+  <div class="drawer-header">
+    <img src="NUEVO_LOGO_ICONO_SOLO.png" alt="PsicoApp">
+    <div>
+      <div class="drawer-logo-txt">Psico<span>app</span></div>
+      <div class="drawer-tagline">Tu consultorio digital</div>
+    </div>
+  </div>
+
+  <div class="drawer-section-title">Principal</div>
+  <a href="psicoapp-index.html" class="drawer-item active"><span class="di">🏠</span> Inicio</a>
+  <a href="psicoapp-agenda.html" class="drawer-item"><span class="di">📅</span> Agenda</a>
+  <a href="psicoapp-pacientes.html" class="drawer-item"><span class="di">👥</span> Pacientes</a>
+  <a href="psicoapp-historia.html" class="drawer-item"><span class="di">🧠</span> Historia clínica</a>
+
+  <div class="drawer-section-title">Gestión</div>
+  <a href="psicoapp-pagos.html" class="drawer-item"><span class="di">💰</span> Pagos</a>
+  <a href="psicoapp-whatsapp.html" class="drawer-item"><span class="di">💬</span> WhatsApp</a>
+  <a href="psicoapp-estadisticas.html" class="drawer-item"><span class="di">📈</span> Estadísticas</a>
+
+  <div class="drawer-section-title">Clínico</div>
+  <a href="psicoapp-pericias.html" class="drawer-item"><span class="di">⚖️</span> Pericias</a>
+
+  <div class="drawer-section-title">Cuenta</div>
+  <a href="psicoapp-perfil.html" class="drawer-item"><span class="di">👤</span> Mi perfil</a>
+  <a href="psicoapp-cuenta.html" class="drawer-item"><span class="di">⚙️</span> Configuración</a>
+
+  <div class="drawer-footer">
+    <button class="drawer-logout" onclick="doLogout()">
+      <span style="font-size:18px">🚪</span> Cerrar sesión
+    </button>
+  </div>
+</div>
+
 <script>
 function toggleDrawer() {
-  document.getElementById('sideDrawer').classList.toggle('open');
-  document.getElementById('menuOverlay').classList.toggle('open');
+  const drawer = document.getElementById('sideDrawer');
+  const overlay = document.getElementById('menuOverlay');
+  const isOpen = drawer.classList.contains('open');
+  drawer.classList.toggle('open');
+  overlay.style.display = isOpen ? 'none' : 'block';
+  setTimeout(() => { if (!isOpen) overlay.style.opacity = '1'; }, 10);
 }
 function closeDrawer() {
   document.getElementById('sideDrawer').classList.remove('open');
-  document.getElementById('menuOverlay').classList.remove('open');
+  const overlay = document.getElementById('menuOverlay');
+  overlay.style.opacity = '0';
+  setTimeout(() => { overlay.style.display = 'none'; }, 300);
 }
 async function doLogout() {
   const {createClient} = supabase;
