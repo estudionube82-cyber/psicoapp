@@ -1009,13 +1009,21 @@ async function marcarLeida(id, el) {
 
   // Nombre desde cache localStorage
   const cached = localStorage.getItem('psicoapp-nombre');
+  const cachedFoto = localStorage.getItem('psicoapp-foto');
   if (cached) {
     const nameEl = document.getElementById('greeting-name');
     const sbnEl  = document.getElementById('sb-user-name');
     const sbaEl  = document.getElementById('sb-avatar-initials');
     if (nameEl) nameEl.textContent = cached;
     if (sbnEl)  sbnEl.textContent  = cached;
-    if (sbaEl)  sbaEl.textContent  = cached.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    if (sbaEl) {
+      if (cachedFoto) {
+        sbaEl.innerHTML = `<img src="${cachedFoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        sbaEl.style.padding = '0';
+      } else {
+        sbaEl.textContent = cached.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      }
+    }
   }
 })();
 
@@ -1042,11 +1050,21 @@ async function init() {
     const nombreFinal = nombreDisplay.trim() || session.user.email;
     document.querySelector('.greeting-name').textContent = nombreFinal;
     localStorage.setItem('psicoapp-nombre', nombreFinal);
-    // Sidebar
+    // Sidebar nombre
     const sbn = document.getElementById('sb-user-name');
-    const sba = document.getElementById('sb-avatar-initials');
     if (sbn) sbn.textContent = nombreDisplay.trim();
-    if (sba && nombre) sba.textContent = nombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    // Avatar: foto o iniciales
+    const sba = document.getElementById('sb-avatar-initials');
+    if (sba) {
+      if (perfil.foto_url) {
+        sba.innerHTML = `<img src="${perfil.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        sba.style.padding = '0';
+        localStorage.setItem('psicoapp-foto', perfil.foto_url);
+      } else {
+        localStorage.removeItem('psicoapp-foto');
+        if (nombre) sba.textContent = nombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      }
+    }
   } else {
     document.querySelector('.greeting-name').textContent = session.user.email;
   }
