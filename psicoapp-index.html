@@ -674,19 +674,25 @@ body { transition: background var(--transition), color var(--transition); }
     <a href="psicoapp-whatsapp.html" class="sb-item">
       <span class="sb-icon">💬</span> WhatsApp
     </a>
+    <a href="psicoapp-pericias.html" class="sb-item">
+      <span class="sb-icon">⚖️</span> Pericias
+    </a>
     <a href="psicoapp-estadisticas.html" class="sb-item">
       <span class="sb-icon">📈</span> Estadísticas
     </a>
-    <div class="sb-section">Clínico</div>
-    <a href="psicoapp-pericias.html" class="sb-item">
-      <span class="sb-icon">⚖️</span> Pericias
+    <div class="sb-section">Cuenta</div>
+    <a href="psicoapp-perfil.html" class="sb-item">
+      <span class="sb-icon">👤</span> Mi perfil
+    </a>
+    <a href="psicoapp-cuenta.html" class="sb-item">
+      <span class="sb-icon">⚙️</span> Configuración
     </a>
   </nav>
   <div class="sb-footer">
     <a href="psicoapp-perfil.html" class="sb-user">
       <div class="sb-avatar" id="sb-avatar-initials">JG</div>
       <div>
-        <div class="sb-user-name" id="sb-user-name">Cargando...</div>
+        <div class="sb-user-name" id="sb-user-name">Psicólogo/a</div>
         <div class="sb-user-role">Psicólogo/a</div>
       </div>
     </a>
@@ -710,10 +716,9 @@ body { transition: background var(--transition), color var(--transition); }
     </div>
   </div>
   <div class="greeting">
-    <div class="greeting-sub">Buenos días</div>
-    <div class="greeting-name" style="min-height:28px"></div>
-    <div class="greeting-date"></div>
-  
+    <div class="greeting-sub" id="greeting-sub">Buenos días</div>
+    <div class="greeting-name" id="greeting-name" style="min-height:28px"></div>
+    <div class="greeting-date" id="greeting-date"></div>
   </div>
 </div>
 
@@ -772,8 +777,7 @@ body { transition: background var(--transition), color var(--transition); }
     <a href="psicoapp-agenda.html" class="section-link">Ver agenda →</a>
   </div>
   <div class="turnos-list">
-    <div style="text-align:center;padding:24px 16px;color:var(--text-muted);font-size:14px;">Cargando turnos…</div>
-
+    <div style="text-align:center;padding:24px 16px;color:var(--text-muted);font-size:14px;">⏳ Cargando…</div>
   </div>
 </div>
 
@@ -785,7 +789,7 @@ body { transition: background var(--transition), color var(--transition); }
   </div>
   <div class="income-card">
     <div class="income-main">
-      <div class="income-amount" id="income-total">Cargando…</div>
+      <div class="income-amount" id="income-total">$0</div>
       <div class="income-sub" id="income-sub"></div>
     </div>
     <div class="income-bar-container">
@@ -989,6 +993,32 @@ async function marcarLeida(id, el) {
   } catch(e) {}
 }
 
+// ── RENDER INSTANTÁNEO (sin esperar Supabase) ──
+(function() {
+  const hoy = new Date();
+  const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const h = hoy.getHours();
+  const saludo = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+  const fecha = `${DIAS[hoy.getDay()]} ${hoy.getDate()} de ${MESES[hoy.getMonth()]} · ${String(h).padStart(2,'0')}:${String(hoy.getMinutes()).padStart(2,'0')}`;
+
+  const subEl  = document.getElementById('greeting-sub');
+  const dateEl = document.getElementById('greeting-date');
+  if (subEl)  subEl.textContent  = saludo;
+  if (dateEl) dateEl.textContent = fecha;
+
+  // Nombre desde cache localStorage
+  const cached = localStorage.getItem('psicoapp-nombre');
+  if (cached) {
+    const nameEl = document.getElementById('greeting-name');
+    const sbnEl  = document.getElementById('sb-user-name');
+    const sbaEl  = document.getElementById('sb-avatar-initials');
+    if (nameEl) nameEl.textContent = cached;
+    if (sbnEl)  sbnEl.textContent  = cached;
+    if (sbaEl)  sbaEl.textContent  = cached.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  }
+})();
+
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { location.href = 'login.html'; return; }
@@ -1009,7 +1039,9 @@ async function init() {
     const nombre = perfil['nombre completo'] || perfil.nombre_completo || perfil.nombre || '';
     const titulo = perfil['título'] || perfil.titulo || '';
     const nombreDisplay = titulo ? `${titulo} ${nombre}` : nombre;
-    document.querySelector('.greeting-name').textContent = nombreDisplay.trim() || session.user.email;
+    const nombreFinal = nombreDisplay.trim() || session.user.email;
+    document.querySelector('.greeting-name').textContent = nombreFinal;
+    localStorage.setItem('psicoapp-nombre', nombreFinal);
     // Sidebar
     const sbn = document.getElementById('sb-user-name');
     const sba = document.getElementById('sb-avatar-initials');
@@ -1325,7 +1357,10 @@ init();
   flex: 1; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 2px; text-decoration: none; 
   color: #8A8FA8; padding: 4px 0; background: none; border: none; cursor: pointer;
+  font-family: sans-serif;
 }
+.nav-menu-btn .ni { font-size: 22px; line-height: 1; display: block; }
+.nav-menu-btn .nl { font-size: 10px; font-weight: 700; display: block; color: #8A8FA8; }
 
 </style>
 <nav class="app-nav">
