@@ -91,7 +91,7 @@ body{font-family: 'Plus Jakarta Sans', sans-serif;background:var(--bg);color:var
 .sesion-num{width:32px;height:32px;border-radius:10px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
 .sesion-fecha{font-size:13px;font-weight:700;flex:1;}
 .sesion-tipo-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;}
-.tipo-individual{background:#E8F5EE;color:#2D6A4F;}
+.tipo-individual{background:#EDE9FE;color:#5B2FA8;}
 .tipo-pareja{background:#EDE9FE;color:#5B21B6;}
 .tipo-familia{background:#FEF3C7;color:#92400E;}
 .tipo-evaluacion{background:#E3F2FD;color:#1565C0;}
@@ -181,19 +181,19 @@ body{font-family: 'Plus Jakarta Sans', sans-serif;background:var(--bg);color:var
 .app-nav a,.app-nav button.nav-menu-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0;background:none;border:none;cursor:pointer;}
 .app-nav a .ni,.app-nav button.nav-menu-btn .ni{font-size:22px;line-height:1;display:block;}
 .app-nav a .nl,.app-nav button.nav-menu-btn .nl{font-size:10px;font-weight:700;display:block;}
-.app-nav a.on .nl{color:#2D6A4F;}
+.app-nav a.on .nl{color:#5B2FA8;}
 .menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:9998;display:none;}
 .menu-overlay.open{display:block;}
 .side-drawer{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:9999;box-shadow:4px 0 24px rgba(0,0,0,0.15);transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
 .side-drawer.open{left:0;}
-.drawer-header{background:linear-gradient(135deg,#2D6A4F 0%,#3A7D5F 50%,#F4A261 100%);padding:48px 20px 24px;display:flex;align-items:center;gap:12px;}
+.drawer-header{background:linear-gradient(135deg,#5B2FA8 0%,#7C3AED 50%,#F472B6 100%);padding:48px 20px 24px;display:flex;align-items:center;gap:12px;}
 .drawer-logo-txt{font-size:22px;font-weight:800;color:white;}
 .drawer-logo-txt span{color:#FFD580;}
 .drawer-tagline{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;}
 .drawer-section-title{font-size:10px;font-weight:800;color:#8A8FA8;letter-spacing:1.5px;text-transform:uppercase;padding:16px 20px 6px;}
 .drawer-item{display:flex;align-items:center;gap:14px;padding:13px 20px;text-decoration:none;color:#1A1A2E;font-size:15px;font-weight:600;transition:background 0.15s;border-left:3px solid transparent;}
 .drawer-item:hover{background:#F4F1ED;}
-.drawer-item.active{background:#E8F5EE;color:#2D6A4F;border-left-color:#2D6A4F;}
+.drawer-item.active{background:#EDE9FE;color:#5B2FA8;border-left-color:#5B2FA8;}
 .drawer-item .di{font-size:20px;width:28px;text-align:center;}
 .drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
 .drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
@@ -215,7 +215,7 @@ body{font-family: 'Plus Jakarta Sans', sans-serif;background:var(--bg);color:var
 .informe-section{padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
 .informe-card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--sh);}
 .informe-card-title{font-size:13px;font-weight:800;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-.btn-generar-ia{width:100%;background:linear-gradient(135deg,#2D6A4F,#1976D2);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;font-family: 'Plus Jakarta Sans', sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-generar-ia{width:100%;background:linear-gradient(135deg,#5B2FA8,#1976D2);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;font-family: 'Plus Jakarta Sans', sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-generar-ia:disabled{opacity:0.6;cursor:not-allowed;}
 .informe-output{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;min-height:200px;font-family: 'Plus Jakarta Sans', sans-serif;}
 .informe-output.generando{color:var(--muted);font-style:italic;}
@@ -247,14 +247,14 @@ body{font-family: 'Plus Jakarta Sans', sans-serif;background:var(--bg);color:var
     height: 100vh;
     position: sticky;
     top: 0;
-    background: #1B4332;
+    background: #2E1065;
     padding: 28px 0 20px;
     z-index: 100;
     overflow-y: auto;
     flex-shrink: 0;
   }
   .sb-logo { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; color: white; padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; display: block; text-decoration: none; }
-  .sb-logo span { color: #52B788; }
+  .sb-logo span { color: #A78BFA; }
   .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
   .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; font-weight: 500; transition: background .15s, color .15s; }
   .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
@@ -264,7 +264,7 @@ body{font-family: 'Plus Jakarta Sans', sans-serif;background:var(--bg);color:var
   .sb-footer { padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
   .sb-user { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; }
   .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
-  .sb-avatar-sb { width: 30px; height: 30px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .sb-avatar-sb { width: 30px; height: 30px; border-radius: 50%; background: #A78BFA; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
   .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
 }
@@ -530,7 +530,7 @@ body { transition: background var(--transition), color var(--transition); }
   
   <!-- BOTÓN PROCESAR SESIÓN CON IA -->
   <div style="padding:14px 16px;">
-    <button onclick="procesarSesionIA()" style="width:100%;background:linear-gradient(135deg,var(--primary),#2D6A4F);color:white;border:none;border-radius:14px;padding:13px 16px;font-size:14px;font-weight:700;font-family: 'Plus Jakarta Sans', sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+    <button onclick="procesarSesionIA()" style="width:100%;background:linear-gradient(135deg,var(--primary),#5B2FA8);color:white;border:none;border-radius:14px;padding:13px 16px;font-size:14px;font-weight:700;font-family: 'Plus Jakarta Sans', sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
       🧠 Procesar sesión con IA
     </button>
   </div>
@@ -719,7 +719,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const { createClient } = supabase;
 const sb = createClient(SUPA_URL, SUPA_KEY);
 
-const COLORES = ['#2D6A4F','#1976D2','#7B5EA7','#E65100','#388E3C','#C62828'];
+const COLORES = ['#5B2FA8','#1976D2','#7B5EA7','#E65100','#388E3C','#C62828'];
 
 let todosPacientes = [];
 let pacienteActual = null;

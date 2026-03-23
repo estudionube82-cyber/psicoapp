@@ -167,7 +167,7 @@ body {
   position: fixed; bottom: 72px; right: 20px;
   width: 52px; height: 52px; background: var(--primary);
   border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 24px rgba(45,106,79,0.4);
+  box-shadow: 0 8px 24px rgba(91,47,168,0.4);
   cursor: pointer; font-size: 28px; color: white; border: none; z-index: 40;
   transition: transform 0.15s;
 }
@@ -263,8 +263,8 @@ body {
 }
 .app-nav a .ni, .app-nav button.nav-menu-btn .ni { font-size: 22px; line-height: 1; display: block; }
 .app-nav a .nl, .app-nav button.nav-menu-btn .nl { font-size: 10px; font-weight: 700; display: block; }
-.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(244,162,97,0.5)); }
-.app-nav a.on .nl { color: #2D6A4F; }
+.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(244,114,182,0.5)); }
+.app-nav a.on .nl { color: #5B2FA8; }
 
 /* OVERLAY */
 .menu-overlay {
@@ -286,7 +286,7 @@ body {
 .side-drawer.open { left: 0; }
 
 .drawer-header {
-  background: linear-gradient(135deg, #2D6A4F 0%, #3A7D5F 50%, #F4A261 100%);
+  background: linear-gradient(135deg, #5B2FA8 0%, #7C3AED 50%, #F472B6 100%);
   padding: 48px 20px 24px;
   display: flex; align-items: center; gap: 12px;
 }
@@ -309,8 +309,8 @@ body {
 }
 .drawer-item:hover { background: #F4F1ED; }
 .drawer-item.active { 
-  background: #E8F5EE; color: #2D6A4F; 
-  border-left-color: #2D6A4F;
+  background: #EDE9FE; color: #5B2FA8; 
+  border-left-color: #5B2FA8;
 }
 .drawer-item .di { font-size: 20px; width: 28px; text-align: center; }
 
@@ -400,7 +400,7 @@ body { transition: background var(--transition), color var(--transition); }
 
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#2D6A4F">
+<meta name="theme-color" content="#5B2FA8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
@@ -566,16 +566,16 @@ body { transition: background var(--transition), color var(--transition); }
       <div id="panelIA" style="display:none;margin-top:10px;background:#F4F1ED;border-radius:14px;padding:14px;">
 
         <!-- Próximo turno (se muestra cuando hay turno agendado) -->
-        <div id="proximoTurnoPA" style="display:none;background:white;border-radius:11px;padding:10px 12px;margin-bottom:10px;border-left:3px solid #2D6A4F;">
+        <div id="proximoTurnoPA" style="display:none;background:white;border-radius:11px;padding:10px 12px;margin-bottom:10px;border-left:3px solid #5B2FA8;">
           <div style="font-size:11px;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Próximo turno agendado</div>
-          <div id="proximoTurnoTextoPA" style="font-size:13px;font-weight:700;color:#2D6A4F;"></div>
+          <div id="proximoTurnoTextoPA" style="font-size:13px;font-weight:700;color:#5B2FA8;"></div>
         </div>
 
         <!-- Tipos de mensaje -->
         <div id="iaOpcionesWrap">
           <div style="font-size:12px;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Tipo de mensaje</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
-            <button onclick="generarMensajePacienteIA('recordatorio')" style="background:#E8F5EE;color:#2D6A4F;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">⏰ Recordatorio de turno</button>
+            <button onclick="generarMensajePacienteIA('recordatorio')" style="background:#EDE9FE;color:#5B2FA8;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">⏰ Recordatorio de turno</button>
             <button onclick="generarMensajePacienteIA('ausente')" style="background:#FEE2E2;color:#991B1B;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">❌ Paciente ausente</button>
             <button onclick="generarMensajePacienteIA('seguimiento')" style="background:#ECFDF5;color:#065F46;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">💚 Seguimiento / Cómo estás</button>
             <button onclick="mostrarReprogramarIA()" style="background:#FEF3C7;color:#92400E;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">🔄 Reprogramar turno</button>
@@ -607,7 +607,7 @@ body { transition: background var(--transition), color var(--transition); }
         <div id="iaResultadoPA" style="display:none;margin-top:10px;">
           <div id="iaMensajePA" style="background:white;border-radius:11px;padding:12px 14px;font-size:13px;line-height:1.7;color:#1A1A2E;white-space:pre-wrap;"></div>
           <div style="display:flex;gap:8px;margin-top:10px;">
-            <button onclick="copiarMensajePA()" style="flex:1;background:#E8F5EE;color:#2D6A4F;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">📋 Copiar</button>
+            <button onclick="copiarMensajePA()" style="flex:1;background:#EDE9FE;color:#5B2FA8;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">📋 Copiar</button>
             <button id="btnEnviarWAPA" onclick="enviarWAPA()" style="flex:1;background:#25D366;color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">📱 Enviar por WhatsApp</button>
           </div>
           <button onclick="document.getElementById('iaResultadoPA').style.display='none';document.getElementById('iaOpcionesWrap').style.display='block';" style="width:100%;background:none;border:none;padding:8px;font-size:12px;color:#8A8FA8;cursor:pointer;margin-top:4px;">← Otro mensaje</button>

@@ -172,14 +172,14 @@ body {
   width: 4px; border-radius: 4px 0 0 4px;
 }
 .event-block:active { transform: scale(0.98); }
-.ev-sesion    { background: #E8F5EE; } .ev-sesion::before    { background: var(--sb-bg); }
+.ev-sesion    { background: #EDE9FE; } .ev-sesion::before    { background: var(--sb-bg); }
 .ev-online    { background: #E3F2FD; } .ev-online::before    { background: #1976D2; }
 .ev-evaluacion{ background: #FFF8E1; } .ev-evaluacion::before{ background: #F9A825; }
 .ev-judicial  { background: #EDE9FE; } .ev-judicial::before  { background: #7B5EA7; }
-.ev-evento    { background: #FEF0E6; } .ev-evento::before    { background: #E8873A; }
+.ev-evento    { background: #FEF0E6; } .ev-evento::before    { background: #EC4899; }
 .ev-otro      { background: #F3F4F6; } .ev-otro::before      { background: #9CA3AF; }
 /* legacy alias */
-.ev-paciente  { background: #E8F5EE; } .ev-paciente::before  { background: var(--sb-bg); }
+.ev-paciente  { background: #EDE9FE; } .ev-paciente::before  { background: var(--sb-bg); }
 .ev-name { font-size: 13px; font-weight: 700; }
 .ev-meta { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
 .ev-badge {
@@ -214,13 +214,13 @@ body {
   line-height: 1.3; cursor: pointer; margin-bottom: 2px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.we-sesion    { background: #E8F5EE; color: #2D6A4F; border-left: 3px solid #2D6A4F; }
+.we-sesion    { background: #EDE9FE; color: #5B2FA8; border-left: 3px solid #5B2FA8; }
 .we-online    { background: #E3F2FD; color: #1976D2; border-left: 3px solid #1976D2; }
 .we-evaluacion{ background: #FFF8E1; color: #F9A825; border-left: 3px solid #F9A825; }
 .we-judicial  { background: #EDE9FE; color: #5B21B6; border-left: 3px solid #7B5EA7; }
-.we-evento    { background: #FEF0E6; color: #E8873A; border-left: 3px solid #E8873A; }
+.we-evento    { background: #FEF0E6; color: #EC4899; border-left: 3px solid #EC4899; }
 .we-otro      { background: #F3F4F6; color: #6B7280; border-left: 3px solid #9CA3AF; }
-.we-paciente  { background: #E8F5EE; color: #2D6A4F; border-left: 3px solid #2D6A4F; }
+.we-paciente  { background: #EDE9FE; color: #5B2FA8; border-left: 3px solid #5B2FA8; }
 
 /* MONTH VIEW */
 .month-view { display: none; }
@@ -247,13 +247,13 @@ body {
   font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
   margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
 }
-.mp-sesion    { background: #E8F5EE; color: #2D6A4F; }
+.mp-sesion    { background: #EDE9FE; color: #5B2FA8; }
 .mp-online    { background: #E3F2FD; color: #1976D2; }
 .mp-evaluacion{ background: #FFF8E1; color: #C77700; }
 .mp-judicial  { background: #EDE9FE; color: #5B21B6; }
-.mp-evento    { background: #FEF0E6; color: #E8873A; }
+.mp-evento    { background: #FEF0E6; color: #EC4899; }
 .mp-otro      { background: #F3F4F6; color: #6B7280; }
-.mp-pac { background: #E8F5EE; color: #2D6A4F; }
+.mp-pac { background: #EDE9FE; color: #5B2FA8; }
 .mp-jud { background: #EDE9FE; color: #5B21B6; }
 
 /* EMPTY / LOADING */
@@ -266,7 +266,7 @@ body {
   position: fixed; bottom: 72px; right: 20px;
   width: 52px; height: 52px; background: var(--primary);
   border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 24px rgba(45,106,79,0.4);
+  box-shadow: 0 8px 24px rgba(91,47,168,0.4);
   cursor: pointer; font-size: 26px; color: white; border: none; z-index: 40;
 }
 
@@ -354,8 +354,8 @@ body {
 }
 .app-nav a .ni, .app-nav button.nav-menu-btn .ni { font-size: 22px; line-height: 1; display: block; }
 .app-nav a .nl, .app-nav button.nav-menu-btn .nl { font-size: 10px; font-weight: 700; display: block; }
-.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(244,162,97,0.5)); }
-.app-nav a.on .nl { color: #2D6A4F; }
+.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(244,114,182,0.5)); }
+.app-nav a.on .nl { color: #5B2FA8; }
 
 /* OVERLAY */
 .menu-overlay {
@@ -377,7 +377,7 @@ body {
 .side-drawer.open { left: 0; }
 
 .drawer-header {
-  background: linear-gradient(135deg, #2D6A4F 0%, #3A7D5F 50%, #F4A261 100%);
+  background: linear-gradient(135deg, #5B2FA8 0%, #7C3AED 50%, #F472B6 100%);
   padding: 48px 20px 24px;
   display: flex; align-items: center; gap: 12px;
 }
@@ -400,8 +400,8 @@ body {
 }
 .drawer-item:hover { background: #F4F1ED; }
 .drawer-item.active { 
-  background: #E8F5EE; color: #2D6A4F; 
-  border-left-color: #2D6A4F;
+  background: #EDE9FE; color: #5B2FA8; 
+  border-left-color: #5B2FA8;
 }
 .drawer-item .di { font-size: 20px; width: 28px; text-align: center; }
 
@@ -436,7 +436,7 @@ body {
     flex-shrink: 0;
   }
   .sb-logo { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; color: white; padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
-  .sb-logo span { color: #52B788; }
+  .sb-logo span { color: #A78BFA; }
   .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
   .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: background .15s, color .15s; }
   .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
@@ -446,7 +446,7 @@ body {
   .sb-footer { padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
   .sb-user { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); cursor: pointer; text-decoration: none; }
   .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
-  .sb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .sb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #A78BFA; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
   .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
 }
@@ -487,7 +487,7 @@ body { transition: background var(--transition), color var(--transition); }
 
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#2D6A4F">
+<meta name="theme-color" content="#5B2FA8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
@@ -580,7 +580,7 @@ body { transition: background var(--transition), color var(--transition); }
 <div id="fabMenu" style="display:none;position:fixed;bottom:140px;right:16px;z-index:42;gap:8px;align-items:flex-end;flex-direction:column">
   <button style="display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:none;padding:0" onclick="closeFabMenu();abrirModal('turno')">
     <span style="background:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.12)">Agendar paciente</span>
-    <div style="width:40px;height:40px;background:var(--primary);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(45,106,79,0.35)">👤</div>
+    <div style="width:40px;height:40px;background:var(--primary);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(91,47,168,0.35)">👤</div>
   </button>
   <button style="display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:none;padding:0" onclick="closeFabMenu();abrirModal('evento')">
     <span style="background:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.12)">Agregar evento</span>
@@ -784,7 +784,7 @@ function tipoEmoji(tipo) {
 }
 function actualizarColorTipo(val) {
   // feedback visual en el select
-  const colores = { sesion:'#E8F5EE', online:'#E3F2FD', evaluacion:'#FFF8E1',
+  const colores = { sesion:'#EDE9FE', online:'#E3F2FD', evaluacion:'#FFF8E1',
                     judicial:'#EDE9FE', evento:'#FEF0E6', otro:'#F3F4F6' };
   document.getElementById('f-tipo').style.background = colores[val] || '#fff';
 }

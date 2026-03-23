@@ -68,7 +68,7 @@ body { font-family: var(--font); background:var(--bg); color:var(--text); min-he
 
 /* AVATAR */
 .avatar-section { display:flex; flex-direction:column; align-items:center; padding:28px 20px 20px; }
-.avatar { width:80px; height:80px; border-radius:24px; background:linear-gradient(135deg,#1B4332,#2D6A4F); display:flex; align-items:center; justify-content:center; font-size:32px; color:white; font-weight:800; margin-bottom:10px; }
+.avatar { width:80px; height:80px; border-radius:24px; background:linear-gradient(135deg,#2E1065,#5B2FA8); display:flex; align-items:center; justify-content:center; font-size:32px; color:white; font-weight:800; margin-bottom:10px; }
 .avatar-nombre { font-size:18px; font-weight:800; }
 .avatar-email { font-size:13px; color:var(--text-muted); margin-top:2px; }
 
@@ -115,11 +115,11 @@ body { font-family: var(--font); background:var(--bg); color:var(--text); min-he
 .drawer-header { display:flex; align-items:center; gap:12px; padding:22px 18px 14px; border-bottom:1px solid #E8E4DD; }
 .drawer-header img { width:36px; height:36px; border-radius:10px; }
 .drawer-logo-txt { font-size:17px; font-weight:800; color:#1A1A2E; }
-.drawer-logo-txt span { color:#F4A261; }
+.drawer-logo-txt span { color:#F472B6; }
 .drawer-tagline { font-size:11px; color:#8A8FA8; margin-top:1px; }
 .drawer-section-title { font-size:10px; font-weight:800; color:#8A8FA8; letter-spacing:.08em; text-transform:uppercase; padding:14px 18px 4px; }
 .drawer-item { display:flex; align-items:center; gap:10px; padding:11px 18px; text-decoration:none; color:#1A1A2E; font-size:14px; font-weight:600; border-radius:0; transition:background .15s; }
-.drawer-item:hover, .drawer-item.active { background:#E8F5EE; color:#2D6A4F; }
+.drawer-item:hover, .drawer-item.active { background:#EDE9FE; color:#5B2FA8; }
 .drawer-item .di { font-size:18px; }
 .drawer-footer { margin-top:auto; padding:14px 18px; border-top:1px solid #E8E4DD; }
 .drawer-logout { width:100%; padding:10px; background:none; border:1.5px solid #e74c3c; color:#e74c3c; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; }
@@ -144,7 +144,7 @@ body { font-family: var(--font); background:var(--bg); color:var(--text); min-he
     flex-shrink: 0;
   }
   .sb-logo { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; color: white; padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
-  .sb-logo span { color: #52B788; }
+  .sb-logo span { color: #A78BFA; }
   .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
   .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: background .15s, color .15s; }
   .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
@@ -154,7 +154,7 @@ body { font-family: var(--font); background:var(--bg); color:var(--text); min-he
   .sb-footer { padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
   .sb-user { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); cursor: pointer; text-decoration: none; }
   .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
-  .sb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .sb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #A78BFA; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
   .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
 }
@@ -195,7 +195,7 @@ body { transition: background var(--transition), color var(--transition); }
 
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#2D6A4F">
+<meta name="theme-color" content="#5B2FA8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
@@ -246,7 +246,7 @@ body { transition: background var(--transition), color var(--transition); }
 <div class="avatar-section">
   <div style="position:relative;display:inline-block;cursor:pointer" onclick="document.getElementById('fotoInput').click()">
     <div class="avatar" id="avatarIniciales">?</div>
-    <div style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;background:#F4A261;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.15)">📷</div>
+    <div style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;background:#F472B6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.15)">📷</div>
   </div>
   <input type="file" id="fotoInput" accept="image/*" style="display:none" onchange="subirFoto(this)">
   <div id="fotoStatus" style="font-size:11px;color:#8A8FA8;margin-top:6px;min-height:16px"></div>

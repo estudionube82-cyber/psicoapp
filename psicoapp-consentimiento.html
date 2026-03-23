@@ -181,14 +181,14 @@ body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:
 .menu-overlay.open{display:block;}
 .side-drawer{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:9999;box-shadow:4px 0 24px rgba(0,0,0,0.15);transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
 .side-drawer.open{left:0;}
-.drawer-header{background:linear-gradient(135deg,#2D6A4F 0%,#3A7D5F 50%,#F4A261 100%);padding:48px 20px 24px;}
+.drawer-header{background:linear-gradient(135deg,#5B2FA8 0%,#7C3AED 50%,#F472B6 100%);padding:48px 20px 24px;}
 .drawer-logo-txt{font-size:22px;font-weight:800;color:white;}
 .drawer-logo-txt span{color:#FFD580;}
 .drawer-tagline{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;}
 .drawer-section-title{font-size:10px;font-weight:800;color:#8A8FA8;letter-spacing:1.5px;text-transform:uppercase;padding:16px 20px 6px;}
 .drawer-item{display:flex;align-items:center;gap:14px;padding:13px 20px;text-decoration:none;color:#1A1A2E;font-size:15px;font-weight:600;transition:background 0.15s;border-left:3px solid transparent;}
 .drawer-item:hover{background:#F4F1ED;}
-.drawer-item.active{background:#E8F5EE;color:#2D6A4F;border-left-color:#2D6A4F;}
+.drawer-item.active{background:#EDE9FE;color:#5B2FA8;border-left-color:#5B2FA8;}
 .drawer-item .di{font-size:20px;width:28px;text-align:center;}
 .drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
 .drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
@@ -218,7 +218,7 @@ body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:
     flex-shrink: 0;
   }
   .sb-logo { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; color: white; padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
-  .sb-logo span { color: #52B788; }
+  .sb-logo span { color: #A78BFA; }
   .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
   .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: background .15s, color .15s; }
   .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
@@ -228,7 +228,7 @@ body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:
   .sb-footer { padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
   .sb-user { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); cursor: pointer; text-decoration: none; }
   .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
-  .sb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .sb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #A78BFA; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
   .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
 }
@@ -369,7 +369,7 @@ body { transition: background var(--transition), color var(--transition); }
     <div id="estadoBanner"></div>
     <div class="consent-card">
       <div class="consent-card-header">
-        <div class="consent-card-icon" style="background:#E8F5EE">📋</div>
+        <div class="consent-card-icon" style="background:#EDE9FE">📋</div>
         <div>
           <div class="consent-card-title">Documento de consentimiento</div>
           <div class="consent-card-sub" id="estadoDocSub">Sin generar</div>
@@ -480,7 +480,7 @@ body { transition: background var(--transition), color var(--transition); }
 const { SUPA_URL, SUPA_KEY } = PSICOAPP_CONFIG;
 const {createClient} = supabase;
 const sb = createClient(SUPA_URL, SUPA_KEY);
-const COLORES = ['#2D6A4F','#1976D2','#7B5EA7','#E65100','#388E3C','#C62828'];
+const COLORES = ['#5B2FA8','#1976D2','#7B5EA7','#E65100','#388E3C','#C62828'];
 
 let userId = null, todosPacientes = [], pacienteActual = null, idxActual = 0;
 let consentimientoActual = null, perfilPro = {};

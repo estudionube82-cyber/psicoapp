@@ -121,11 +121,11 @@ body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:
 .hist-msg{font-size:12px;color:var(--muted);line-height:1.4;background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:6px;white-space:pre-wrap;}
 .hist-footer{display:flex;align-items:center;justify-content:space-between;}
 .hist-tipo{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
-.tipo-confirmacion{background:#E8F5EE;color:#2D6A4F;}
+.tipo-confirmacion{background:#EDE9FE;color:#5B2FA8;}
 .tipo-recordatorio{background:#FEF3C7;color:#92400E;}
 .tipo-pago{background:#EDE9FE;color:#5B21B6;}
 .tipo-libre{background:#E3F2FD;color:#1976D2;}
-.tipo-automatico{background:#FEF0E6;color:#E8873A;}
+.tipo-automatico{background:#FEF0E6;color:#EC4899;}
 .hist-estado{font-size:11px;font-weight:700;}
 .estado-ok{color:#25D366;}
 .estado-err{color:#E53935;}
@@ -147,7 +147,7 @@ body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:
 .toggle input:checked+.toggle-slider{background:var(--wp);}
 .toggle input:checked+.toggle-slider::before{transform:translateX(20px);}
 .toggle-label{font-size:13px;font-weight:600;color:var(--text);}
-.auto-info{background:#E8F8EE;border-radius:10px;padding:10px 12px;font-size:12px;color:#2D6A4F;margin-top:10px;line-height:1.5;}
+.auto-info{background:#E8F8EE;border-radius:10px;padding:10px 12px;font-size:12px;color:#5B2FA8;margin-top:10px;line-height:1.5;}
 .auto-info strong{font-weight:800;}
 .sandbox-warn{background:#FEF3C7;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400E;line-height:1.5;}
 .sandbox-warn strong{font-weight:800;display:block;margin-bottom:2px;}
@@ -178,12 +178,12 @@ body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:
 .app-nav a,.app-nav button.nav-menu-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#8A8FA8;padding:4px 0;background:none;border:none;cursor:pointer;}
 .app-nav a .ni,.app-nav button.nav-menu-btn .ni{font-size:22px;line-height:1;display:block;}
 .app-nav a .nl,.app-nav button.nav-menu-btn .nl{font-size:10px;font-weight:700;display:block;}
-.app-nav a.on .nl{color:#2D6A4F;}
+.app-nav a.on .nl{color:#5B2FA8;}
 .menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;backdrop-filter:blur(2px);}
 .menu-overlay.open{display:block;}
 .side-drawer{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:9999;box-shadow:4px 0 24px rgba(0,0,0,0.15);transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
 .side-drawer.open{left:0;}
-.drawer-header{background:linear-gradient(135deg,#2D6A4F 0%,#3A7D5F 50%,#F4A261 100%);padding:48px 20px 24px;display:flex;align-items:center;gap:12px;}
+.drawer-header{background:linear-gradient(135deg,#5B2FA8 0%,#7C3AED 50%,#F472B6 100%);padding:48px 20px 24px;display:flex;align-items:center;gap:12px;}
 .drawer-header img{width:48px;height:48px;object-fit:contain;}
 .drawer-logo-txt{font-size:22px;font-weight:800;color:white;}
 .drawer-logo-txt span{color:#FFD580;}
@@ -191,7 +191,7 @@ body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:
 .drawer-section-title{font-size:10px;font-weight:800;color:#8A8FA8;letter-spacing:1.5px;text-transform:uppercase;padding:16px 20px 6px;}
 .drawer-item{display:flex;align-items:center;gap:14px;padding:13px 20px;text-decoration:none;color:#1A1A2E;font-size:15px;font-weight:600;transition:background 0.15s;border-left:3px solid transparent;}
 .drawer-item:hover{background:#F4F1ED;}
-.drawer-item.active{background:#E8F5EE;color:#2D6A4F;border-left-color:#2D6A4F;}
+.drawer-item.active{background:#EDE9FE;color:#5B2FA8;border-left-color:#5B2FA8;}
 .drawer-item .di{font-size:20px;width:28px;text-align:center;}
 .drawer-footer{margin-top:auto;padding:16px 20px;border-top:1px solid #E8E4DD;}
 .drawer-logout{display:flex;align-items:center;gap:10px;color:#E53935;font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;background:none;border:none;width:100%;font-family:inherit;}
@@ -219,7 +219,7 @@ body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:
     flex-shrink: 0;
   }
   .sb-logo { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; color: white; padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; display: block; text-decoration: none; }
-  .sb-logo span { color: #52B788; }
+  .sb-logo span { color: #A78BFA; }
   .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
   .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; font-weight: 500; transition: background .15s, color .15s; }
   .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
@@ -229,7 +229,7 @@ body{font-family: var(--font);background:var(--bg);color:var(--text);min-height:
   .sb-footer { padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; }
   .sb-user { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; }
   .sb-user:hover { background: rgba(255,255,255,0.08); color: white; }
-  .sb-avatar-sb { width: 30px; height: 30px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .sb-avatar-sb { width: 30px; height: 30px; border-radius: 50%; background: #A78BFA; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
   .sb-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.45); }
 }
@@ -269,7 +269,7 @@ body { transition: background var(--transition), color var(--transition); }
 
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#2D6A4F">
+<meta name="theme-color" content="#5B2FA8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="/icon-192.png">
 </head>
@@ -500,7 +500,7 @@ const { SUPA_URL, SUPA_KEY } = PSICOAPP_CONFIG;
 const { createClient } = supabase;
 const sb = createClient(SUPA_URL, SUPA_KEY);
 
-const COLORES = ['#2D6A4F','#1976D2','#7B5EA7','#E65100','#388E3C','#C62828'];
+const COLORES = ['#5B2FA8','#1976D2','#7B5EA7','#E65100','#388E3C','#C62828'];
 let todosPacientes = [], pacientesFiltrados = [];
 let plantillaActual = '';
 let turnosProximos = {};

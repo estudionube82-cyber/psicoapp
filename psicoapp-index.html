@@ -711,8 +711,8 @@ body { transition: background var(--transition), color var(--transition); }
   </div>
   <div class="greeting">
     <div class="greeting-sub">Buenos días</div>
-    <div class="greeting-name">Lic. Juan García</div>
-    <div class="greeting-date">Martes 18 de febrero · 8:47 AM</div>
+    <div class="greeting-name" style="min-height:28px"></div>
+    <div class="greeting-date"></div>
   
   </div>
 </div>
@@ -734,7 +734,7 @@ body { transition: background var(--transition), color var(--transition); }
   <div class="stat-card">
     <div class="stat-card-top">
       <div class="stat-icon si-green">📅</div>
-      <div class="stat-trend trend-up">4 confirmados</div>
+      <div class="stat-trend trend-up" id="trend-turnos"></div>
     </div>
     <div class="stat-num">—</div>
     <div class="stat-label">Turnos hoy</div>
@@ -752,7 +752,7 @@ body { transition: background var(--transition), color var(--transition); }
       <div class="stat-icon" style="background:#F3FFF6">🌱</div>
       <div class="stat-trend trend-up">Este mes</div>
     </div>
-    <div class="stat-num" style="color:#388E3C">—</div>
+    <div class="stat-num" style="color:var(--primary,#5B2FA8)">—</div>
     <div class="stat-label">Pacientes nuevos</div>
   </div>
   <div class="stat-card">
@@ -1271,14 +1271,91 @@ init();
 .app-nav a .ni { font-size: 22px; line-height: 1; display: block; }
 .app-nav a .nl { font-size: 10px; font-weight: 700; display: block; }
 .app-nav a.on .nl { color: var(--primary); }
-.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(45,106,79,0.5)); }
+.app-nav a.on .ni { filter: drop-shadow(0 0 4px rgba(91,47,168,0.5)); }
+
+.side-drawer {
+  position: fixed; top: 0; left: -280px; width: 280px; height: 100vh;
+  background: #fff; z-index: 9999;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+  transition: left 0.3s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.side-drawer.open { left: 0; }
+
+.drawer-header {
+  background: linear-gradient(135deg, #5B2FA8 0%, #7C3AED 50%, #F472B6 100%);
+  padding: 48px 20px 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+.drawer-header img { width: 48px; height: 48px; object-fit: contain; }
+.drawer-logo-txt { font-size: 22px; font-weight: 800; color: white; font-family: serif; }
+.drawer-logo-txt span { color: #FFD580; }
+.drawer-tagline { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; letter-spacing: 0.5px; }
+
+.drawer-section-title {
+  font-size: 10px; font-weight: 800; color: #8A8FA8;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 16px 20px 6px;
+}
+.drawer-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 20px; text-decoration: none; color: #1A1A2E;
+  font-size: 15px; font-weight: 600;
+  transition: background 0.15s;
+  border-left: 3px solid transparent;
+}
+.drawer-item:hover { background: #F4F1ED; }
+.drawer-item.active { 
+  background: #EDE9FE; color: #5B2FA8; 
+  border-left-color: #5B2FA8;
+}
+.drawer-item .di { font-size: 20px; width: 28px; text-align: center; }
+
+.drawer-footer {
+  margin-top: auto; padding: 16px 20px;
+  border-top: 1px solid #E8E4DD;
+}
+.drawer-logout {
+  display: flex; align-items: center; gap: 10px;
+  color: #E53935; font-size: 14px; font-weight: 600;
+  cursor: pointer; padding: 8px 0; background: none; border: none; width: 100%;
+}
+.nav-menu-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 2px; text-decoration: none; 
+  color: #8A8FA8; padding: 4px 0; background: none; border: none; cursor: pointer;
+}
+
 </style>
 <nav class="app-nav">
   <a href="psicoapp-index.html" class="on"><span class="ni">🏠</span><span class="nl">Inicio</span></a>
   <a href="psicoapp-agenda.html"><span class="ni">📅</span><span class="nl">Agenda</span></a>
   <a href="psicoapp-pacientes.html"><span class="ni">👥</span><span class="nl">Pacientes</span></a>
-  <a href="psicoapp-pagos.html"><span class="ni">💰</span><span class="nl">Pagos</span></a>
   <a href="psicoapp-whatsapp.html"><span class="ni">💬</span><span class="nl">WhatsApp</span></a>
+  <a href="psicoapp-cuenta.html"><span class="ni">👤</span><span class="nl">Cuenta</span></a>
+  <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
 </nav>
+
+
+
+
+<script>
+function toggleDrawer() {
+  document.getElementById('sideDrawer').classList.toggle('open');
+  document.getElementById('menuOverlay').classList.toggle('open');
+}
+function closeDrawer() {
+  document.getElementById('sideDrawer').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('open');
+}
+async function doLogout() {
+  const {createClient} = supabase;
+  const sb = createClient('https://terlbqrcampdqtxjbihg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcmxicXJjYW1wZHF0eGpiaWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzU2NzksImV4cCI6MjA4ODE1MTY3OX0.c0Yhp4Q8Egs1UzWhtFLxQpJfEUi3nsR8t78tNYliZE8');
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+</script>
+
 
 </html>
