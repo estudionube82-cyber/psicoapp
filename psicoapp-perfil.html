@@ -397,20 +397,12 @@ const sb = createClient(SUPA_URL, SUPA_KEY);
 
 let userId = null;
 
-(async () => {
-  const { data:{ session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-  userId = session.user.id;
-  document.getElementById('avatarEmail').textContent = session.user.email;
-  await cargarPerfil();
-})();
-
-async function cargarPerfil() {
-  // Mostrar cache instantáneo mientras carga
+// ── CACHE INSTANTÁNEO ──
+(function() {
   const cachedNombre = localStorage.getItem('psicoapp-nombre');
   const cachedFoto   = localStorage.getItem('psicoapp-foto');
-  const avEl = document.getElementById('avatarIniciales');
   const nmEl = document.getElementById('avatarNombre');
+  const avEl = document.getElementById('avatarIniciales');
   if (cachedNombre && nmEl) nmEl.textContent = cachedNombre;
   if (avEl) {
     if (cachedFoto) {
@@ -420,34 +412,47 @@ async function cargarPerfil() {
       avEl.textContent = cachedNombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
     }
   }
+})();
 
-  // intentar leer de profiles
-  const { data } = await sb
+(async () => {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  userId = session.user.id;
+  document.getElementById('avatarEmail').textContent = session.user.email;
+  await cargarPerfil();
+})();
+
+async function cargarPerfil() {
+  const { data, error } = await sb
     .from('profiles')
     .select('titulo, nombre_completo, especialidad, direccion, telefono_profesional, valor_sesion, foto_url, matricula_provincial, matricula_nacional')
     .eq('id', userId)
     .maybeSingle();
 
-  const titulo      = data?.titulo || 'Lic.';
-  const nombre      = data?.nombre_completo || '';
-  const especialidad= data?.especialidad || '';
-  const direccion   = data?.direccion || '';
-  const telefono    = data?.telefono_profesional || '';
+  if (error) console.error('Error cargando perfil:', error.message);
 
-  document.getElementById('f-titulo').value      = titulo;
-  document.getElementById('f-nombre').value      = nombre;
-  document.getElementById('f-especialidad').value= especialidad;
-  document.getElementById('f-direccion').value   = direccion;
-  document.getElementById('f-telefono').value    = telefono;
-  document.getElementById('f-valor-sesion').value = data?.valor_sesion || '';
-  document.getElementById('f-matricula-prov').value = data?.matricula_provincial || '';
-  document.getElementById('f-matricula-nac').value  = data?.matricula_nacional || '';
+  const titulo       = data?.titulo || 'Lic.';
+  const nombre       = data?.nombre_completo || '';
+  const especialidad = data?.especialidad || '';
+  const direccion    = data?.direccion || '';
+  const telefono     = data?.telefono_profesional || '';
+
+  document.getElementById('f-titulo').value           = titulo;
+  document.getElementById('f-nombre').value           = nombre;
+  document.getElementById('f-especialidad').value     = especialidad;
+  document.getElementById('f-direccion').value        = direccion;
+  document.getElementById('f-telefono').value         = telefono;
+  document.getElementById('f-valor-sesion').value     = data?.valor_sesion || '';
+  document.getElementById('f-matricula-prov').value   = data?.matricula_provincial || '';
+  document.getElementById('f-matricula-nac').value    = data?.matricula_nacional || '';
 
   actualizarPreview();
 
-  const nombreCompleto = nombre || 'Sin nombre';
-  const iniciales = nombreCompleto.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const nombreCompleto = nombre || '';
+  const iniciales = nombreCompleto.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
   const av = document.getElementById('avatarIniciales');
+  const nm = document.getElementById('avatarNombre');
+
   if (data?.foto_url) {
     av.innerHTML = `<img src="${data.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
     av.style.padding = '0';
@@ -455,11 +460,13 @@ async function cargarPerfil() {
   } else {
     localStorage.removeItem('psicoapp-foto');
     av.textContent = iniciales || '?';
+    av.style.padding = '';
   }
-  const nombreFinal = `${titulo} ${nombreCompleto}`.trim();
-  document.getElementById('avatarNombre').textContent = nombreFinal;
-  // Sincronizar cache para otras páginas
-  if (nombreCompleto !== 'Sin nombre') localStorage.setItem('psicoapp-nombre', nombreFinal);
+
+  const nombreFinal = [titulo, nombreCompleto].filter(Boolean).join(' ').trim();
+  if (nm) nm.textContent = nombreFinal || '—';
+  if (nombreCompleto) localStorage.setItem('psicoapp-nombre', nombreFinal);
+}
 
 function actualizarPreview() {
   const titulo = document.getElementById('f-titulo').value;
@@ -467,43 +474,75 @@ function actualizarPreview() {
   document.getElementById('previewNombre').textContent = `${titulo} ${nombre}`.trim() || '—';
 }
 
+// ── SUBIR FOTO con compresión ──
 async function subirFoto(input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { document.getElementById('fotoStatus').textContent = '⚠️ Máximo 2 MB'; return; }
-  document.getElementById('fotoStatus').textContent = '⏳ Guardando foto...';
+  const statusEl = document.getElementById('fotoStatus');
 
-  // Convertir a base64 y guardar directo en la columna foto_url del perfil
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const base64 = e.target.result; // data:image/...;base64,...
-    const { error } = await sb.from('profiles').upsert({
-      id: userId,
-      foto_url: base64,
-      updated_at: new Date().toISOString()
-    });
-    if (error) {
-      document.getElementById('fotoStatus').textContent = '❌ ' + error.message;
-      return;
-    }
-    const av = document.getElementById('avatarIniciales');
-    av.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
-    av.style.padding = '0';
-    localStorage.setItem('psicoapp-foto', base64);
-    document.getElementById('fotoStatus').textContent = '✅ Foto actualizada';
-    setTimeout(() => document.getElementById('fotoStatus').textContent = '', 3000);
-  };
-  reader.readAsDataURL(file);
+  if (file.size > 5 * 1024 * 1024) {
+    statusEl.textContent = '⚠️ Imagen demasiado grande (máx 5MB)';
+    return;
+  }
+
+  statusEl.textContent = '⏳ Procesando imagen...';
+
+  // Comprimir con Canvas a max 300px y calidad 0.7
+  const compressed = await comprimirImagen(file, 300, 0.7);
+
+  statusEl.textContent = '⏳ Guardando...';
+
+  const { error } = await sb.from('profiles').upsert({
+    id: userId,
+    foto_url: compressed,
+    updated_at: new Date().toISOString()
+  });
+
+  if (error) {
+    console.error('Error guardando foto:', error);
+    statusEl.textContent = '❌ Error: ' + error.message;
+    return;
+  }
+
+  const av = document.getElementById('avatarIniciales');
+  av.innerHTML = `<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+  av.style.padding = '0';
+  localStorage.setItem('psicoapp-foto', compressed);
+  statusEl.textContent = '✅ Foto actualizada';
+  setTimeout(() => statusEl.textContent = '', 3000);
+}
+
+function comprimirImagen(file, maxPx, calidad) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > h) { if (w > maxPx) { h = Math.round(h * maxPx / w); w = maxPx; } }
+        else        { if (h > maxPx) { w = Math.round(w * maxPx / h); h = maxPx; } }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', calidad));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 async function guardarPerfil() {
   const btn = document.getElementById('btnGuardar');
   btn.disabled = true; btn.textContent = 'Guardando...';
 
+  const titulo = document.getElementById('f-titulo').value;
+  const nombre = document.getElementById('f-nombre').value.trim();
+
   const { error } = await sb.from('profiles').upsert({
     id:                   userId,
-    titulo:               document.getElementById('f-titulo').value,
-    nombre_completo:      document.getElementById('f-nombre').value.trim(),
+    titulo:               titulo,
+    nombre_completo:      nombre,
     especialidad:         document.getElementById('f-especialidad').value.trim(),
     direccion:            document.getElementById('f-direccion').value.trim(),
     telefono_profesional: document.getElementById('f-telefono').value.trim(),
@@ -515,20 +554,17 @@ async function guardarPerfil() {
 
   btn.disabled = false; btn.textContent = '✓ Guardar cambios';
 
-  if (error) {
-    alert('Error al guardar: ' + error.message);
-    return;
-  }
+  if (error) { alert('Error al guardar: ' + error.message); return; }
 
-  // actualizar avatar
-  const titulo = document.getElementById('f-titulo').value;
-  const nombre = document.getElementById('f-nombre').value.trim();
-  const iniciales = nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-  document.getElementById('avatarIniciales').textContent = iniciales || '?';
-  const nombreFinalGuardado = `${titulo} ${nombre}`.trim();
-  document.getElementById('avatarNombre').textContent = nombreFinalGuardado;
-  // Actualizar cache para todas las páginas
-  if (nombre) localStorage.setItem('psicoapp-nombre', nombreFinalGuardado);
+  const iniciales = nombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const av = document.getElementById('avatarIniciales');
+  // Solo actualizar iniciales si no hay foto
+  if (!localStorage.getItem('psicoapp-foto')) {
+    av.textContent = iniciales || '?';
+  }
+  const nombreFinal = [titulo, nombre].filter(Boolean).join(' ').trim();
+  document.getElementById('avatarNombre').textContent = nombreFinal;
+  if (nombre) localStorage.setItem('psicoapp-nombre', nombreFinal);
 
   mostrarToast('✓ Perfil guardado');
 }
@@ -547,20 +583,24 @@ function mostrarToast(msg) {
 
 document.getElementById('f-titulo').addEventListener('change', actualizarPreview);
 </script>
+
 </div>
 <script>
-// Load sidebar user name
+// Load sidebar user name + foto
 (async () => {
   try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) return;
-    const { data: p } = await sb.from('perfiles').select('nombre,apellido,titulo').eq('user_id', session.user.id).single();
-    if (p) {
-      const name = (p.titulo ? p.titulo + ' ' : '') + (p.nombre || '') + ' ' + (p.apellido || '');
-      const el = document.getElementById('sb-user-name');
-      const av = document.getElementById('sb-avatar');
-      if (el) el.textContent = name.trim();
-      if (av) av.textContent = ((p.nombre||'?')[0] + (p.apellido||'?')[0]).toUpperCase();
+    const cachedNombre = localStorage.getItem('psicoapp-nombre');
+    const cachedFoto   = localStorage.getItem('psicoapp-foto');
+    const elN = document.getElementById('sb-user-name');
+    const elA = document.getElementById('sb-avatar');
+    if (cachedNombre && elN) elN.textContent = cachedNombre;
+    if (elA) {
+      if (cachedFoto) {
+        elA.innerHTML = `<img src="${cachedFoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        elA.style.padding = '0';
+      } else if (cachedNombre) {
+        elA.textContent = cachedNombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      }
     }
   } catch(e) {}
 })();
