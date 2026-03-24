@@ -391,6 +391,8 @@ body { transition: background var(--transition), color var(--transition); }
 <!-- FAB -->
 <button class="fab" onclick="abrirModal()">＋</button>
 
+<div id="toast" style="position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:999;display:none;"></div>
+
 <!-- MODAL NUEVO PAGO -->
 <div class="overlay" id="overlay">
   <div class="modal">
@@ -526,6 +528,242 @@ let anioActual = new Date().getFullYear();
 let filtroActual = 'todos';
 let todosPagos = [];
 let pagoSeleccionado = null;
+let userId = null;
+let pacientesList = [];
+
+// ── TOAST ──
+function mostrarToast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.background = ok ? '#1A1A2E' : '#C62828';
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+// ── INIT ──
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  userId = session.user.id;
+
+  // Fecha de hoy en el campo fecha del modal
+  const hoy = new Date().toISOString().split('T')[0];
+  const fFecha = document.getElementById('f-fecha');
+  if (fFecha) fFecha.value = hoy;
+
+  await cargarPacientesSelect();
+  actualizarLabel();
+  await cargarPagos();
+}
+
+// ── MES ──
+function actualizarLabel() {
+  const el = document.getElementById('monthLabel');
+  if (el) el.textContent = `${MESES[mesActual]} ${anioActual}`;
+}
+
+function navMes(dir) {
+  mesActual += dir;
+  if (mesActual < 0) { mesActual = 11; anioActual--; }
+  if (mesActual > 11) { mesActual = 0; anioActual++; }
+  actualizarLabel();
+  cargarPagos();
+}
+
+// ── CARGAR PAGOS ──
+async function cargarPagos() {
+  const el = document.getElementById('pagosList');
+  if (el) el.innerHTML = '<div class="empty-sec"><div class="empty-sec-icon">⏳</div>Cargando...</div>';
+
+  const desde = `${anioActual}-${String(mesActual+1).padStart(2,'0')}-01`;
+  const hasta = `${anioActual}-${String(mesActual+1).padStart(2,'0')}-31`;
+
+  const { data } = await sb.from('pagos')
+    .select('id,fecha,monto,metodo,estado,concepto,paciente_id,pacientes(nombre,apellido)')
+    .eq('user_id', userId)
+    .gte('fecha', desde)
+    .lte('fecha', hasta)
+    .order('fecha', { ascending: false });
+
+  todosPagos = data || [];
+  actualizarBalance();
+  renderPagos();
+}
+
+// ── BALANCE ──
+function actualizarBalance() {
+  const cobrados = todosPagos.filter(p => p.estado !== 'pendiente');
+  const total = cobrados.reduce((s, p) => s + (p.monto || 0), 0);
+  const efectivo = cobrados.filter(p => p.metodo === 'efectivo').reduce((s, p) => s + (p.monto || 0), 0);
+  const transf = cobrados.filter(p => p.metodo === 'transferencia').reduce((s, p) => s + (p.monto || 0), 0);
+  const otro = cobrados.filter(p => !['efectivo','transferencia'].includes(p.metodo)).reduce((s, p) => s + (p.monto || 0), 0);
+
+  const fmt = v => '$' + v.toLocaleString('es-AR');
+  document.getElementById('balanceTotal').textContent = fmt(total);
+  document.getElementById('balanceSub').textContent = `${cobrados.length} pago${cobrados.length !== 1 ? 's' : ''} este mes`;
+  document.getElementById('chipEfectivo').textContent = fmt(efectivo);
+  document.getElementById('chipTransferencia').textContent = fmt(transf);
+  document.getElementById('chipOtro').textContent = fmt(otro);
+}
+
+// ── FILTROS ──
+function setFiltro(f, el) {
+  filtroActual = f;
+  document.querySelectorAll('.fchip').forEach(c => c.classList.remove('on'));
+  if (el) el.classList.add('on');
+  renderPagos();
+}
+
+// ── RENDER LISTA ──
+function renderPagos() {
+  const el = document.getElementById('pagosList');
+  if (!el) return;
+
+  let lista = [...todosPagos];
+  if (filtroActual === 'pendiente') lista = lista.filter(p => p.estado === 'pendiente');
+  else if (filtroActual !== 'todos') lista = lista.filter(p => p.metodo === filtroActual);
+
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty-sec"><div class="empty-sec-icon">💰</div>Sin pagos registrados</div>';
+    return;
+  }
+
+  // Agrupar por fecha
+  const grupos = {};
+  lista.forEach(p => {
+    const d = p.fecha || 'Sin fecha';
+    if (!grupos[d]) grupos[d] = [];
+    grupos[d].push(p);
+  });
+
+  el.innerHTML = Object.entries(grupos).map(([fecha, pagos]) => {
+    const fLabel = fecha !== 'Sin fecha'
+      ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'short' })
+      : 'Sin fecha';
+    return `
+      <div class="pago-fecha-group">${fLabel}</div>
+      ${pagos.map(p => {
+        const pac = p.pacientes;
+        const nombre = pac ? `${pac.nombre} ${pac.apellido}` : 'Paciente';
+        const metIcon = METODO_ICON[p.metodo] || '💰';
+        const pendiente = p.estado === 'pendiente';
+        return `
+          <div class="pago-card ${pendiente ? 'estado-pendiente' : ''}" onclick="abrirDetalle('${p.id}')">
+            <div class="pago-icon ${METODO_CLS[p.metodo] || ''}">${metIcon}</div>
+            <div class="pago-info">
+              <div class="pago-nombre">${nombre}</div>
+              <div class="pago-meta">${p.concepto || 'Sesión'}${pendiente ? ' · ⏳ Pendiente' : ''}</div>
+            </div>
+            <div class="pago-monto">$${(p.monto||0).toLocaleString('es-AR')}</div>
+          </div>`;
+      }).join('')}`;
+  }).join('');
+}
+
+// ── MODAL NUEVO PAGO ──
+function abrirModal() {
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('msgError').textContent = '';
+}
+function cerrarModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+async function cargarPacientesSelect() {
+  const { data } = await sb.from('pacientes')
+    .select('id,nombre,apellido')
+    .eq('user_id', userId)
+    .neq('archivado', true)
+    .order('apellido');
+  pacientesList = data || [];
+  const sel = document.getElementById('f-paciente');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Seleccioná un paciente —</option>' +
+    pacientesList.map(p => `<option value="${p.id}">${p.nombre} ${p.apellido}</option>`).join('');
+}
+
+async function guardarPago() {
+  const btn = document.getElementById('btnGuardar');
+  const err = document.getElementById('msgError');
+  const pacId  = document.getElementById('f-paciente').value;
+  const monto  = parseFloat(document.getElementById('f-monto').value);
+  const fecha  = document.getElementById('f-fecha').value;
+  const metodo = document.getElementById('f-metodo').value;
+  const estado = document.getElementById('f-estado').value;
+  const concepto = document.getElementById('f-concepto').value.trim();
+
+  if (!pacId) { err.textContent = 'Seleccioná un paciente'; return; }
+  if (!monto || monto <= 0) { err.textContent = 'Ingresá un monto válido'; return; }
+  if (!fecha) { err.textContent = 'Seleccioná una fecha'; return; }
+
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const { error } = await sb.from('pagos').insert({
+      user_id: userId,
+      paciente_id: pacId,
+      monto,
+      fecha,
+      metodo,
+      estado,
+      concepto: concepto || 'Sesión',
+    });
+    if (error) throw error;
+    cerrarModal();
+    mostrarToast('✓ Pago registrado');
+    await cargarPagos();
+    // Limpiar form
+    document.getElementById('f-paciente').value = '';
+    document.getElementById('f-monto').value = '';
+    document.getElementById('f-concepto').value = '';
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = '✓ Guardar pago';
+  }
+}
+
+// ── DETALLE PAGO ──
+function abrirDetalle(id) {
+  pagoSeleccionado = todosPagos.find(p => p.id === id);
+  if (!pagoSeleccionado) return;
+  const p = pagoSeleccionado;
+  const pac = p.pacientes;
+  const nombre = pac ? `${pac.nombre} ${pac.apellido}` : 'Paciente';
+  const fecha = p.fecha ? new Date(p.fecha + 'T12:00:00').toLocaleDateString('es-AR', { day:'2-digit', month:'long', year:'numeric' }) : '—';
+  const fmt = v => '$' + (v||0).toLocaleString('es-AR');
+
+  document.getElementById('det-content').innerHTML = `
+    <div class="modal-title">${fmt(p.monto)}</div>
+    <div class="modal-sub">${nombre} · ${fecha}</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+      <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--text-muted)">Método</span><span style="font-weight:700">${METODO_ICON[p.metodo]||'💰'} ${p.metodo||'—'}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--text-muted)">Estado</span><span style="font-weight:700">${p.estado === 'pendiente' ? '⏳ Pendiente' : '✅ Cobrado'}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--text-muted)">Concepto</span><span style="font-weight:700">${p.concepto||'Sesión'}</span></div>
+    </div>`;
+  document.getElementById('overlayDet').classList.add('open');
+}
+
+function cerrarDetalle() {
+  document.getElementById('overlayDet').classList.remove('open');
+  pagoSeleccionado = null;
+}
+
+async function eliminarPago() {
+  if (!pagoSeleccionado) return;
+  if (!confirm('¿Eliminar este pago?')) return;
+  try {
+    const { error } = await sb.from('pagos').delete().eq('id', pagoSeleccionado.id);
+    if (error) throw error;
+    cerrarDetalle();
+    mostrarToast('🗑 Pago eliminado');
+    await cargarPagos();
+  } catch(e) {
+    mostrarToast('Error: ' + e.message, false);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
 
 // Load sidebar user name + foto
 (async () => {
