@@ -585,13 +585,14 @@ function renderPacientes() {
     const color = COLORES[(p.nombre||'').charCodeAt(0) % COLORES.length];
     const tieneWapp = !!p.telefono;
     return `
-      <div class="pac-item" onclick="abrirEnvio('${p.id}')">
+      <div class="pac-card" onclick="abrirEnvio('${p.id}')" style="cursor:pointer;">
         <div class="pac-avatar" style="background:${color}">${iniciales}</div>
         <div class="pac-info">
           <div class="pac-nombre">${p.nombre} ${p.apellido}</div>
-          <div class="pac-tel">${p.telefono || '⚠ Sin teléfono'}</div>
+          <div class="pac-tel">${p.telefono || ''}</div>
+          ${!tieneWapp ? '<div class="pac-sin-tel">⚠ Sin teléfono</div>' : ''}
         </div>
-        ${tieneWapp ? '<div class="pac-badge">💬</div>' : ''}
+        ${tieneWapp ? '<div style="font-size:20px">💬</div>' : ''}
       </div>`;
   }).join('');
 }
@@ -715,19 +716,24 @@ function renderHistorial() {
     el.innerHTML = '<div class="empty-sec"><div class="empty-icon">📭</div>Sin mensajes aún</div>';
     return;
   }
+  const iconos = { confirmacion:'📅', recordatorio:'🔔', pago:'💰', automatico:'⚡', libre:'✏️' };
+  const tipoClass = { confirmacion:'tipo-confirmacion', recordatorio:'tipo-recordatorio', pago:'tipo-pago', automatico:'tipo-automatico' };
   el.innerHTML = lista.map(h => {
     const pac = h.pacientes;
     const nombre = pac ? `${pac.nombre} ${pac.apellido}` : 'Paciente';
+    const iniciales = pac ? [(pac.nombre||'')[0],(pac.apellido||'')[0]].join('').toUpperCase() : '??';
+    const color = COLORES[(nombre).charCodeAt(0) % COLORES.length];
     const fecha = new Date(h.created_at).toLocaleDateString('es-AR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-    const iconos = { confirmacion:'📅', recordatorio:'🔔', pago:'💰', automatico:'⚡', libre:'✏️' };
     return `
-      <div class="hist-item">
-        <div class="hist-icon">${iconos[h.tipo] || '💬'}</div>
-        <div class="hist-info">
+      <div class="hist-card">
+        <div class="hist-top">
+          <div class="hist-avatar" style="background:${color}">${iniciales}</div>
           <div class="hist-nombre">${nombre}</div>
-          <div class="hist-tipo">${h.tipo || 'mensaje'}</div>
+          <div class="hist-hora">${fecha}</div>
         </div>
-        <div class="hist-fecha">${fecha}</div>
+        <div class="hist-footer">
+          <span class="hist-tipo ${tipoClass[h.tipo]||''}">${iconos[h.tipo]||'💬'} ${h.tipo||'mensaje'}</span>
+        </div>
       </div>`;
   }).join('');
 }
