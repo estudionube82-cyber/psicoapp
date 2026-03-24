@@ -494,6 +494,8 @@ body { transition: background var(--transition), color var(--transition); }
   <button class="nav-menu-btn" onclick="toggleDrawer()"><span class="ni">☰</span><span class="nl">Más</span></button>
 </nav>
 
+<div id="toast" style="position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:999;display:none;animation:fadeUp 0.3s ease;"></div>
+
 <script>
 const { SUPA_URL, SUPA_KEY } = PSICOAPP_CONFIG;
 const { createClient } = supabase;
@@ -510,6 +512,312 @@ let perfilPro = { titulo:'', nombre_completo:'', direccion:'', telefono_profesio
 function toggleDrawer(){document.getElementById('sideDrawer').classList.toggle('open');document.getElementById('menuOverlay').classList.toggle('open');}
 function closeDrawer(){document.getElementById('sideDrawer').classList.remove('open');document.getElementById('menuOverlay').classList.remove('open');}
 async function doLogout(){await sb.auth.signOut();window.location.href='login.html';}
+
+// ── TOAST ──
+function mostrarToast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.background = ok ? '#1A1A2E' : '#C62828';
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+// ── TABS ──
+function setTab(tab) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+  const tabEl = document.getElementById('tab-' + tab);
+  const viewEl = document.getElementById('view-' + tab);
+  if (tabEl) tabEl.classList.add('active');
+  if (viewEl) viewEl.classList.add('active');
+}
+
+// ── INIT ──
+let userId = null, sessionToken = null;
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  userId = session.user.id;
+  sessionToken = session.access_token;
+
+  // Cargar perfil profesional para plantillas
+  const { data: p } = await sb.from('profiles')
+    .select('titulo,nombre_completo,direccion,telefono_profesional')
+    .eq('id', userId).maybeSingle();
+  if (p) perfilPro = p;
+
+  renderPlantillas();
+  await cargarPacientes();
+  await cargarTurnosMañana();
+}
+
+// ── PACIENTES ──
+async function cargarPacientes() {
+  const { data } = await sb.from('pacientes')
+    .select('id,nombre,apellido,telefono')
+    .eq('user_id', userId)
+    .neq('archivado', true)
+    .order('apellido');
+  todosPacientes = data || [];
+  pacientesFiltrados = [...todosPacientes];
+  renderPacientes();
+}
+
+function filtrarPacientes() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  pacientesFiltrados = todosPacientes.filter(p =>
+    (p.nombre + ' ' + p.apellido).toLowerCase().includes(q)
+  );
+  renderPacientes();
+}
+
+function renderPacientes() {
+  const el = document.getElementById('pacList');
+  if (!el) return;
+  if (!pacientesFiltrados.length) {
+    el.innerHTML = '<div class="empty-sec"><div class="empty-icon">👥</div>No hay pacientes</div>';
+    return;
+  }
+  el.innerHTML = pacientesFiltrados.map(p => {
+    const iniciales = [(p.nombre||'')[0], (p.apellido||'')[0]].join('').toUpperCase();
+    const color = COLORES[(p.nombre||'').charCodeAt(0) % COLORES.length];
+    const tieneWapp = !!p.telefono;
+    return `
+      <div class="pac-item" onclick="abrirEnvio('${p.id}')">
+        <div class="pac-avatar" style="background:${color}">${iniciales}</div>
+        <div class="pac-info">
+          <div class="pac-nombre">${p.nombre} ${p.apellido}</div>
+          <div class="pac-tel">${p.telefono || '⚠ Sin teléfono'}</div>
+        </div>
+        ${tieneWapp ? '<div class="pac-badge">💬</div>' : ''}
+      </div>`;
+  }).join('');
+}
+
+// ── MODAL ENVÍO ──
+let pacSeleccionado = null;
+
+function abrirEnvio(pacId) {
+  pacSeleccionado = todosPacientes.find(p => p.id === pacId);
+  if (!pacSeleccionado) return;
+  if (!pacSeleccionado.telefono) {
+    mostrarToast('⚠ Este paciente no tiene teléfono registrado', false);
+    return;
+  }
+  setTab('plantillas');
+}
+
+// ── PLANTILLAS ──
+function renderPlantillas() {
+  const nombre = perfilPro.nombre_completo || 'tu psicólogo/a';
+  const titulo = perfilPro.titulo || '';
+  const nombreFull = [titulo, nombre].filter(Boolean).join(' ');
+  const dir = perfilPro.direccion || '';
+  const tel = perfilPro.telefono_profesional || '';
+
+  const textos = {
+    confirmacion: `Hola! Te confirmo tu turno 📅\n*Fecha:* [fecha]\n*Hora:* [hora]\n*Profesional:* ${nombreFull}${dir ? '\n*Consultorio:* ' + dir : ''}\n\nAnte cualquier cambio, avisame con anticipación. ¡Hasta pronto! 😊`,
+    recordatorio: `Hola! Te recuerdo que mañana tenés turno 🔔\n*Hora:* [hora]\n*Profesional:* ${nombreFull}${dir ? '\n*Consultorio:* ' + dir : ''}\n\nSi no podés asistir, avisame a la brevedad.${tel ? ' Tel: ' + tel : ''}`,
+    pago: `Hola! Te comento que tenés un saldo pendiente 💰\nPodés coordinar el pago cuando gustes.${tel ? '\nContacto: ' + tel : ''}`
+  };
+
+  for (const [key, txt] of Object.entries(textos)) {
+    const el = document.getElementById('prev-' + key);
+    if (el) el.textContent = txt;
+  }
+}
+
+function usarPlantilla(tipo) {
+  if (!pacSeleccionado) {
+    mostrarToast('⚠ Primero seleccioná un paciente desde la pestaña Pacientes', false);
+    return;
+  }
+  let msg = '';
+  if (tipo === 'libre') {
+    msg = document.getElementById('msg-libre')?.value?.trim();
+    if (!msg) { mostrarToast('⚠ Escribí un mensaje primero', false); return; }
+  } else {
+    const el = document.getElementById('prev-' + tipo);
+    msg = el ? el.textContent : '';
+  }
+  enviarMensaje(pacSeleccionado, msg, tipo);
+}
+
+// ── ENVIAR MENSAJE ──
+async function enviarMensaje(pac, msg, tipo='libre') {
+  try {
+    const puedeEnviar = typeof verificarLimiteWA !== 'undefined'
+      ? await verificarLimiteWA(sb, userId)
+      : true;
+    if (!puedeEnviar) return;
+
+    let tel = (pac.telefono || '').replace(/\D/g,'');
+    if (tel.startsWith('0')) tel = tel.slice(1);
+    if (!tel.startsWith('54')) tel = '54' + tel;
+    if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
+    tel = '+' + tel;
+
+    await fetch('https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({ to: tel, nombre: pac.nombre, mensaje: msg }),
+    });
+
+    if (typeof registrarUsoWA !== 'undefined') {
+      await registrarUsoWA(sb, userId, pac.id || null);
+    }
+
+    // Guardar en historial local
+    await sb.from('wa_usos').update({ tipo, mensaje: msg }).eq('user_id', userId)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle().catch(()=>{});
+
+    mostrarToast(`✓ Mensaje enviado a ${pac.nombre}`);
+    pacSeleccionado = null;
+  } catch(e) {
+    mostrarToast('❌ Error al enviar: ' + e.message, false);
+  }
+}
+
+// ── HISTORIAL ──
+async function cargarHistorial() {
+  const el = document.getElementById('histList');
+  if (el) el.innerHTML = '<div class="empty-sec"><div class="empty-icon">⏳</div>Cargando...</div>';
+  const { data } = await sb.from('wa_usos')
+    .select('id,created_at,tipo,paciente_id,pacientes(nombre,apellido)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  historialTodos = data || [];
+  renderHistorial();
+}
+
+function filtrarHistorial(tipo, el) {
+  filtroHistorial = tipo;
+  document.querySelectorAll('.hist-filtro').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderHistorial();
+}
+
+function renderHistorial() {
+  const el = document.getElementById('histList');
+  const cnt = document.getElementById('hist-count');
+  if (!el) return;
+  const lista = filtroHistorial === 'todos'
+    ? historialTodos
+    : historialTodos.filter(h => h.tipo === filtroHistorial);
+  if (cnt) cnt.textContent = lista.length + ' mensajes';
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty-sec"><div class="empty-icon">📭</div>Sin mensajes aún</div>';
+    return;
+  }
+  el.innerHTML = lista.map(h => {
+    const pac = h.pacientes;
+    const nombre = pac ? `${pac.nombre} ${pac.apellido}` : 'Paciente';
+    const fecha = new Date(h.created_at).toLocaleDateString('es-AR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    const iconos = { confirmacion:'📅', recordatorio:'🔔', pago:'💰', automatico:'⚡', libre:'✏️' };
+    return `
+      <div class="hist-item">
+        <div class="hist-icon">${iconos[h.tipo] || '💬'}</div>
+        <div class="hist-info">
+          <div class="hist-nombre">${nombre}</div>
+          <div class="hist-tipo">${h.tipo || 'mensaje'}</div>
+        </div>
+        <div class="hist-fecha">${fecha}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── AUTO: TURNOS MAÑANA ──
+async function cargarTurnosMañana() {
+  const el = document.getElementById('turnosMañanaList');
+  if (!el) return;
+
+  const hoy = new Date();
+  const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
+  const dStr = manana.toISOString().split('T')[0];
+
+  const { data } = await sb.from('turnos')
+    .select('id,hora,paciente_id,pacientes(nombre,apellido,telefono)')
+    .eq('user_id', userId)
+    .eq('fecha', dStr)
+    .neq('estado', 'cancelado')
+    .order('hora');
+
+  turnosProximos = data || [];
+
+  if (!turnosProximos.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:16px;font-size:13px">No hay turnos para mañana</div>';
+    return;
+  }
+  el.innerHTML = turnosProximos.map(t => {
+    const pac = t.pacientes;
+    if (!pac) return '';
+    const tieneWapp = !!pac.telefono;
+    return `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:20px">${tieneWapp ? '✅' : '⚠️'}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">${pac.nombre} ${pac.apellido}</div>
+          <div style="font-size:12px;color:var(--muted)">${t.hora} hs${tieneWapp ? '' : ' — sin teléfono'}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Cargar config recordatorio
+  const { data: cfg } = await sb.from('profiles').select('recordatorio_auto,confirmacion_auto').eq('id', userId).maybeSingle();
+  if (cfg) {
+    const tr = document.getElementById('toggle-recordatorio');
+    const tc = document.getElementById('toggle-confirmacion');
+    if (tr) tr.checked = !!cfg.recordatorio_auto;
+    if (tc) tc.checked = !!cfg.confirmacion_auto;
+  }
+}
+
+async function guardarConfig(campo, valor) {
+  await sb.from('profiles').update({ [campo]: valor }).eq('id', userId);
+  mostrarToast(valor ? '✅ Activado' : '⏸ Desactivado');
+}
+
+async function enviarRecordatoriosManual() {
+  const btn = document.querySelector('.btn-probar');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+  try {
+    let enviados = 0;
+    for (const t of turnosProximos) {
+      const pac = t.pacientes;
+      if (!pac?.telefono) continue;
+      const puedeEnviar = typeof verificarLimiteWA !== 'undefined'
+        ? await verificarLimiteWA(sb, userId) : true;
+      if (!puedeEnviar) break;
+
+      let tel = pac.telefono.replace(/\D/g,'');
+      if (tel.startsWith('0')) tel = tel.slice(1);
+      if (!tel.startsWith('54')) tel = '54' + tel;
+      if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
+      tel = '+' + tel;
+
+      await fetch('https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+        body: JSON.stringify({ to: tel, nombre: pac.nombre, hora: t.hora }),
+      });
+      if (typeof registrarUsoWA !== 'undefined') await registrarUsoWA(sb, userId, pac.id || null);
+      enviados++;
+    }
+    mostrarToast(`✅ ${enviados} recordatorio${enviados !== 1 ? 's' : ''} enviado${enviados !== 1 ? 's' : ''}`);
+  } catch(e) {
+    mostrarToast('❌ Error: ' + e.message, false);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Probar ahora — enviar recordatorios de mañana'; }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
 
 // Load sidebar user name + foto
 (async () => {
