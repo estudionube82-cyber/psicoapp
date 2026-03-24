@@ -396,6 +396,122 @@ const sb = createClient(SUPA_URL, SUPA_KEY);
 
 let userId = null;
 
+// ── CARGAR PERFIL ──
+async function cargarPerfil() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    userId = session.user.id;
+
+    // Email
+    document.getElementById('avatarEmail').textContent = session.user.email || '';
+
+    const { data: p } = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
+    if (!p) return;
+
+    // Avatar + nombre
+    const nombre = p.nombre_completo || '';
+    const titulo = p.titulo || '';
+    const nombreFinal = [titulo, nombre].filter(Boolean).join(' ').trim();
+    document.getElementById('avatarNombre').textContent = nombreFinal || session.user.email || '—';
+
+    const avatarEl = document.getElementById('avatarIniciales');
+    if (p.foto_url) {
+      avatarEl.innerHTML = `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:24px;">`;
+    } else if (nombre) {
+      avatarEl.textContent = nombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    } else {
+      avatarEl.textContent = '?';
+    }
+
+    // Campos del formulario
+    if (p.titulo) {
+      const sel = document.getElementById('f-titulo');
+      for (let o of sel.options) { if (o.value === p.titulo) { o.selected = true; break; } }
+    }
+    document.getElementById('f-nombre').value         = p.nombre_completo   || '';
+    document.getElementById('f-especialidad').value   = p.especialidad      || '';
+    document.getElementById('f-matricula-prov').value = p.matricula_prov    || '';
+    document.getElementById('f-matricula-nac').value  = p.matricula_nac     || '';
+    document.getElementById('f-direccion').value      = p.direccion         || '';
+    document.getElementById('f-telefono').value       = p.telefono          || '';
+    const vsCampo = document.getElementById('f-valor-sesion');
+    if (vsCampo) vsCampo.value = p.valor_sesion || '';
+
+    actualizarPreview();
+  } catch(e) {
+    console.error('Error cargando perfil:', e);
+  }
+}
+
+// ── GUARDAR PERFIL ──
+async function guardarPerfil() {
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  try {
+    const titulo    = document.getElementById('f-titulo').value;
+    const nombre    = document.getElementById('f-nombre').value.trim();
+    const vsCampo   = document.getElementById('f-valor-sesion');
+    const updates = {
+      titulo,
+      nombre_completo:  nombre,
+      especialidad:     document.getElementById('f-especialidad').value.trim(),
+      matricula_prov:   document.getElementById('f-matricula-prov').value.trim(),
+      matricula_nac:    document.getElementById('f-matricula-nac').value.trim(),
+      direccion:        document.getElementById('f-direccion').value.trim(),
+      telefono:         document.getElementById('f-telefono').value.trim(),
+      valor_sesion:     vsCampo ? (parseFloat(vsCampo.value) || null) : null,
+      updated_at:       new Date().toISOString(),
+    };
+    const { error } = await sb.from('profiles').upsert({ id: userId, ...updates });
+    if (error) throw error;
+
+    // Actualizar cache y sidebar
+    const nombreFinal = [titulo, nombre].filter(Boolean).join(' ').trim();
+    localStorage.setItem('psicoapp-nombre', nombreFinal);
+    document.getElementById('avatarNombre').textContent = nombreFinal || '—';
+    const elN = document.getElementById('sb-user-name');
+    if (elN) elN.textContent = nombreFinal;
+
+    mostrarToast('✓ Perfil guardado');
+  } catch(e) {
+    mostrarToast('❌ Error al guardar: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✓ Guardar cambios';
+  }
+}
+
+// ── PREVIEW NOMBRE ──
+function actualizarPreview() {
+  const titulo = document.getElementById('f-titulo')?.value || '';
+  const nombre = document.getElementById('f-nombre')?.value?.trim() || '';
+  const preview = [titulo, nombre].filter(Boolean).join(' ').trim();
+  const el = document.getElementById('previewNombre');
+  if (el) el.textContent = preview || '—';
+}
+
+// ── CERRAR SESIÓN ──
+async function cerrarSesion() {
+  await sb.auth.signOut();
+  localStorage.removeItem('psicoapp-nombre');
+  localStorage.removeItem('psicoapp-foto');
+  window.location.href = 'login.html';
+}
+
+// ── TOAST ──
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', cargarPerfil);
+
 // Load sidebar user name + foto
 (async () => {
   try {
