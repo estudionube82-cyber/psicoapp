@@ -236,8 +236,8 @@ body { font-family: var(--font); background:var(--bg); color:var(--text); min-he
   .sidebar {
     display: flex !important;
     flex-direction: column;
-    width: 240px;
-    min-width: 240px;
+    width: 220px;
+    min-width: 220px;
     height: 100vh;
     position: sticky;
     top: 0;
@@ -250,7 +250,7 @@ body { font-family: var(--font); background:var(--bg); color:var(--text); min-he
   .sb-logo { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; color: white; padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
   .sb-logo span { color: #A78BFA; }
   .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
-  .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; font-weight: 500; transition: background .15s, color .15s; }
+  .sb-item { display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: background .15s, color .15s; }
   .sb-item:hover { background: rgba(255,255,255,0.1); color: white; }
   .sb-item.sb-active { background: rgba(82,183,136,0.28); color: white; }
   .sb-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
@@ -540,6 +540,277 @@ const ESTADOS = {
 let todasPericias = [];
 let periciaSeleccionada = null;
 let tabActual = 'pipeline';
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => { init(); });
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  await cargarPericias(session.user.id);
+}
+
+async function cargarPericias(userId) {
+  const { data, error } = await sb
+    .from('pericias')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+  todasPericias = data || [];
+  renderStats();
+  renderPipeline();
+  renderLista();
+}
+
+function renderStats() {
+  const enCurso = todasPericias.filter(p => p.estado !== 'cobrado').length;
+  document.getElementById('stat-en-curso').textContent = enCurso || '—';
+
+  // Próximo vencimiento
+  const hoy = new Date();
+  const proximas = todasPericias
+    .filter(p => p.fecha_vencimiento && p.estado !== 'cobrado')
+    .map(p => new Date(p.fecha_vencimiento))
+    .filter(d => d >= hoy)
+    .sort((a,b) => a-b);
+
+  if (proximas.length) {
+    const d = proximas[0];
+    document.getElementById('stat-vencimiento').textContent =
+      d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit' });
+  } else {
+    document.getElementById('stat-vencimiento').textContent = '—';
+  }
+
+  // Honorarios pendientes
+  const pendHon = todasPericias
+    .filter(p => p.estado !== 'cobrado' && p.honorarios)
+    .reduce((acc, p) => acc + Number(p.honorarios), 0);
+  document.getElementById('stat-honorarios').textContent =
+    pendHon ? '$' + pendHon.toLocaleString('es-AR') : '$0';
+}
+
+function renderPipeline() {
+  const orden = ['en_curso','entrevista','redaccion','presentado','cobrado'];
+  const container = document.getElementById('pipeline-content');
+  container.innerHTML = '';
+
+  orden.forEach((est, idx) => {
+    const items = todasPericias.filter(p => p.estado === est);
+    if (!items.length) return;
+
+    const info = ESTADOS[est];
+    const clsNum = idx + 1;
+    const sec = document.createElement('div');
+    sec.className = `stage-section s${clsNum}`;
+
+    sec.innerHTML = `
+      <div class="stage-header">
+        <div class="stage-badge">
+          <div class="stage-dot"></div>
+          <div class="stage-name">${info.label}</div>
+        </div>
+        <div class="stage-count">${items.length}</div>
+      </div>
+      ${items.map(p => renderExpCard(p, clsNum)).join('')}
+    `;
+    container.appendChild(sec);
+  });
+
+  if (!container.innerHTML) {
+    container.innerHTML = `<div class="empty-sec"><div class="empty-sec-icon">⚖️</div><div>No hay pericias todavía</div><div style="font-size:12px;margin-top:6px">Tocá ＋ para agregar la primera</div></div>`;
+  }
+}
+
+function renderExpCard(p, clsNum) {
+  const hoy = new Date();
+  const venc = p.fecha_vencimiento ? new Date(p.fecha_vencimiento) : null;
+  const diasRestantes = venc ? Math.ceil((venc - hoy) / (1000*60*60*24)) : null;
+  const alerta = diasRestantes !== null && diasRestantes <= 7 && diasRestantes >= 0;
+  const vencido = diasRestantes !== null && diasRestantes < 0;
+
+  return `
+    <div class="exp-card s${clsNum}" onclick="abrirDetalle('${p.id}')">
+      <div class="exp-top">
+        <div class="exp-expediente">Exp. ${p.expediente || 'S/N'}</div>
+        <div class="exp-badge" style="background:var(--s${clsNum}-light,#EDE9FE);color:var(--s${clsNum},var(--primary))">${ESTADOS[p.estado]?.icon || ''} ${ESTADOS[p.estado]?.label || p.estado}</div>
+      </div>
+      <div class="exp-caratula">${p.caratula || ''}</div>
+      <div class="exp-meta-row">
+        ${p.peritado ? `<div class="exp-meta-item">👤 ${p.peritado}</div>` : ''}
+        ${p.juzgado ? `<div class="exp-meta-item">🏛 ${p.juzgado}</div>` : ''}
+        ${venc ? `<div class="exp-meta-item" style="color:${vencido?'#E53935':alerta?'#E65100':''}">📅 ${venc.toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'numeric'})}</div>` : ''}
+        ${p.honorarios ? `<div class="exp-meta-item">💰 $${Number(p.honorarios).toLocaleString('es-AR')}</div>` : ''}
+      </div>
+      ${alerta ? `<div class="exp-alerta">⚠️ Vence en ${diasRestantes} día${diasRestantes!==1?'s':''}</div>` : ''}
+      ${vencido ? `<div class="exp-alerta" style="background:#FFEBEE;color:#C62828">🚨 Venció hace ${Math.abs(diasRestantes)} día${Math.abs(diasRestantes)!==1?'s':''}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderLista() {
+  const container = document.getElementById('lista-content');
+  if (!todasPericias.length) {
+    container.innerHTML = `<div class="empty-sec"><div class="empty-sec-icon">⚖️</div><div>No hay pericias</div></div>`;
+    return;
+  }
+  container.innerHTML = todasPericias.map(p => {
+    const info = ESTADOS[p.estado] || { label: p.estado, icon: '📄' };
+    const venc = p.fecha_vencimiento ? new Date(p.fecha_vencimiento).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+    return `
+      <div class="lista-card" onclick="abrirDetalle('${p.id}')" style="border-left:4px solid var(--primary)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+          <div style="font-size:13px;font-weight:800">Exp. ${p.expediente || 'S/N'}</div>
+          <div style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${info.icon} ${info.label}</div>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px">${p.caratula || ''}</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          ${p.peritado ? `<span style="font-size:11px;color:var(--text-muted)">👤 ${p.peritado}</span>` : ''}
+          ${venc ? `<span style="font-size:11px;color:var(--text-muted)">📅 ${venc}</span>` : ''}
+          ${p.honorarios ? `<span style="font-size:11px;color:var(--text-muted)">💰 $${Number(p.honorarios).toLocaleString('es-AR')}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function setTab(tab) {
+  tabActual = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('view-' + tab).classList.add('active');
+}
+
+// ── MODAL NUEVA PERICIA ──
+function abrirModal() {
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('f-expediente').focus();
+  document.getElementById('msgError').style.display = 'none';
+}
+function cerrarModal() {
+  document.getElementById('overlay').classList.remove('open');
+  ['f-expediente','f-juzgado','f-caratula','f-peritado','f-entrevista','f-vencimiento','f-honorarios','f-notas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('f-estado').value = 'en_curso';
+}
+
+async function guardarPericia() {
+  const expediente = document.getElementById('f-expediente').value.trim();
+  const caratula = document.getElementById('f-caratula').value.trim();
+  if (!expediente || !caratula) {
+    const err = document.getElementById('msgError');
+    err.textContent = 'Expediente y carátula son obligatorios.';
+    err.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  const { data: { session } } = await sb.auth.getSession();
+  const { error } = await sb.from('pericias').insert({
+    user_id: session.user.id,
+    expediente,
+    caratula,
+    juzgado: document.getElementById('f-juzgado').value.trim() || null,
+    peritado: document.getElementById('f-peritado').value.trim() || null,
+    fecha_entrevista: document.getElementById('f-entrevista').value || null,
+    fecha_vencimiento: document.getElementById('f-vencimiento').value || null,
+    honorarios: document.getElementById('f-honorarios').value || null,
+    estado: document.getElementById('f-estado').value,
+    notas: document.getElementById('f-notas').value.trim() || null,
+  });
+
+  btn.disabled = false; btn.textContent = '✓ Guardar pericia';
+  if (error) {
+    const err = document.getElementById('msgError');
+    err.textContent = 'Error al guardar: ' + error.message;
+    err.style.display = 'block';
+    return;
+  }
+  cerrarModal();
+  mostrarToast('✅ Pericia guardada');
+  await cargarPericias(session.user.id);
+}
+
+// ── MODAL DETALLE ──
+function abrirDetalle(id) {
+  periciaSeleccionada = todasPericias.find(p => p.id == id);
+  if (!periciaSeleccionada) return;
+  const p = periciaSeleccionada;
+  const venc = p.fecha_vencimiento ? new Date(p.fecha_vencimiento).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+  const entrev = p.fecha_entrevista ? new Date(p.fecha_entrevista).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+  document.getElementById('det-content').innerHTML = `
+    <div style="font-size:18px;font-weight:800;margin-bottom:4px">Exp. ${p.expediente || 'S/N'}</div>
+    <div style="font-size:14px;color:var(--text-muted);margin-bottom:12px">${p.caratula || ''}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="background:var(--surface2);border-radius:10px;padding:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:2px">Juzgado</div>
+        <div style="font-size:13px;font-weight:600">${p.juzgado || '—'}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:2px">Peritado</div>
+        <div style="font-size:13px;font-weight:600">${p.peritado || '—'}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:2px">Entrevista</div>
+        <div style="font-size:13px;font-weight:600">${entrev}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:2px">Vencimiento</div>
+        <div style="font-size:13px;font-weight:600">${venc}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:2px">Honorarios</div>
+        <div style="font-size:13px;font-weight:600">${p.honorarios ? '$' + Number(p.honorarios).toLocaleString('es-AR') : '—'}</div>
+      </div>
+    </div>
+    ${p.notas ? `<div style="background:var(--surface2);border-radius:10px;padding:10px;margin-bottom:4px"><div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">Notas</div><div style="font-size:13px">${p.notas}</div></div>` : ''}
+  `;
+  document.getElementById('det-estado').value = p.estado;
+  document.getElementById('overlayDet').classList.add('open');
+}
+function cerrarDetalle() {
+  document.getElementById('overlayDet').classList.remove('open');
+  periciaSeleccionada = null;
+}
+
+async function cambiarEstado(nuevoEstado) {
+  if (!periciaSeleccionada) return;
+  const { data: { session } } = await sb.auth.getSession();
+  await sb.from('pericias').update({ estado: nuevoEstado }).eq('id', periciaSeleccionada.id);
+  mostrarToast('✅ Estado actualizado');
+  cerrarDetalle();
+  await cargarPericias(session.user.id);
+}
+
+async function eliminarPericia() {
+  if (!periciaSeleccionada) return;
+  if (!confirm('¿Eliminar esta pericia?')) return;
+  const { data: { session } } = await sb.auth.getSession();
+  await sb.from('pericias').delete().eq('id', periciaSeleccionada.id);
+  mostrarToast('🗑 Pericia eliminada');
+  cerrarDetalle();
+  await cargarPericias(session.user.id);
+}
+
+// ── TOAST ──
+function mostrarToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1E1040;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.3s';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  setTimeout(() => { t.style.opacity = '0'; }, 2500);
+}
 
 // Load sidebar user name + foto
 (async () => {
