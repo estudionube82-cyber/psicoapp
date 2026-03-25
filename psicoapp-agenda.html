@@ -535,8 +535,8 @@ body { transition: background var(--transition), color var(--transition); }
     <button class="icon-btn-sm" onclick="openSettings()">⚙️</button>
   </div>
   <div class="view-toggle">
-    <button class="view-btn active" id="btnDia" onclick="setView('dia')">Día</button>
-    <button class="view-btn" id="btnSemana" onclick="setView('semana')">Semana</button>
+    <button class="view-btn" id="btnDia" onclick="setView('dia')">Día</button>
+    <button class="view-btn active" id="btnSemana" onclick="setView('semana')">Semana</button>
     <button class="view-btn" id="btnMes" onclick="setView('mes')">Mes</button>
     <div class="week-nav">
       <div class="nav-arrow" onclick="navBack()">‹</div>
@@ -799,7 +799,7 @@ const HORAS  = [8,9,10,11,12,13,14,15,16,17,18,19,20];
 
 let hoy         = new Date();
 let fechaActual = new Date(hoy);
-let currentView = 'dia';
+let currentView = 'semana';
 let todosTurnos = [];
 let _userId     = null;
 let todosPacientes = [];
@@ -992,7 +992,7 @@ function renderMes() {
     }
     cell.addEventListener('click', () => {
       fechaActual = fecha;
-      setView('dia');
+      setView('semana');
     });
     grid.appendChild(cell);
   }
