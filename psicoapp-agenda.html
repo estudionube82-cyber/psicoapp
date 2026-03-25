@@ -813,7 +813,7 @@ let turnoSeleccionado = null;
   await Promise.all([cargarPacientes(_userId), cargarTurnos(_userId)]);
   actualizarHeader();
   buildDayStrip();
-  renderDia();
+  setView('semana');
 })();
 
 async function cargarPacientes(userId) {
