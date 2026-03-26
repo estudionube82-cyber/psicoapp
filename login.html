@@ -322,7 +322,16 @@
     if (!email || !pass) { showMsg('Completá email y contraseña.', 'error'); return; }
 
     setLoading('btn-login','spin-login','lbl-login', true, 'Ingresar');
-    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    let error;
+    try {
+      ({ error } = await withTimeout(sb.auth.signInWithPassword({ email, password: pass }), 12000));
+    } catch(e) {
+      setLoading('btn-login','spin-login','lbl-login', false, 'Ingresar');
+      showMsg(e.message === 'timeout'
+        ? 'La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.'
+        : 'Error inesperado: ' + e.message, 'error');
+      return;
+    }
     setLoading('btn-login','spin-login','lbl-login', false, 'Ingresar');
 
     if (error) { showMsg(translateError(error.message), 'error'); return; }
@@ -340,6 +349,14 @@
     showMsg('Te enviamos un email para restablecer tu contraseña. Revisá tu bandeja.', 'success');
   }
 
+  // Race promise vs timeout
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+    ]);
+  }
+
   async function doRegister() {
     hideMsg();
     const email = document.getElementById('reg-email').value.trim();
@@ -350,18 +367,26 @@
     if (pass !== pass2)   { showMsg('Las contraseñas no coinciden.', 'error'); return; }
 
     setLoading('btn-reg','spin-reg','lbl-reg', true, 'Crear cuenta');
-    const { data, error } = await sb.auth.signUp({ email, password: pass });
+    let data, error;
+    try {
+      ({ data, error } = await withTimeout(sb.auth.signUp({ email, password: pass }), 12000));
+    } catch(e) {
+      setLoading('btn-reg','spin-reg','lbl-reg', false, 'Crear cuenta');
+      showMsg(e.message === 'timeout'
+        ? 'La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.'
+        : 'Error inesperado: ' + e.message, 'error');
+      return;
+    }
     setLoading('btn-reg','spin-reg','lbl-reg', false, 'Crear cuenta');
 
     if (error) { showMsg(translateError(error.message), 'error'); return; }
 
-    // Si identities está vacío, el email ya existe
     if (data?.user?.identities?.length === 0) {
       showMsg('Este email ya está registrado. Ingresá en lugar de registrarte.', 'error');
       return;
     }
 
-    showMsg('✅ ¡Cuenta creada! Te enviamos un email de confirmación a ' + email + '. Revisá tu bandeja (y el spam) y hacé clic en el enlace para activar tu cuenta.', 'success');
+    showMsg('✅ ¡Cuenta creada! Revisá tu bandeja (y el spam) y hacé clic en el enlace para activar tu cuenta.', 'success');
     setTimeout(() => switchTab('login'), 4500);
   }
 
