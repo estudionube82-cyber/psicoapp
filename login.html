@@ -222,7 +222,7 @@
 
   <div class="logo">
     <div class="logo-icon">
-      <img src="/logo-psicoapp.png" alt="PsicoApp">
+      <img src="https://raw.githubusercontent.com/estudionube82-cyber/psicoapp/main/logo-psicoapp.png" alt="PsicoApp" onerror="this.onerror=null;this.src='logo-psicoapp.png'">
     </div>
     <span class="logo-text">Psico<span>App</span></span>
     <span class="logo-tagline">Gestión para psicólogos</span>
@@ -350,12 +350,19 @@
     if (pass !== pass2)   { showMsg('Las contraseñas no coinciden.', 'error'); return; }
 
     setLoading('btn-reg','spin-reg','lbl-reg', true, 'Crear cuenta');
-    const { error } = await sb.auth.signUp({ email, password: pass });
+    const { data, error } = await sb.auth.signUp({ email, password: pass });
     setLoading('btn-reg','spin-reg','lbl-reg', false, 'Crear cuenta');
 
     if (error) { showMsg(translateError(error.message), 'error'); return; }
-    showMsg('¡Cuenta creada! Revisá tu email para confirmar, luego ingresá.', 'success');
-    switchTab('login');
+
+    // Si identities está vacío, el email ya existe
+    if (data?.user?.identities?.length === 0) {
+      showMsg('Este email ya está registrado. Ingresá en lugar de registrarte.', 'error');
+      return;
+    }
+
+    showMsg('✅ ¡Cuenta creada! Te enviamos un email de confirmación a ' + email + '. Revisá tu bandeja (y el spam) y hacé clic en el enlace para activar tu cuenta.', 'success');
+    setTimeout(() => switchTab('login'), 4500);
   }
 
   // allow Enter key
