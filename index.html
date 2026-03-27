@@ -122,7 +122,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   width: 32px; height: 32px; border-radius: 50%;
   background: var(--v2); display: flex; align-items: center;
   justify-content: center; font-size: 13px; font-weight: 700;
-  color: white; flex-shrink: 0;
+  color: white; flex-shrink: 0; overflow: hidden;
 }
 .sb-user-name { font-size: 13px; font-weight: 600; color: white; }
 .sb-user-role { font-size: 11px; color: rgba(255,255,255,0.5); text-align: left; }
@@ -214,8 +214,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     </nav>
 
     <div class="sb-footer">
-      <button class="sb-user" onclick="navigate('cuenta')">
-        <div class="sb-avatar" id="sb-avatar-initials">JG</div>
+      <button class="sb-user" onclick="navigate('perfil')">
+        <div class="sb-avatar" id="sb-avatar-initials">?</div>
         <div>
           <div class="sb-user-name" id="sb-user-name">Cargando…</div>
           <div class="sb-user-role">Psicólogo/a</div>
@@ -322,40 +322,50 @@ sb.auth.getSession().then(({ data }) => {
   if (!data.session) window.location.href = 'login.html';
 });
 
-/* ── NAVIGATE ─────────────────────────────────────────────
-   navigate(viewId)
-   - Oculta la vista activa
-   - Muestra la vista con id="view-{viewId}"
-   - Actualiza estado activo en sidebar y bottom nav
-   - Llama onViewEnter_{viewId}() si existe (hook opcional por vista)
-   ────────────────────────────────────────────────────────── */
+/* ── SIDEBAR: cargar perfil al iniciar ── */
+function syncSidebarPerfil() {
+  try {
+    const p = JSON.parse(localStorage.getItem('perfil')) || {};
+    const nameEl   = document.getElementById('sb-user-name');
+    const avatarEl = document.getElementById('sb-avatar-initials');
+    if (nameEl)   nameEl.textContent = p.nombre || 'Mi perfil';
+    if (avatarEl) {
+      if (p.foto) {
+        avatarEl.innerHTML = `<img src="${p.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      } else {
+        avatarEl.textContent = p.nombre ? p.nombre.slice(0, 2).toUpperCase() : '👤';
+      }
+    }
+  } catch(e) {}
+}
+syncSidebarPerfil();
+
+/* Sincronizar sidebar cuando perfil cambia (evento global) */
+window.addEventListener('perfilActualizado', syncSidebarPerfil);
+
+/* ── NAVIGATE ── */
 let _currentView = 'dashboard';
 
 function navigate(viewId) {
   if (viewId === _currentView) return;
 
-  // Ocultar vista actual
   const prev = document.getElementById('view-' + _currentView);
   if (prev) prev.classList.remove('view-active');
 
-  // Mostrar nueva vista
   const next = document.getElementById('view-' + viewId);
   if (!next) { console.warn('Vista no encontrada:', viewId); return; }
   next.classList.add('view-active');
 
   _currentView = viewId;
 
-  // Actualizar nav activo (sidebar + bottom nav)
   document.querySelectorAll('[data-view]').forEach(el => {
-    el.classList.toggle('sb-active',  el.dataset.view === viewId);
-    el.classList.toggle('bn-active',  el.dataset.view === viewId);
+    el.classList.toggle('sb-active', el.dataset.view === viewId);
+    el.classList.toggle('bn-active', el.dataset.view === viewId);
   });
 
-  // Hook opcional: cada vista puede definir onViewEnter_dashboard(), etc.
   const hook = window['onViewEnter_' + viewId];
   if (typeof hook === 'function') hook();
 
-  // Scroll al tope del contenedor
   const container = document.getElementById('view-container');
   if (container) container.scrollTop = 0;
 }
