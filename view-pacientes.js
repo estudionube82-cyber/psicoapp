@@ -185,6 +185,52 @@
 .pac-btn-wp  { background: #E8F8EE; color: #1B5E20; }
 .pac-btn-del { background: #fdf0ef; color: #B94A48; }
 
+/* ── EDICIÓN IN-MODAL ── */
+.pac-edit-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+.pac-edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pac-edit-field { display: flex; flex-direction: column; gap: 4px; }
+.pac-edit-field.full { grid-column: 1 / -1; }
+.pac-edit-label {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .8px;
+}
+.pac-edit-input {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 11px; padding: 11px 13px;
+  font-size: 14px; font-family: var(--font); color: var(--text);
+  outline: none; width: 100%; box-sizing: border-box;
+  transition: border-color .15s;
+}
+.pac-edit-input:focus { border-color: var(--primary); background: var(--surface); }
+textarea.pac-edit-input { resize: none; min-height: 72px; line-height: 1.5; }
+.pac-edit-divider {
+  display: flex; align-items: center; gap: 8px; margin: 2px 0;
+}
+.pac-edit-divider-line { flex: 1; height: 1px; background: var(--border); }
+.pac-edit-divider-label {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .8px; white-space: nowrap;
+}
+.pac-btn-save {
+  width: 100%; background: var(--primary); color: white;
+  border: none; border-radius: 14px; padding: 15px;
+  font-size: 15px; font-weight: 700; font-family: var(--font);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 4px; transition: opacity .15s;
+}
+.pac-btn-save:disabled { opacity: 0.55; cursor: not-allowed; }
+.pac-btn-edit-toggle {
+  flex: 1; padding: 13px; border-radius: 12px;
+  border: 1.5px solid var(--border);
+  font-family: var(--font); font-size: 14px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--surface); color: var(--text);
+}
+.pac-save-feedback {
+  text-align: center; font-size: 13px; font-weight: 700;
+  color: #059669; padding: 6px 0; display: none;
+}
+
 /* ── IA PULSE ── */
 @keyframes iaPulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
   `;
@@ -316,86 +362,162 @@
 <div class="pac-overlay" id="pac-overlayDetalle">
   <div class="pac-modal">
     <div class="pac-modal-handle"></div>
+
+    <!-- CABECERA (siempre visible) -->
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
       <div class="pac-patient-avatar av-green" id="pac-det-avatar"
         style="width:54px;height:54px;font-size:18px"></div>
-      <div>
-        <div style="font-size:20px;font-weight:800;color:var(--text)" id="pac-det-nombre"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:20px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="pac-det-nombre"></div>
         <div style="font-size:13px;color:var(--text-muted)" id="pac-det-meta"></div>
       </div>
     </div>
-    <div id="pac-det-body" style="display:flex;flex-direction:column;gap:8px;font-size:14px"></div>
 
-    <div class="pac-detail-actions">
-      <button class="pac-btn-action pac-btn-wp" id="pac-det-wp-btn">💬 WhatsApp</button>
-      <button class="pac-btn-action pac-btn-del" onclick="pacEliminarPaciente()">🗑 Eliminar</button>
-    </div>
+    <!-- ── VISTA LECTURA ── -->
+    <div id="pac-det-view">
+      <div id="pac-det-body" style="display:flex;flex-direction:column;gap:8px;font-size:14px"></div>
 
-    <!-- PANEL IA -->
-    <div style="margin-top:12px">
-      <button onclick="pacTogglePanelIA()" id="pac-btnToggleIA"
-        style="width:100%;background:linear-gradient(135deg,#059669,#10B981);color:white;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-        🤖 Mensaje con IA
-      </button>
-      <div id="pac-panelIA" style="display:none;margin-top:10px;background:var(--surface2);border-radius:14px;padding:14px">
-
-        <div id="pac-proximoTurnoPA" style="display:none;background:var(--surface);border-radius:11px;padding:10px 12px;margin-bottom:10px;border-left:3px solid var(--primary)">
-          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Próximo turno agendado</div>
-          <div id="pac-proximoTurnoTextoPA" style="font-size:13px;font-weight:700;color:var(--primary)"></div>
-        </div>
-
-        <div id="pac-iaOpcionesWrap">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Tipo de mensaje</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button onclick="pacGenerarMensajeIA('recordatorio')" style="background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">⏰ Recordatorio de turno</button>
-            <button onclick="pacGenerarMensajeIA('ausente')" style="background:#FEE2E2;color:#991B1B;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">❌ Paciente ausente</button>
-            <button onclick="pacGenerarMensajeIA('seguimiento')" style="background:#ECFDF5;color:#065F46;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">💚 Seguimiento / Cómo estás</button>
-            <button onclick="pacMostrarReprogramar()" style="background:#FEF3C7;color:#92400E;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">🔄 Reprogramar turno</button>
-          </div>
-        </div>
-
-        <div id="pac-reprogramarWrap" style="display:none">
-          <div id="pac-turnoActualWrap" style="display:none;background:#FFFBEB;border-radius:9px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:#92400E">
-            <strong>Turno actual:</strong> <span id="pac-turnoActualTexto"></span>
-          </div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">¿Cuál es la nueva fecha y hora?</div>
-          <textarea id="pac-reprogramarInput"
-            style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:10px 12px;font-size:13px;font-family:var(--font);min-height:60px;outline:none;resize:vertical;color:var(--text)"
-            placeholder='Ej: "mañana a las 18hs" o "el 3/4 a las 10:00"'></textarea>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button onclick="pacProcesarReprogramar()" style="flex:1;background:var(--sb-bg,#1E1040);color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">✨ Generar mensaje</button>
-            <button onclick="document.getElementById('pac-reprogramarWrap').style.display='none';document.getElementById('pac-iaOpcionesWrap').style.display='block'"
-              style="background:var(--border);color:var(--text-muted);border:none;border-radius:11px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
-          </div>
-        </div>
-
-        <div id="pac-iaLoading" style="display:none;align-items:center;gap:8px;padding:12px 0">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);animation:iaPulse 1.2s infinite"></div>
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);animation:iaPulse 1.2s infinite;animation-delay:.2s"></div>
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);animation:iaPulse 1.2s infinite;animation-delay:.4s"></div>
-          <span style="font-size:12px;color:var(--text-muted)">Redactando mensaje…</span>
-        </div>
-
-        <div id="pac-iaResultado" style="display:none;margin-top:10px">
-          <div id="pac-iaMensaje" style="background:var(--surface);border-radius:11px;padding:12px 14px;font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap"></div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button onclick="pacCopiarMensaje()" style="flex:1;background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">📋 Copiar</button>
-            <button onclick="pacEnviarWA()" style="flex:1;background:#25D366;color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">📱 WhatsApp</button>
-          </div>
-          <button onclick="document.getElementById('pac-iaResultado').style.display='none';document.getElementById('pac-iaOpcionesWrap').style.display='block'"
-            style="width:100%;background:none;border:none;padding:8px;font-size:12px;color:var(--text-muted);cursor:pointer;margin-top:4px">← Otro mensaje</button>
-        </div>
+      <div class="pac-detail-actions">
+        <button class="pac-btn-action pac-btn-edit-toggle" onclick="pacEntrarEdicion()">✏️ Editar</button>
+        <button class="pac-btn-action pac-btn-wp" id="pac-det-wp-btn">💬 WhatsApp</button>
+        <button class="pac-btn-action pac-btn-del" onclick="pacEliminarPaciente()">🗑</button>
       </div>
     </div>
 
-    <button onclick="pacIrHistoriaClinica()"
-      style="width:100%;background:var(--primary);color:white;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px">
-      🧠 Ver Historia Clínica
-    </button>
-    <button onclick="pacCerrarDetalle()"
-      style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:var(--font);cursor:pointer;margin-top:4px">
-      Cerrar
-    </button>
+    <!-- ── VISTA EDICIÓN ── -->
+    <div id="pac-det-edit" style="display:none">
+      <div class="pac-edit-grid">
+        <div class="pac-edit-row">
+          <div class="pac-edit-field">
+            <label class="pac-edit-label">Nombre <span style="color:var(--primary)">*</span></label>
+            <input class="pac-edit-input" id="pac-e-nombre" type="text" placeholder="María">
+          </div>
+          <div class="pac-edit-field">
+            <label class="pac-edit-label">Apellido <span style="color:var(--primary)">*</span></label>
+            <input class="pac-edit-input" id="pac-e-apellido" type="text" placeholder="González">
+          </div>
+        </div>
+        <div class="pac-edit-row">
+          <div class="pac-edit-field">
+            <label class="pac-edit-label">WhatsApp</label>
+            <input class="pac-edit-input" id="pac-e-telefono" type="tel" placeholder="2346 699176">
+          </div>
+          <div class="pac-edit-field">
+            <label class="pac-edit-label">Email</label>
+            <input class="pac-edit-input" id="pac-e-email" type="email" placeholder="mail@ejemplo.com">
+          </div>
+        </div>
+        <div class="pac-edit-divider">
+          <div class="pac-edit-divider-line"></div>
+          <div class="pac-edit-divider-label">Datos opcionales</div>
+          <div class="pac-edit-divider-line"></div>
+        </div>
+        <div class="pac-edit-row">
+          <div class="pac-edit-field">
+            <label class="pac-edit-label">DNI</label>
+            <input class="pac-edit-input" id="pac-e-dni" type="text" placeholder="12.345.678">
+          </div>
+          <div class="pac-edit-field">
+            <label class="pac-edit-label">Fecha de nac.</label>
+            <input class="pac-edit-input" id="pac-e-fnac" type="date">
+          </div>
+        </div>
+        <div class="pac-edit-row">
+          <div class="pac-edit-field">
+            <label class="pac-edit-label">Obra social</label>
+            <input class="pac-edit-input" id="pac-e-os" type="text" placeholder="OSDE, IOMA…">
+          </div>
+          <div class="pac-edit-field">
+            <label class="pac-edit-label">Nº afiliado</label>
+            <input class="pac-edit-input" id="pac-e-nroafil" type="text" placeholder="—">
+          </div>
+        </div>
+        <div class="pac-edit-field full">
+          <label class="pac-edit-label">Notas / Motivo de consulta</label>
+          <textarea class="pac-edit-input" id="pac-e-notas" placeholder="Derivación, motivo de consulta…"></textarea>
+        </div>
+      </div>
+
+      <div id="pac-edit-feedback" class="pac-save-feedback">✅ Guardado correctamente</div>
+      <div id="pac-edit-error" class="pac-save-feedback" style="color:var(--danger)"></div>
+
+      <button class="pac-btn-save" id="pac-btnGuardar" onclick="pacGuardarEdicion()">
+        💾 Guardar cambios
+      </button>
+      <button onclick="pacSalirEdicion()"
+        style="width:100%;background:none;border:none;padding:12px;font-size:14px;color:var(--text-muted);font-family:var(--font);cursor:pointer;margin-top:2px">
+        ← Cancelar
+      </button>
+    </div>
+
+    <!-- PANEL IA (siempre disponible, debajo de ambas vistas) -->
+    <div id="pac-panel-ia-wrap">
+      <div style="margin-top:12px">
+        <button onclick="pacTogglePanelIA()" id="pac-btnToggleIA"
+          style="width:100%;background:linear-gradient(135deg,#059669,#10B981);color:white;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+          🤖 Mensaje con IA
+        </button>
+        <div id="pac-panelIA" style="display:none;margin-top:10px;background:var(--surface2);border-radius:14px;padding:14px">
+
+          <div id="pac-proximoTurnoPA" style="display:none;background:var(--surface);border-radius:11px;padding:10px 12px;margin-bottom:10px;border-left:3px solid var(--primary)">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Próximo turno agendado</div>
+            <div id="pac-proximoTurnoTextoPA" style="font-size:13px;font-weight:700;color:var(--primary)"></div>
+          </div>
+
+          <div id="pac-iaOpcionesWrap">
+            <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Tipo de mensaje</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button onclick="pacGenerarMensajeIA('recordatorio')" style="background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">⏰ Recordatorio de turno</button>
+              <button onclick="pacGenerarMensajeIA('ausente')" style="background:#FEE2E2;color:#991B1B;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">❌ Paciente ausente</button>
+              <button onclick="pacGenerarMensajeIA('seguimiento')" style="background:#ECFDF5;color:#065F46;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">💚 Seguimiento / Cómo estás</button>
+              <button onclick="pacMostrarReprogramar()" style="background:#FEF3C7;color:#92400E;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">🔄 Reprogramar turno</button>
+            </div>
+          </div>
+
+          <div id="pac-reprogramarWrap" style="display:none">
+            <div id="pac-turnoActualWrap" style="display:none;background:#FFFBEB;border-radius:9px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:#92400E">
+              <strong>Turno actual:</strong> <span id="pac-turnoActualTexto"></span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">¿Cuál es la nueva fecha y hora?</div>
+            <textarea id="pac-reprogramarInput"
+              style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:10px 12px;font-size:13px;font-family:var(--font);min-height:60px;outline:none;resize:vertical;color:var(--text)"
+              placeholder='Ej: "mañana a las 18hs" o "el 3/4 a las 10:00"'></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button onclick="pacProcesarReprogramar()" style="flex:1;background:var(--sb-bg,#1E1040);color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">✨ Generar mensaje</button>
+              <button onclick="document.getElementById('pac-reprogramarWrap').style.display='none';document.getElementById('pac-iaOpcionesWrap').style.display='block'"
+                style="background:var(--border);color:var(--text-muted);border:none;border-radius:11px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
+            </div>
+          </div>
+
+          <div id="pac-iaLoading" style="display:none;align-items:center;gap:8px;padding:12px 0">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);animation:iaPulse 1.2s infinite"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);animation:iaPulse 1.2s infinite;animation-delay:.2s"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);animation:iaPulse 1.2s infinite;animation-delay:.4s"></div>
+            <span style="font-size:12px;color:var(--text-muted)">Redactando mensaje…</span>
+          </div>
+
+          <div id="pac-iaResultado" style="display:none;margin-top:10px">
+            <div id="pac-iaMensaje" style="background:var(--surface);border-radius:11px;padding:12px 14px;font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap"></div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button onclick="pacCopiarMensaje()" style="flex:1;background:var(--primary-light);color:var(--primary);border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">📋 Copiar</button>
+              <button onclick="pacEnviarWA()" style="flex:1;background:#25D366;color:white;border:none;border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">📱 WhatsApp</button>
+            </div>
+            <button onclick="document.getElementById('pac-iaResultado').style.display='none';document.getElementById('pac-iaOpcionesWrap').style.display='block'"
+              style="width:100%;background:none;border:none;padding:8px;font-size:12px;color:var(--text-muted);cursor:pointer;margin-top:4px">← Otro mensaje</button>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="pacIrHistoriaClinica()"
+        style="width:100%;background:var(--primary);color:white;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px">
+        🧠 Ver Historia Clínica
+      </button>
+      <button onclick="pacCerrarDetalle()"
+        style="width:100%;background:none;border:none;padding:14px;font-size:14px;color:var(--text-muted);font-family:var(--font);cursor:pointer;margin-top:4px">
+        Cerrar
+      </button>
+    </div>
+
   </div>
 </div>
   `;
@@ -558,11 +680,21 @@ function pacAbrirDetalle(id) {
   _pacSeleccionado = p;
   _pacActualIA = p;
 
+  pacRenderDetalle(p);
+  pacSalirEdicion(); // asegurar que arranca en modo lectura
+
+  document.getElementById('pac-overlayDetalle').classList.add('open');
+  pacCargarProximoTurno(p.id);
+}
+
+function pacRenderDetalle(p) {
+  // Avatar e iniciales
   document.getElementById('pac-det-avatar').textContent =
     (p.nombre||'?')[0].toUpperCase() + (p.apellido||'?')[0].toUpperCase();
   document.getElementById('pac-det-nombre').textContent = `${p.nombre} ${p.apellido}`;
   document.getElementById('pac-det-meta').textContent = p.obra_social || 'Particular';
 
+  // Filas de solo lectura
   let body = '';
   if (p.telefono)         body += pacFila('💬','Teléfono', p.telefono);
   if (p.email)            body += pacFila('✉️','Email', p.email);
@@ -570,9 +702,10 @@ function pacAbrirDetalle(id) {
   if (p.fecha_nacimiento) body += pacFila('🎂','Nacimiento', pacFormatFecha(p.fecha_nacimiento));
   if (p.obra_social)      body += pacFila('🏥','Obra social', p.obra_social + (p.nro_afiliado ? ` · Afil. ${p.nro_afiliado}` : ''));
   if (p.notas)            body += pacFila('📝','Notas', p.notas);
-  if (!body)              body = '<div style="color:var(--text-muted);font-size:13px">Sin datos adicionales.</div>';
+  if (!body)              body = '<div style="color:var(--text-muted);font-size:13px">Sin datos adicionales. Tocá Editar para completar.</div>';
   document.getElementById('pac-det-body').innerHTML = body;
 
+  // Botón WhatsApp
   const wpBtn = document.getElementById('pac-det-wp-btn');
   if (p.telefono) {
     let num = p.telefono.replace(/\D/g,'');
@@ -585,17 +718,100 @@ function pacAbrirDetalle(id) {
     wpBtn.onclick = null;
     wpBtn.style.opacity = '0.4';
   }
+}
 
-  /* Reset panel IA */
+function pacEntrarEdicion() {
+  const p = _pacSeleccionado;
+  if (!p) return;
+
+  // Poblar campos con datos actuales
+  document.getElementById('pac-e-nombre').value   = p.nombre   || '';
+  document.getElementById('pac-e-apellido').value = p.apellido || '';
+  document.getElementById('pac-e-telefono').value = p.telefono || '';
+  document.getElementById('pac-e-email').value    = p.email    || '';
+  document.getElementById('pac-e-dni').value      = p.dni      || '';
+  document.getElementById('pac-e-fnac').value     = p.fecha_nacimiento || '';
+  document.getElementById('pac-e-os').value       = p.obra_social || '';
+  document.getElementById('pac-e-nroafil').value  = p.nro_afiliado || '';
+  document.getElementById('pac-e-notas').value    = p.notas    || '';
+
+  // Limpiar feedbacks
+  document.getElementById('pac-edit-feedback').style.display = 'none';
+  document.getElementById('pac-edit-error').style.display = 'none';
+
+  // Ocultar panel IA mientras se edita
   document.getElementById('pac-panelIA').style.display = 'none';
-  document.getElementById('pac-btnToggleIA').textContent = '🤖 Mensaje con IA';
-  document.getElementById('pac-iaOpcionesWrap').style.display = 'block';
-  document.getElementById('pac-iaResultado').style.display = 'none';
-  document.getElementById('pac-reprogramarWrap').style.display = 'none';
-  document.getElementById('pac-proximoTurnoPA').style.display = 'none';
+  document.getElementById('pac-panel-ia-wrap').style.display = 'none';
 
-  document.getElementById('pac-overlayDetalle').classList.add('open');
-  pacCargarProximoTurno(p.id);
+  document.getElementById('pac-det-view').style.display = 'none';
+  document.getElementById('pac-det-edit').style.display = 'block';
+
+  setTimeout(() => document.getElementById('pac-e-nombre').focus(), 150);
+}
+
+function pacSalirEdicion() {
+  document.getElementById('pac-det-edit').style.display = 'none';
+  document.getElementById('pac-det-view').style.display = 'block';
+  document.getElementById('pac-panel-ia-wrap').style.display = 'block';
+}
+
+async function pacGuardarEdicion() {
+  const nombre   = document.getElementById('pac-e-nombre').value.trim();
+  const apellido = document.getElementById('pac-e-apellido').value.trim();
+
+  const errEl = document.getElementById('pac-edit-error');
+  const okEl  = document.getElementById('pac-edit-feedback');
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if (!nombre || !apellido) {
+    errEl.textContent = '⚠️ Nombre y apellido son obligatorios.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('pac-btnGuardar');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  const updates = {
+    nombre,
+    apellido,
+    telefono:         document.getElementById('pac-e-telefono').value.trim() || null,
+    email:            document.getElementById('pac-e-email').value.trim()    || null,
+    dni:              document.getElementById('pac-e-dni').value.trim()      || null,
+    fecha_nacimiento: document.getElementById('pac-e-fnac').value            || null,
+    obra_social:      document.getElementById('pac-e-os').value.trim()       || null,
+    nro_afiliado:     document.getElementById('pac-e-nroafil').value.trim()  || null,
+    notas:            document.getElementById('pac-e-notas').value.trim()    || null,
+  };
+
+  const { error } = await sb
+    .from('pacientes')
+    .update(updates)
+    .eq('id', _pacSeleccionado.id);
+
+  btn.disabled = false;
+  btn.textContent = '💾 Guardar cambios';
+
+  if (error) {
+    errEl.textContent = '❌ Error al guardar. Intentá de nuevo.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Actualizar objeto en memoria (sin reload)
+  Object.assign(_pacSeleccionado, updates);
+  const idx = _pacTodos.findIndex(x => x.id === _pacSeleccionado.id);
+  if (idx !== -1) _pacTodos[idx] = { ..._pacTodos[idx], ...updates };
+
+  // Feedback visual, volver a vista lectura y refrescar lista
+  okEl.style.display = 'block';
+  setTimeout(() => {
+    pacSalirEdicion();
+    pacRenderDetalle(_pacSeleccionado);   // actualiza el modal con los nuevos datos
+    pacFiltrar();                          // refresca lista sin reload
+  }, 800);
 }
 
 function pacFila(icon, label, val) {
@@ -607,7 +823,15 @@ function pacFila(icon, label, val) {
 }
 
 function pacCerrarDetalle() {
+  pacSalirEdicion(); // garantiza estado limpio para próxima apertura
   document.getElementById('pac-overlayDetalle').classList.remove('open');
+  // Reset panel IA
+  document.getElementById('pac-panelIA').style.display = 'none';
+  document.getElementById('pac-btnToggleIA').textContent = '🤖 Mensaje con IA';
+  document.getElementById('pac-iaOpcionesWrap').style.display = 'block';
+  document.getElementById('pac-iaResultado').style.display = 'none';
+  document.getElementById('pac-reprogramarWrap').style.display = 'none';
+  document.getElementById('pac-proximoTurnoPA').style.display = 'none';
   _pacSeleccionado = null;
 }
 
