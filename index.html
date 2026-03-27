@@ -205,13 +205,13 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </button>
 
       <div class="sb-section">Cuenta</div>
-      <button class="sb-item" onclick="navigate('perfil')" data-view="perfil">
-        <span class="sb-icon">👤</span> Perfil
+      <button class="sb-item" onclick="navigate('cuenta')" data-view="cuenta">
+        <span class="sb-icon">👤</span> Cuenta
       </button>
     </nav>
 
     <div class="sb-footer">
-      <button class="sb-user" onclick="navigate('perfil')">
+      <button class="sb-user" onclick="navigate('cuenta')">
         <div class="sb-avatar" id="sb-avatar-initials">JG</div>
         <div>
           <div class="sb-user-name" id="sb-user-name">Cargando…</div>
@@ -268,6 +268,10 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </section>
 
+    <!-- Vista: Cuenta (suscripción) -->
+    <section id="view-cuenta" class="view-section">
+    </section>
+
   </main>
 
   <!-- ── BOTTOM NAV (mobile) ── -->
@@ -284,7 +288,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     <button class="bn-item" onclick="navigate('whatsapp')" data-view="whatsapp">
       <span class="bn-icon">💬</span><span class="bn-label">WhatsApp</span>
     </button>
-    <button class="bn-item" onclick="navigate('perfil')" data-view="perfil">
+    <button class="bn-item" onclick="navigate('cuenta')" data-view="cuenta">
       <span class="bn-icon">👤</span><span class="bn-label">Cuenta</span>
     </button>
   </nav>
@@ -366,9 +370,7 @@ function navigate(viewId) {
 <script src="view-agenda.js"></script>
 <script src="view-whatsapp.js"></script>
 <script src="view-pagos.js"></script>
-<!-- Cuando integrés más vistas, agregás un script por cada una:
-<script src="view-perfil.js"></script>
--->
+<script src="view-cuenta.js"></script>
 
 </body>
 </html>
