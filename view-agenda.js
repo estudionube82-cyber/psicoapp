@@ -835,7 +835,8 @@
   window._agModalFechaHora = (fecha, hora) => abrirModal('turno', fecha, hora);
 
   // ── ENTRY POINT ───────────────────────────────────────────
-  window.onViewEnter_agenda = async function () {
+  async function initAgenda() {
+    console.log('Agenda iniciada');
     _fechaActual = new Date();
     _hoy         = new Date();
     _currentView = 'semana';
@@ -851,9 +852,10 @@
       actualizarHeader();
       setView('semana');
     } catch(e) {
-      console.error('[Agenda] onViewEnter_agenda:', e.message);
+      console.error('[Agenda] initAgenda:', e.message);
     }
-  };
+  }
+
+  window.onViewEnter_agenda = initAgenda;
 
 })();
-window.onViewEnter_agenda = initAgenda;
