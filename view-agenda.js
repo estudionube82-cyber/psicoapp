@@ -125,7 +125,7 @@
 
   // ── Render HTML principal ──────────────────────────────────
   function renderAgenda() {
-    const container = document.getElementById('view-content');
+    const container = document.getElementById('view-agenda');
     if (!container) return;
 
     container.innerHTML = `
