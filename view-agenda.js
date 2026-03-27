@@ -856,3 +856,4 @@
   };
 
 })();
+window.onViewEnter_agenda = initAgenda;
