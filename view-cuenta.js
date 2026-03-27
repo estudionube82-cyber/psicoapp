@@ -277,10 +277,18 @@ function saveSuscripcion(data) {
   localStorage.setItem('suscripcion', JSON.stringify(data));
 }
 
-function activarSuscripcion() {
-  saveSuscripcion({ plan: 'pro', estado: 'activa', fechaInicio: new Date().toISOString() });
+function activarSuscripcion(planElegido) {
+  const planFinal = planElegido || 'pro';
+  const s = getSuscripcion();
+  saveSuscripcion({
+    plan: planFinal,
+    estado: 'activa',
+    fechaInicio: s?.fechaInicio || new Date().toISOString(),
+    usos:  s?.usos  || { whatsapp: 0, informesIA: 0 },
+    extra: s?.extra || { whatsapp: 0 },
+  });
   renderCuenta();
-  vcToast('✅ ¡Suscripción activada! Bienvenido al plan Pro.');
+  vcToast(`✅ ¡Suscripción ${planFinal.toUpperCase()} activada!`);
 }
 
 function vcToast(msg) {
@@ -291,6 +299,119 @@ function vcToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
+/* ═══════════════════════════════════════
+   SISTEMA SAAS — LÍMITES POR PLAN
+   ═══════════════════════════════════════ */
+
+function getPlanLimits(plan) {
+  const limits = {
+    free: { dias: 15,  whatsapp: 20,  informesIA: 1  },
+    pro:  { dias: null, whatsapp: 100, informesIA: 3  },
+    max:  { dias: null, whatsapp: 250, informesIA: 25 },
+  };
+  return limits[plan] || limits.free;
+}
+
+function diasDesdeInicio(fecha) {
+  if (!fecha) return 0;
+  const inicio = new Date(fecha);
+  const ahora  = new Date();
+  return Math.floor((ahora - inicio) / (1000 * 60 * 60 * 24));
+}
+
+function puedeUsar(feature) {
+  const s      = getSuscripcion();
+  const plan   = s?.plan   || 'free';
+  const estado = s?.estado || 'inactiva';
+  if (estado !== 'activa') return false;
+
+  const limits = getPlanLimits(plan);
+  const usos   = s?.usos   || { whatsapp: 0, informesIA: 0 };
+  const extra  = s?.extra  || { whatsapp: 0 };
+
+  /* Control de 15 días para plan free */
+  if (plan === 'free' && limits.dias !== null) {
+    const dias = diasDesdeInicio(s?.fechaInicio);
+    if (dias >= limits.dias) return false;
+  }
+
+  if (feature === 'whatsapp') {
+    const tope = limits.whatsapp + (extra.whatsapp || 0);
+    return (usos.whatsapp || 0) < tope;
+  }
+  if (feature === 'informesIA') {
+    return (usos.informesIA || 0) < limits.informesIA;
+  }
+  return true;
+}
+
+function registrarUso(feature) {
+  const s = getSuscripcion();
+  if (!s) return false;
+  if (!puedeUsar(feature)) return false;
+
+  if (!s.usos) s.usos = { whatsapp: 0, informesIA: 0 };
+  if (feature === 'whatsapp')   s.usos.whatsapp   = (s.usos.whatsapp   || 0) + 1;
+  if (feature === 'informesIA') s.usos.informesIA = (s.usos.informesIA || 0) + 1;
+
+  saveSuscripcion(s);
+  return true;
+}
+
+function avisoLimite(feature) {
+  const s      = getSuscripcion();
+  const plan   = s?.plan   || 'free';
+  const limits = getPlanLimits(plan);
+  const usos   = s?.usos   || { whatsapp: 0, informesIA: 0 };
+  const extra  = s?.extra  || { whatsapp: 0 };
+
+  if (feature === 'whatsapp') {
+    const tope  = limits.whatsapp + (extra.whatsapp || 0);
+    const usado = usos.whatsapp || 0;
+    const resta = tope - usado;
+    if (resta <= 0)  return '🚫 Sin mensajes WhatsApp disponibles';
+    if (resta === 1) return '⚠️ Te queda 1 mensaje WhatsApp disponible';
+    if (resta <= 5)  return `⚠️ Te quedan ${resta} mensajes WhatsApp disponibles`;
+    return null;
+  }
+  if (feature === 'informesIA') {
+    const tope  = limits.informesIA;
+    const usado = usos.informesIA || 0;
+    const resta = tope - usado;
+    if (resta <= 0)  return '🚫 Sin informes IA disponibles';
+    if (resta === 1) return '⚠️ Te queda 1 informe IA disponible';
+    return null;
+  }
+  return null;
+}
+
+function comprarExtraWhatsapp() {
+  const s = getSuscripcion();
+  if (!s) return;
+  if (!s.extra) s.extra = { whatsapp: 0 };
+  s.extra.whatsapp = (s.extra.whatsapp || 0) + 100;
+  saveSuscripcion(s);
+  renderCuenta();
+  vcToast('✅ 100 mensajes WhatsApp extra agregados');
+}
+
+/* Barra de progreso de uso */
+function _usageBarHTML(usado, tope, label, colorClass) {
+  const pct     = tope > 0 ? Math.min(100, Math.round((usado / tope) * 100)) : 0;
+  const alerta  = pct >= 80;
+  const barColor = alerta ? '#EF4444' : (colorClass || '#7C3AED');
+  return `
+<div style="display:flex;flex-direction:column;gap:6px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:12px;font-weight:700;color:var(--text-muted);">${label}</span>
+    <span style="font-size:13px;font-weight:800;color:${alerta ? '#EF4444' : 'var(--text)'};">${usado} / ${tope}</span>
+  </div>
+  <div style="height:7px;border-radius:99px;background:var(--border);overflow:hidden;">
+    <div style="height:100%;width:${pct}%;border-radius:99px;background:${barColor};transition:width .4s;"></div>
+  </div>
+</div>`;
+}
+
 function renderCuenta() {
   const container = document.getElementById('view-cuenta');
   if (!container) return;
@@ -299,6 +420,44 @@ function renderCuenta() {
   const suscripcion = getSuscripcion();
   const esPro       = suscripcion?.plan === 'pro' && suscripcion?.estado === 'activa';
   const linkPago    = 'https://mpago.la/TU_LINK_AQUI';
+
+  const plan   = suscripcion?.plan   || 'free';
+  const limits = getPlanLimits(plan);
+  const usos   = suscripcion?.usos  || { whatsapp: 0, informesIA: 0 };
+  const extra  = suscripcion?.extra || { whatsapp: 0 };
+
+  /* Cálculo días restantes free */
+  const diasUsados    = diasDesdeInicio(suscripcion?.fechaInicio);
+  const diasRestantes = limits.dias !== null ? Math.max(0, limits.dias - diasUsados) : null;
+
+  /* Topes reales (con extras) */
+  const topeWA = limits.whatsapp + (extra.whatsapp || 0);
+  const topeIA = limits.informesIA;
+
+  /* Bloque de uso */
+  const usageHTML = esPro || plan === 'max' || plan === 'free' ? `
+  <div style="background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:14px;">
+    <div style="font-size:13px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;">Uso del plan</div>
+    ${plan === 'free' && diasRestantes !== null ? `
+    <div style="display:flex;align-items:center;gap:10px;background:${diasRestantes <= 3 ? 'rgba(239,68,68,0.08)' : 'var(--surface2)'};border-radius:10px;padding:11px 14px;">
+      <span style="font-size:20px;">${diasRestantes <= 3 ? '🔴' : '📅'}</span>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:${diasRestantes <= 3 ? '#EF4444' : 'var(--text)'};">${diasRestantes} días restantes del período Free</div>
+        <div style="font-size:11px;color:var(--text-muted);">15 días de prueba desde el inicio</div>
+      </div>
+    </div>` : ''}
+    ${_usageBarHTML(usos.whatsapp || 0, topeWA, '💬 Mensajes WhatsApp', '#7C3AED')}
+    ${_usageBarHTML(usos.informesIA || 0, topeIA, '🤖 Informes IA', '#A78BFA')}
+    ${plan === 'pro' ? `
+    <button onclick="comprarExtraWhatsapp()" style="
+      width:100%;padding:12px;border-radius:var(--radius-sm);
+      background:linear-gradient(135deg,rgba(92,47,168,0.1),rgba(124,58,237,0.08));
+      border:1.5px dashed rgba(124,58,237,0.35);
+      color:var(--primary);font-family:var(--font);font-size:13px;font-weight:800;
+      cursor:pointer;transition:transform .12s;">
+      ➕ Comprar 100 mensajes WhatsApp extra ($5.000)
+    </button>` : ''}
+  </div>` : '';
 
   const nombre    = perfil.nombre  || 'Profesional';
   const email     = perfil.email   || '';
@@ -349,64 +508,88 @@ function renderCuenta() {
   <!-- TÍTULO PLANES -->
   <div class="vc-planes-title">Elegí tu plan</div>
 
-  <!-- PLANES GRID -->
-  <div class="vc-planes-grid">
+  ${usageHTML}
+
+  <!-- PLANES GRID (3 columnas en desktop) -->
+  <div class="vc-planes-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
 
     <!-- FREE -->
-    <div class="vc-plan-card plan-free-card ${!esPro ? 'plan-actual' : ''}">
+    <div class="vc-plan-card plan-free-card ${plan === 'free' ? 'plan-actual' : ''}">
       <div class="vc-plan-badge-wrap">
-        ${!esPro ? '<span class="vc-badge badge-actual">✓ Actual</span>' : '<span class="vc-badge badge-free-tag">Free</span>'}
+        ${plan === 'free' ? '<span class="vc-badge badge-actual">✓ Actual</span>' : '<span class="vc-badge badge-free-tag">Free</span>'}
       </div>
       <div>
         <div class="vc-plan-name">Free</div>
-        <div class="vc-plan-price">Sin costo</div>
+        <div class="vc-plan-price">15 días de prueba</div>
       </div>
       <div class="vc-plan-features">
-        <div class="vc-pf"><span class="vc-pf-icon">✅</span>Hasta 5 pacientes</div>
-        <div class="vc-pf"><span class="vc-pf-icon">✅</span>Agenda básica</div>
-        <div class="vc-pf pf-lock"><span class="vc-pf-icon">🔒</span>Pagos y cobros</div>
-        <div class="vc-pf pf-lock"><span class="vc-pf-icon">🔒</span>WhatsApp</div>
+        <div class="vc-pf"><span class="vc-pf-icon">✅</span>20 mensajes WhatsApp</div>
+        <div class="vc-pf"><span class="vc-pf-icon">✅</span>1 informe IA</div>
+        <div class="vc-pf pf-lock"><span class="vc-pf-icon">🔒</span>Pacientes ilimitados</div>
         <div class="vc-pf pf-lock"><span class="vc-pf-icon">🔒</span>Soporte prioritario</div>
       </div>
-      <button class="vc-plan-btn ${!esPro ? 'btn-plan-actual' : 'btn-free-actual'}" disabled>
-        ${!esPro ? '✓ Plan actual' : 'Plan básico'}
+      <button class="vc-plan-btn btn-plan-actual" disabled>
+        ${plan === 'free' ? '✓ Plan actual' : 'Plan básico'}
       </button>
     </div>
 
     <!-- PRO -->
-    <div class="vc-plan-card plan-pro-card ${esPro ? 'plan-actual' : ''}">
+    <div class="vc-plan-card plan-pro-card ${plan === 'pro' ? 'plan-actual' : ''}">
       <div class="vc-plan-badge-wrap">
         <span class="vc-badge badge-recomendado">⭐ Recomendado</span>
-        ${esPro ? '<span class="vc-badge badge-actual">✓ Actual</span>' : ''}
+        ${plan === 'pro' ? '<span class="vc-badge badge-actual">✓ Actual</span>' : ''}
       </div>
       <div>
         <div class="vc-plan-name">Pro</div>
         <div class="vc-plan-price">Mensual</div>
       </div>
       <div class="vc-plan-features">
+        <div class="vc-pf"><span class="vc-pf-icon">✅</span>100 mensajes WhatsApp</div>
+        <div class="vc-pf"><span class="vc-pf-icon">✅</span>3 informes IA</div>
         <div class="vc-pf"><span class="vc-pf-icon">✅</span>Pacientes ilimitados</div>
-        <div class="vc-pf"><span class="vc-pf-icon">✅</span>Agenda ilimitada</div>
-        <div class="vc-pf"><span class="vc-pf-icon">✅</span>Pagos y cobros</div>
-        <div class="vc-pf"><span class="vc-pf-icon">✅</span>Recordatorios WhatsApp</div>
-        <div class="vc-pf"><span class="vc-pf-icon">✅</span>Soporte prioritario</div>
+        <div class="vc-pf"><span class="vc-pf-icon">✅</span>Extras disponibles</div>
       </div>
-      ${!esPro
-        ? `<button class="vc-plan-btn btn-upgrade" id="vc-btn-upgrade">🚀 Actualizar a Pro</button>`
+      ${plan !== 'pro'
+        ? `<button class="vc-plan-btn btn-upgrade" id="vc-btn-upgrade-pro">🚀 Activar Pro</button>`
+        : `<button class="vc-plan-btn btn-plan-actual" disabled>✓ Plan actual</button>`
+      }
+    </div>
+
+    <!-- MAX -->
+    <div class="vc-plan-card plan-pro-card ${plan === 'max' ? 'plan-actual' : ''}" style="${plan === 'max' ? '' : 'background:linear-gradient(160deg,#0F0B1E 0%,#1E0A3C 100%);border-color:rgba(244,114,182,0.4);'}">
+      <div class="vc-plan-badge-wrap">
+        <span class="vc-badge" style="background:linear-gradient(135deg,#BE185D,#F472B6);color:white;">💎 Max</span>
+        ${plan === 'max' ? '<span class="vc-badge badge-actual">✓ Actual</span>' : ''}
+      </div>
+      <div>
+        <div class="vc-plan-name" style="color:white;">Max</div>
+        <div class="vc-plan-price" style="color:rgba(255,255,255,0.5);">Mensual</div>
+      </div>
+      <div class="vc-plan-features">
+        <div class="vc-pf" style="color:rgba(255,255,255,0.8);"><span class="vc-pf-icon">✅</span>250 mensajes WhatsApp</div>
+        <div class="vc-pf" style="color:rgba(255,255,255,0.8);"><span class="vc-pf-icon">✅</span>25 informes IA</div>
+        <div class="vc-pf" style="color:rgba(255,255,255,0.8);"><span class="vc-pf-icon">✅</span>Pacientes ilimitados</div>
+        <div class="vc-pf" style="color:rgba(255,255,255,0.8);"><span class="vc-pf-icon">✅</span>Soporte prioritario</div>
+      </div>
+      ${plan !== 'max'
+        ? `<button class="vc-plan-btn btn-upgrade" id="vc-btn-upgrade-max" style="background:linear-gradient(135deg,#BE185D,#F472B6);box-shadow:0 4px 16px rgba(244,114,182,0.4);">💎 Activar Max</button>`
         : `<button class="vc-plan-btn btn-plan-actual" disabled>✓ Plan actual</button>`
       }
     </div>
 
   </div>
 
-  <!-- YA PAGUÉ (solo si no es pro) -->
-  ${!esPro ? `
+  <!-- YA PAGUÉ (solo si no es pro ni max) -->
+  ${plan === 'free' ? `
   <div class="vc-yapague-card">
     <div class="vc-yapague-title">¿Ya realizaste el pago?</div>
     <div class="vc-yapague-sub">
-      Hacé clic en "Actualizar a Pro" para ir a MercadoPago.<br>
-      Una vez abonado, tocá el botón de abajo para activar tu acceso.
+      Una vez abonado, activá tu plan desde aquí.
     </div>
-    <button class="vc-btn-yapague" id="vc-btn-yapague">✅ Ya pagué — activar acceso Pro</button>
+    <div style="display:flex;gap:10px;">
+      <button class="vc-btn-yapague" id="vc-btn-yapague-pro" style="flex:1;">✅ Activar Pro</button>
+      <button class="vc-btn-yapague" id="vc-btn-yapague-max" style="flex:1;background:rgba(244,114,182,0.1);color:#BE185D;border-color:rgba(244,114,182,0.25);">💎 Activar Max</button>
+    </div>
   </div>
   ` : ''}
 
@@ -420,15 +603,17 @@ function renderCuenta() {
   `;
 
   /* ── Event listeners ── */
-  const btnUpgrade = container.querySelector('#vc-btn-upgrade');
-  if (btnUpgrade) {
-    btnUpgrade.addEventListener('click', () => window.open(linkPago, '_blank'));
-  }
+  const btnUpgradePro = container.querySelector('#vc-btn-upgrade-pro');
+  if (btnUpgradePro) btnUpgradePro.addEventListener('click', () => window.open(linkPago, '_blank'));
 
-  const btnYaPague = container.querySelector('#vc-btn-yapague');
-  if (btnYaPague) {
-    btnYaPague.addEventListener('click', activarSuscripcion);
-  }
+  const btnUpgradeMax = container.querySelector('#vc-btn-upgrade-max');
+  if (btnUpgradeMax) btnUpgradeMax.addEventListener('click', () => window.open(linkPago, '_blank'));
+
+  const btnYaPaguePro = container.querySelector('#vc-btn-yapague-pro');
+  if (btnYaPaguePro) btnYaPaguePro.addEventListener('click', () => activarSuscripcion('pro'));
+
+  const btnYaPagueMax = container.querySelector('#vc-btn-yapague-max');
+  if (btnYaPagueMax) btnYaPagueMax.addEventListener('click', () => activarSuscripcion('max'));
 
   const btnLogout = container.querySelector('#vc-btn-logout');
   if (btnLogout) {
