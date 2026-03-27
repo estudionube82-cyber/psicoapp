@@ -328,12 +328,12 @@ function syncSidebarPerfil() {
     const p = JSON.parse(localStorage.getItem('perfil')) || {};
     const nameEl   = document.getElementById('sb-user-name');
     const avatarEl = document.getElementById('sb-avatar-initials');
-    if (nameEl)   nameEl.textContent = p.nombre || 'Mi perfil';
+    if (nameEl) nameEl.textContent = p.nombre || 'Mi perfil';
     if (avatarEl) {
       if (p.foto) {
         avatarEl.innerHTML = `<img src="${p.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
       } else {
-        avatarEl.textContent = p.nombre ? p.nombre.slice(0, 2).toUpperCase() : '👤';
+        avatarEl.innerHTML = `<span>${p.nombre ? p.nombre.slice(0, 2).toUpperCase() : '👤'}</span>`;
       }
     }
   } catch(e) {}
@@ -372,15 +372,15 @@ function navigate(viewId) {
 </script>
 
 <!-- Vista dashboard (CSS + HTML + lógica propios, sin duplicar globales) -->
-<script src="view-dashboard.js"></script>
+<script src="view-dashboard.js" onerror="console.warn('view-dashboard.js no encontrado')"></script>
 
 <!-- Vista pacientes -->
-<script src="view-pacientes.js"></script>
-<script src="view-agenda.js"></script>
-<script src="view-whatsapp.js"></script>
-<script src="view-pagos.js"></script>
-<script src="view-cuenta.js"></script>
-<script src="view-perfil.js"></script>
+<script src="view-pacientes.js" onerror="console.warn('view-pacientes.js no encontrado')"></script>
+<script src="view-agenda.js" onerror="console.warn('view-agenda.js no encontrado')"></script>
+<script src="view-whatsapp.js" onerror="console.warn('view-whatsapp.js no encontrado')"></script>
+<script src="view-pagos.js" onerror="console.warn('view-pagos.js no encontrado')"></script>
+<script src="view-cuenta.js" onerror="console.warn('view-cuenta.js no encontrado')"></script>
+<script src="view-perfil.js" onerror="console.warn('view-perfil.js no encontrado')"></script>
 
 </body>
 </html>

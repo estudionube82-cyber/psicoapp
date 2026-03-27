@@ -168,16 +168,12 @@ function _vp_syncSidebar(data) {
   const sbName = document.getElementById('sb-user-name');
   if (sbName && data.nombre) sbName.textContent = data.nombre;
 
-  const sbAvatar = document.getElementById('sb-avatar-initials');
-  if (sbAvatar) {
+  const avatarEl = document.getElementById('sb-avatar-initials');
+  if (avatarEl) {
     if (data.foto) {
-      /* Si el sidebar usa un div de avatar, poner la imagen */
-      const avatarDiv = sbAvatar.closest('.sb-avatar') || sbAvatar.parentElement;
-      if (avatarDiv) {
-        avatarDiv.innerHTML = `<img src="${data.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-      }
+      avatarEl.innerHTML = `<img src="${data.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
     } else if (data.nombre) {
-      sbAvatar.textContent = data.nombre.slice(0, 2).toUpperCase();
+      avatarEl.innerHTML = `<span>${data.nombre.slice(0, 2).toUpperCase()}</span>`;
     }
   }
 }
