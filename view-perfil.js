@@ -164,6 +164,24 @@ function savePerfil(data) {
   localStorage.setItem('perfil', JSON.stringify(data));
 }
 
+function _vp_syncSidebar(data) {
+  const sbName = document.getElementById('sb-user-name');
+  if (sbName && data.nombre) sbName.textContent = data.nombre;
+
+  const sbAvatar = document.getElementById('sb-avatar-initials');
+  if (sbAvatar) {
+    if (data.foto) {
+      /* Si el sidebar usa un div de avatar, poner la imagen */
+      const avatarDiv = sbAvatar.closest('.sb-avatar') || sbAvatar.parentElement;
+      if (avatarDiv) {
+        avatarDiv.innerHTML = `<img src="${data.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      }
+    } else if (data.nombre) {
+      sbAvatar.textContent = data.nombre.slice(0, 2).toUpperCase();
+    }
+  }
+}
+
 function handleSubmitPerfil(e) {
   if (e) e.preventDefault();
   const container = document.getElementById('view-perfil');
@@ -181,17 +199,17 @@ function handleSubmitPerfil(e) {
   /* Emitir evento global para sincronizar otras vistas */
   window.dispatchEvent(new Event('perfilActualizado'));
 
-  /* Actualizar sidebar con nuevo nombre */
-  const sbName = document.getElementById('sb-user-name');
-  if (sbName && data.nombre) sbName.textContent = data.nombre;
-  const sbAvatar = document.getElementById('sb-avatar-initials');
-  if (sbAvatar && data.nombre) sbAvatar.textContent = data.nombre.slice(0, 2).toUpperCase();
+  /* Sincronizar sidebar */
+  _vp_syncSidebar(data);
 
   /* Actualizar avatar del header de perfil */
-  const avatarEl = container.querySelector('#vp-avatar-initials');
-  if (avatarEl && data.nombre) avatarEl.textContent = data.nombre.slice(0, 2).toUpperCase();
-  const headerName = container.querySelector('#vp-header-name');
-  if (headerName && data.nombre) headerName.textContent = data.nombre;
+  const container2 = document.getElementById('view-perfil');
+  if (container2) {
+    const headerName = container2.querySelector('#vp-header-name');
+    if (headerName && data.nombre) headerName.textContent = data.nombre;
+    const avatarInitials = container2.querySelector('#vp-avatar-initials');
+    if (avatarInitials && data.nombre) avatarInitials.textContent = data.nombre.slice(0, 2).toUpperCase();
+  }
 
   /* Mostrar toast */
   const toast = container.querySelector('#vp-toast');
@@ -207,17 +225,30 @@ function renderPerfil() {
 
   const p = getPerfil();
   const iniciales = p.nombre ? p.nombre.slice(0, 2).toUpperCase() : '👤';
+  const fotoHTML = p.foto
+    ? `<img src="${p.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    : `<span id="vp-avatar-initials">${iniciales}</span>`;
 
   container.innerHTML = `
 <div class="vp-header">
   <div class="vp-header-inner">
-    <div class="vp-avatar-big" id="vp-avatar-initials">${iniciales}</div>
+    <div class="vp-avatar-big" id="vp-avatar-wrap" style="cursor:pointer;overflow:hidden;position:relative;" title="Cambiar foto">
+      ${fotoHTML}
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);border-radius:50%;
+                  display:flex;align-items:center;justify-content:center;
+                  opacity:0;transition:opacity .15s;" id="vp-avatar-overlay">
+        <span style="font-size:18px;">📷</span>
+      </div>
+    </div>
     <div>
       <div class="vp-header-title" id="vp-header-name">${p.nombre || 'Mi perfil'}</div>
-      <div class="vp-header-sub">Datos del profesional</div>
+      <div class="vp-header-sub">Toca el avatar para cambiar foto</div>
     </div>
   </div>
 </div>
+
+<!-- Input file oculto -->
+<input type="file" id="vp-foto-input" accept="image/*" style="display:none">
 
 <div class="vp-body">
 
@@ -266,6 +297,58 @@ function renderPerfil() {
   <div class="vp-pad"></div>
 </div>
   `;
+
+  /* ── Hover sobre avatar ── */
+  const avatarWrap = container.querySelector('#vp-avatar-wrap');
+  const overlay = container.querySelector('#vp-avatar-overlay');
+  avatarWrap.addEventListener('mouseenter', () => overlay.style.opacity = '1');
+  avatarWrap.addEventListener('mouseleave', () => overlay.style.opacity = '0');
+
+  /* ── Click en avatar → abrir selector de archivo ── */
+  avatarWrap.addEventListener('click', () => {
+    container.querySelector('#vp-foto-input').click();
+  });
+
+  /* ── Selección de foto → convertir a base64 y guardar ── */
+  container.querySelector('#vp-foto-input').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target.result;
+      /* Guardar foto en el perfil */
+      const perfilActual = getPerfil();
+      perfilActual.foto = base64;
+      savePerfil(perfilActual);
+
+      /* Actualizar avatar en pantalla */
+      avatarWrap.innerHTML = `
+        <img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);border-radius:50%;
+                    display:flex;align-items:center;justify-content:center;
+                    opacity:0;transition:opacity .15s;" id="vp-avatar-overlay">
+          <span style="font-size:18px;">📷</span>
+        </div>
+      `;
+      /* Re-bindear hover */
+      const newOverlay = avatarWrap.querySelector('#vp-avatar-overlay');
+      avatarWrap.addEventListener('mouseenter', () => newOverlay.style.opacity = '1');
+      avatarWrap.addEventListener('mouseleave', () => newOverlay.style.opacity = '0');
+
+      /* Actualizar sidebar y sincronizar */
+      _vp_syncSidebar(perfilActual);
+      window.dispatchEvent(new Event('perfilActualizado'));
+
+      /* Toast */
+      const toast = container.querySelector('#vp-toast');
+      if (toast) {
+        toast.textContent = '📷 Foto actualizada';
+        toast.classList.add('show');
+        setTimeout(() => { toast.textContent = '✅ Datos guardados correctamente'; toast.classList.remove('show'); }, 2500);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
 
   /* ── Event listeners ── */
   container.querySelector('#vp-btn-guardar').addEventListener('click', handleSubmitPerfil);

@@ -263,7 +263,7 @@
    FUNCIONES
    ═══════════════════════════════════════ */
 
-function getPerfil() {
+function vc_getPerfil() {
   try { return JSON.parse(localStorage.getItem('perfil')) || {}; }
   catch { return {}; }
 }
@@ -295,7 +295,7 @@ function renderCuenta() {
   const container = document.getElementById('view-cuenta');
   if (!container) return;
 
-  const perfil      = getPerfil();
+  const perfil      = vc_getPerfil();
   const suscripcion = getSuscripcion();
   const esPro       = suscripcion?.plan === 'pro' && suscripcion?.estado === 'activa';
   const linkPago    = 'https://mpago.la/TU_LINK_AQUI';
@@ -303,6 +303,9 @@ function renderCuenta() {
   const nombre    = perfil.nombre  || 'Profesional';
   const email     = perfil.email   || '';
   const iniciales = nombre.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).toUpperCase().join('');
+  const avatarHTML = perfil.foto
+    ? `<img src="${perfil.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:18px;">`
+    : (iniciales || '👤');
 
   const fechaLabel = esPro && suscripcion.fechaInicio
     ? new Date(suscripcion.fechaInicio).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -314,7 +317,7 @@ function renderCuenta() {
 <!-- HERO -->
 <div class="vc-hero">
   <div class="vc-hero-inner">
-    <div class="vc-avatar" id="vc-avatar">${iniciales || '👤'}</div>
+    <div class="vc-avatar" id="vc-avatar">${avatarHTML}</div>
     <div>
       <div class="vc-hero-name">${nombre}</div>
       ${email ? `<div class="vc-hero-email">${email}</div>` : ''}
