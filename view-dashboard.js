@@ -191,94 +191,23 @@
   </div>
 </div>
 
-<!-- QUICK STATS -->
-<div class="quick-stats">
-  <div class="stat-card" onclick="navigate('agenda')">
-    <div class="stat-card-top">
-      <div class="stat-icon si-green">📅</div>
-      <div class="stat-trend trend-up">4 confirmados</div>
-    </div>
-    <div class="stat-num">6</div>
-    <div class="stat-label">Turnos hoy</div>
-  </div>
-  <div class="stat-card" onclick="navigate('pacientes')">
-    <div class="stat-card-top">
-      <div class="stat-icon si-blue">👥</div>
-      <div class="stat-trend trend-neutral">En curso</div>
-    </div>
-    <div class="stat-num" style="color:#1976D2">20</div>
-    <div class="stat-label">Pacientes activos</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-card-top">
-      <div class="stat-icon" style="background:var(--primary-light)">🌱</div>
-      <div class="stat-trend trend-up">Este mes</div>
-    </div>
-    <div class="stat-num" style="color:#388E3C">2</div>
-    <div class="stat-label">Pacientes nuevos</div>
-  </div>
-  <div class="stat-card" onclick="navigate('pagos')">
-    <div class="stat-card-top">
-      <div class="stat-icon si-orange">💰</div>
-      <div class="stat-trend trend-up">↑ 12%</div>
-    </div>
-    <div class="stat-num" style="font-size:18px">$900k</div>
-    <div class="stat-label">Facturado Feb</div>
-  </div>
+<!-- QUICK STATS — se renderizan desde dashLoadStats() -->
+<div class="quick-stats" id="dash-quick-stats">
+  <!-- skeleton -->
+  <div class="stat-card"><div class="stat-num" style="color:var(--text-muted);font-size:18px">…</div><div class="stat-label">Turnos hoy</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:var(--text-muted);font-size:18px">…</div><div class="stat-label">Pacientes activos</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:var(--text-muted);font-size:18px">…</div><div class="stat-label">Pacientes nuevos</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:var(--text-muted);font-size:18px">…</div><div class="stat-label">Facturado</div></div>
 </div>
 
-<!-- TURNOS DE HOY -->
+<!-- TURNOS DE HOY — se renderizan desde dashLoadTurnos() -->
 <div class="section" style="margin-top:16px">
   <div class="section-title">
     Turnos de hoy
     <span class="section-link" onclick="navigate('agenda')">Ver agenda →</span>
   </div>
-  <div class="turnos-list">
-    <div class="turno-card tc-pac tc-past">
-      <div class="turno-time">9:00</div>
-      <div class="turno-info">
-        <div class="turno-name">María González</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-done">Realizada</div>
-    </div>
-    <div class="turno-card tc-pac tc-past">
-      <div class="turno-time">10:00</div>
-      <div class="turno-info">
-        <div class="turno-name">Carlos Fernández</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-done">Realizada</div>
-    </div>
-    <div class="now-indicator">
-      <div class="now-dot-h"></div>
-      <div class="now-label" id="dash-now-label">AHORA</div>
-      <div class="now-line-h"></div>
-    </div>
-    <div class="turno-card tc-pac tc-now">
-      <div class="turno-time now">15:00</div>
-      <div class="turno-info">
-        <div class="turno-name">Ana Rodríguez</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-ok">✓ Confirmó</div>
-    </div>
-    <div class="turno-card tc-pac">
-      <div class="turno-time">18:00</div>
-      <div class="turno-info">
-        <div class="turno-name">Diego Martínez</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-ok">✓ Confirmó</div>
-    </div>
-    <div class="turno-card tc-pac">
-      <div class="turno-time">19:00</div>
-      <div class="turno-info">
-        <div class="turno-name">Laura Pérez</div>
-        <div class="turno-meta">Sesión individual · 50 min</div>
-      </div>
-      <div class="turno-badge tb-wait">⏳ Sin confirmar</div>
-    </div>
+  <div class="turnos-list" id="dash-turnos-list">
+    <div style="padding:12px;color:var(--text-muted);font-size:13px;text-align:center">Cargando turnos…</div>
   </div>
 </div>
 
@@ -380,14 +309,12 @@ function dashUpdateFecha() {
   const hora = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
   el.textContent = `${dias[now.getDay()]} ${now.getDate()} de ${meses[now.getMonth()]} · ${hora}`;
   if (nl) nl.textContent = `AHORA · ${hora}`;
-
-  // Actualizar toggle tema
   const th = document.getElementById('toggle-thumb');
   const tema = document.documentElement.getAttribute('data-theme');
   if (th) th.textContent = tema === 'dark' ? '🌙' : '☀️';
 }
 
-/** Carga nombre del usuario desde Supabase */
+/** Carga nombre del usuario desde Supabase (profiles) */
 async function dashLoadUser() {
   try {
     const { data: { user } } = await sb.auth.getUser();
@@ -403,15 +330,12 @@ async function dashLoadUser() {
       const titulo = profile.titulo ? profile.titulo + ' ' : '';
       const fullName = titulo + nombre;
 
-      // Header de la vista
       const el = document.getElementById('dash-user-name');
       if (el) el.textContent = fullName;
 
-      // Sidebar
       const sbName = document.getElementById('sb-user-name');
       if (sbName) sbName.textContent = fullName;
 
-      // Avatar con iniciales
       const sbAvatar = document.getElementById('sb-avatar-initials');
       if (sbAvatar) {
         const parts = nombre.split(' ');
@@ -423,11 +347,215 @@ async function dashLoadUser() {
   }
 }
 
+/**
+ * Carga stats reales desde Supabase:
+ *  - turnos de hoy (tabla: turnos, columna: fecha_hora o fecha + hora)
+ *  - pacientes activos (tabla: pacientes, estado = 'activo')
+ *  - pacientes nuevos este mes (tabla: pacientes, created_at >= inicio del mes)
+ *
+ * AJUSTÁ los nombres de columnas según tu esquema real.
+ */
+async function dashLoadStats() {
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+
+    const hoy = new Date();
+    const fechaHoy = hoy.toISOString().split('T')[0]; // "YYYY-MM-DD"
+    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString();
+
+    // ── Turnos de hoy ──
+    const { count: turnosHoy } = await sb
+      .from('turnos')
+      .select('*', { count: 'exact', head: true })
+      .eq('profesional_id', user.id)
+      .gte('fecha_hora', `${fechaHoy}T00:00:00`)
+      .lte('fecha_hora', `${fechaHoy}T23:59:59`);
+
+    // ── Pacientes activos ──
+    const { count: pacientesActivos } = await sb
+      .from('pacientes')
+      .select('*', { count: 'exact', head: true })
+      .eq('profesional_id', user.id)
+      .eq('estado', 'activo');
+
+    // ── Pacientes nuevos este mes ──
+    const { count: pacientesNuevos } = await sb
+      .from('pacientes')
+      .select('*', { count: 'exact', head: true })
+      .eq('profesional_id', user.id)
+      .gte('created_at', inicioMes);
+
+    // ── Renderizar stats ──
+    const container = document.getElementById('dash-quick-stats');
+    if (!container) return;
+
+    const mesNombre = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+      'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][hoy.getMonth()];
+
+    container.innerHTML = `
+      <div class="stat-card" onclick="navigate('agenda')">
+        <div class="stat-card-top">
+          <div class="stat-icon si-green">📅</div>
+          <div class="stat-trend trend-neutral">Hoy</div>
+        </div>
+        <div class="stat-num">${turnosHoy ?? 0}</div>
+        <div class="stat-label">Turnos hoy</div>
+      </div>
+      <div class="stat-card" onclick="navigate('pacientes')">
+        <div class="stat-card-top">
+          <div class="stat-icon si-blue">👥</div>
+          <div class="stat-trend trend-neutral">En curso</div>
+        </div>
+        <div class="stat-num" style="color:#1976D2">${pacientesActivos ?? 0}</div>
+        <div class="stat-label">Pacientes activos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon" style="background:var(--primary-light)">🌱</div>
+          <div class="stat-trend trend-up">${mesNombre}</div>
+        </div>
+        <div class="stat-num" style="color:#388E3C">${pacientesNuevos ?? 0}</div>
+        <div class="stat-label">Pacientes nuevos</div>
+      </div>
+      <div class="stat-card" onclick="navigate('pagos')">
+        <div class="stat-card-top">
+          <div class="stat-icon si-orange">💰</div>
+          <div class="stat-trend trend-neutral">${mesNombre}</div>
+        </div>
+        <div class="stat-num" style="font-size:18px;color:var(--text-muted)">—</div>
+        <div class="stat-label">Facturado</div>
+      </div>
+    `;
+  } catch (e) {
+    console.warn('dashLoadStats:', e.message);
+  }
+}
+
+/**
+ * Carga los turnos de hoy desde Supabase y los renderiza.
+ * Asume columnas: fecha_hora (timestamptz), paciente_nombre (text),
+ *   tipo_sesion (text), duracion_min (int), estado (text).
+ *
+ * AJUSTÁ si usás JOIN con tabla pacientes o columnas distintas.
+ */
+async function dashLoadTurnos() {
+  const listEl = document.getElementById('dash-turnos-list');
+  if (!listEl) return;
+
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+
+    const hoy = new Date();
+    const fechaHoy = hoy.toISOString().split('T')[0];
+
+    const { data: turnos, error } = await sb
+      .from('turnos')
+      .select('id, fecha_hora, paciente_nombre, tipo_sesion, duracion_min, estado')
+      .eq('profesional_id', user.id)
+      .gte('fecha_hora', `${fechaHoy}T00:00:00`)
+      .lte('fecha_hora', `${fechaHoy}T23:59:59`)
+      .order('fecha_hora', { ascending: true });
+
+    if (error) throw error;
+
+    if (!turnos || turnos.length === 0) {
+      listEl.innerHTML = `
+        <div style="padding:20px;color:var(--text-muted);font-size:13px;text-align:center">
+          📭 Sin turnos para hoy
+        </div>`;
+      return;
+    }
+
+    const ahoraMs = hoy.getTime();
+    let nowInserted = false;
+    let html = '';
+
+    turnos.forEach((t, i) => {
+      const dt = new Date(t.fecha_hora);
+      const hora = dt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      const duracion = t.duracion_min ? `${t.duracion_min} min` : '50 min';
+      const tipo = t.tipo_sesion || 'Sesión individual';
+      const nombre = t.paciente_nombre || 'Paciente';
+
+      // Determinar estado visual
+      const esPasado = dt.getTime() < ahoraMs - 30 * 60 * 1000; // hace más de 30 min
+      const esAhora  = !esPasado && dt.getTime() <= ahoraMs + 60 * 60 * 1000;
+
+      // Insertar indicador "AHORA" antes del primer turno futuro
+      if (!nowInserted && !esPasado) {
+        const horaActual = hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        html += `
+          <div class="now-indicator">
+            <div class="now-dot-h"></div>
+            <div class="now-label" id="dash-now-label">AHORA · ${horaActual}</div>
+            <div class="now-line-h"></div>
+          </div>`;
+        nowInserted = true;
+      }
+
+      // Badge según estado de la BD
+      let badge = '';
+      const est = (t.estado || '').toLowerCase();
+      if (est === 'realizado' || est === 'completado') {
+        badge = `<div class="turno-badge tb-done">Realizada</div>`;
+      } else if (est === 'confirmado') {
+        badge = `<div class="turno-badge tb-ok">✓ Confirmó</div>`;
+      } else if (est === 'cancelado') {
+        badge = `<div class="turno-badge tb-done" style="background:var(--danger-light);color:var(--danger)">Cancelado</div>`;
+      } else {
+        badge = `<div class="turno-badge tb-wait">⏳ Sin confirmar</div>`;
+      }
+
+      const clases = [
+        'turno-card tc-pac',
+        esPasado ? 'tc-past' : '',
+        esAhora   ? 'tc-now'  : ''
+      ].join(' ').trim();
+
+      html += `
+        <div class="${clases}" onclick="navigate('agenda')">
+          <div class="turno-time${esAhora ? ' now' : ''}">${hora}</div>
+          <div class="turno-info">
+            <div class="turno-name">${nombre}</div>
+            <div class="turno-meta">${tipo} · ${duracion}</div>
+          </div>
+          ${badge}
+        </div>`;
+    });
+
+    // Si todos eran pasados, agregar indicador al final
+    if (!nowInserted) {
+      const horaActual = hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      html += `
+        <div class="now-indicator">
+          <div class="now-dot-h"></div>
+          <div class="now-label" id="dash-now-label">AHORA · ${horaActual}</div>
+          <div class="now-line-h"></div>
+        </div>`;
+    }
+
+    listEl.innerHTML = html;
+
+  } catch (e) {
+    console.warn('dashLoadTurnos:', e.message);
+    listEl.innerHTML = `
+      <div style="padding:12px;color:var(--danger);font-size:13px;text-align:center">
+        ⚠️ Error al cargar turnos
+      </div>`;
+  }
+}
+
 /** Hook llamado por navigate() cada vez que se entra a esta vista */
 window.onViewEnter_dashboard = function() {
   dashUpdateFecha();
+  dashLoadStats();
+  dashLoadTurnos();
 };
 
 /* ── INIT al cargar por primera vez ── */
 dashUpdateFecha();
 dashLoadUser();
+dashLoadStats();
+dashLoadTurnos();
