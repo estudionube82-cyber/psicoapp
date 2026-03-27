@@ -1,18 +1,21 @@
 // ============================================================
 //  view-agenda.js  —  Vista Agenda para PsicoApp SPA
 //  Requiere: instancia global `sb` (Supabase), contenedor #view-content
+//  Columnas tabla turnos: id, fecha (date), hora (time),
+//    duracion, estado, paciente_id, user_id
 // ============================================================
 
 (function () {
 
   // ── Estado del módulo ──────────────────────────────────────
-  let _userId       = null;
-  let _todosTurnos  = [];
+  let _userId         = null;
+  let _todosTurnos    = [];
   let _todosPacientes = [];
-  let _fechaActual  = new Date();
-  let _hoy          = new Date();
-  let _turnoSel     = null;
-  let _modoModal    = 'turno'; // 'turno' | 'evento'
+  let _fechaActual    = new Date();
+  let _hoy            = new Date();
+  let _turnoSel       = null;
+  let _modoModal      = 'turno'; // 'turno' | 'evento'
+  let _currentView    = 'semana';
 
   // ── Constantes ────────────────────────────────────────────
   const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -36,10 +39,6 @@
   function tipoEmoji(tipo) {
     return {sesion:'🟢',online:'🔵',evaluacion:'🟡',judicial:'🟣',evento:'🟠',otro:'⚪'}[tipo] || '🟢';
   }
-  function estadoLabel(e) {
-    return {pendiente:'⏳ Pendiente',confirmado:'✓ Confirmado',
-            realizado:'✅ Realizado',cancelado:'❌ Cancelado'}[e] || e;
-  }
   function evBg(tipo) {
     return {sesion:'#E8F5EE',online:'#E3F2FD',evaluacion:'#FFF8E1',
             judicial:'#EDE9FE',evento:'#FEF0E6',otro:'#F3F4F6'}[tipo] || '#E8F5EE';
@@ -53,11 +52,15 @@
     return _todosTurnos.filter(t => t.fecha === key).sort((a,b) => (a.hora||'').localeCompare(b.hora||''));
   }
   function nombrePaciente(t) {
-    if (t.pacientes) return `${t.pacientes.nombre} ${t.pacientes.apellido}`.trim();
+    if (t.pacientes) return `${t.pacientes.nombre || ''} ${t.pacientes.apellido || ''}`.trim();
     return t.notas || tipoLabel(t.tipo);
   }
-  function horaActualRedondeada() {
-    return String(new Date().getHours()).padStart(2,'0') + ':00';
+  // Obtener lunes de la semana que contiene `d`
+  function lunesDe(d) {
+    const lunes = new Date(d);
+    lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+    lunes.setHours(0,0,0,0);
+    return lunes;
   }
 
   // ── Toast ─────────────────────────────────────────────────
@@ -78,13 +81,17 @@
 
   // ── Carga de datos ────────────────────────────────────────
   async function cargarPacientes() {
-    const { data } = await sb.from('pacientes')
-      .select('id,nombre,apellido')
-      .eq('user_id', _userId)
-      .neq('archivado', true)
-      .order('apellido');
-    _todosPacientes = data || [];
-    _rellenarSelectPaciente();
+    try {
+      const { data, error } = await sb.from('pacientes')
+        .select('id,nombre,apellido')
+        .eq('user_id', _userId)
+        .order('apellido');
+      if (error) throw error;
+      _todosPacientes = data || [];
+      _rellenarSelectPaciente();
+    } catch(e) {
+      console.warn('[Agenda] cargarPacientes:', e.message);
+    }
   }
 
   function _rellenarSelectPaciente() {
@@ -94,28 +101,33 @@
     _todosPacientes.forEach(p => {
       const o = document.createElement('option');
       o.value = p.id;
-      o.textContent = `${p.apellido}, ${p.nombre}`;
+      o.textContent = `${p.apellido || ''}, ${p.nombre || ''}`.trim().replace(/^,\s*/,'');
       sel.appendChild(o);
     });
   }
 
   async function cargarTurnos() {
-    const { data, error } = await sb.from('turnos')
-      .select('*, pacientes(nombre,apellido)')
-      .eq('user_id', _userId)
-      .order('fecha').order('hora');
-    if (error) console.error('[Agenda] Error al cargar turnos:', error.message);
-    _todosTurnos = data || [];
+    try {
+      const { data, error } = await sb.from('turnos')
+        .select('id, fecha, hora, duracion, estado, paciente_id, user_id, pacientes(nombre,apellido)')
+        .eq('user_id', _userId)
+        .order('fecha', { ascending: true })
+        .order('hora',  { ascending: true });
+      if (error) throw error;
+      _todosTurnos = data || [];
+    } catch(e) {
+      console.error('[Agenda] cargarTurnos:', e.message);
+      _todosTurnos = [];
+    }
   }
 
-  // ── Render principal ──────────────────────────────────────
+  // ── Render HTML principal ──────────────────────────────────
   function renderAgenda() {
     const container = document.getElementById('view-content');
     if (!container) return;
 
     container.innerHTML = `
       <style>
-        /* ── Agenda SPA styles ── */
         #ag-wrap { font-family: var(--font, 'Plus Jakarta Sans', sans-serif); color: var(--text, #1E1040); }
         #ag-toolbar {
           display: flex; align-items: center; gap: 10px;
@@ -159,12 +171,13 @@
         .ag-day-pill.selected { background: var(--primary, #5B2FA8); }
         .ag-dp-name { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #7C6FAE); }
         .ag-dp-num  { font-size: 18px; font-weight: 800; color: var(--text, #1E1040); }
-        .ag-day-pill.selected .ag-dp-name, .ag-day-pill.selected .ag-dp-num { color: #fff; }
+        .ag-day-pill.selected .ag-dp-name,
+        .ag-day-pill.selected .ag-dp-num { color: #fff; }
         .ag-dp-pip  { width: 5px; height: 5px; border-radius: 50%; background: var(--accent, #F472B6); margin-top: 3px; }
         .ag-day-pill.selected .ag-dp-pip { background: rgba(255,255,255,.6); }
 
         /* Time grid */
-        #ag-time-grid { overflow-y: auto; max-height: calc(100vh - 280px); padding-bottom: 24px; }
+        #ag-time-grid { overflow-y: auto; max-height: calc(100vh - 280px); padding-bottom: 80px; }
         .ag-time-row { display: flex; min-height: 52px; border-bottom: 1px solid var(--border, #E5E2F5); }
         .ag-time-lbl { width: 46px; flex-shrink: 0; padding: 6px 6px 0 10px; font-size: 10px; font-weight: 600; color: var(--text-muted, #7C6FAE); }
         .ag-slot-area { flex: 1; padding: 4px 8px 4px 2px; }
@@ -172,7 +185,7 @@
           min-height: 36px; border-radius: 8px; display: flex; align-items: center;
           padding: 0 12px; font-size: 11px; font-weight: 600;
           border: 1.5px dashed var(--border, #E5E2F5); color: var(--text-muted, #7C6FAE);
-          cursor: pointer; transition: all .15s;
+          cursor: pointer; transition: all .15s; user-select: none;
         }
         .ag-free-slot:hover { background: var(--primary-light, #EDE9FE); border-color: var(--primary, #5B2FA8); color: var(--primary, #5B2FA8); }
         .ag-ev-block {
@@ -185,17 +198,19 @@
         .ag-ev-meta { font-size: 11px; margin-top: 2px; opacity: .75; }
 
         /* Week grid */
-        #ag-week-wrap { overflow: hidden; }
-        #ag-week-header { display: flex; background: var(--surface,#fff); border-bottom: 2px solid var(--border,#E5E2F5); }
-        .ag-wh-col { flex:1; text-align:center; padding:9px 4px; border-left:1px solid var(--border,#E5E2F5); }
+        #ag-week-header { display: flex; background: var(--surface,#fff); border-bottom: 2px solid var(--border,#E5E2F5); overflow-x: auto; }
+        .ag-wh-col { flex:1; min-width: 44px; text-align:center; padding:9px 4px; border-left:1px solid var(--border,#E5E2F5); }
         .ag-wh-col:first-child { flex: 0 0 46px; border-left: none; }
         .ag-wh-day { font-size:9px; font-weight:800; text-transform:uppercase; color:var(--text-muted,#7C6FAE); }
         .ag-wh-num { font-size:17px; font-weight:800; }
         .ag-wh-num.today { color: var(--primary,#5B2FA8); }
-        #ag-week-grid { overflow-y:auto; max-height:calc(100vh - 280px); padding-bottom:24px; }
+        #ag-week-grid { overflow-y:auto; overflow-x:auto; max-height:calc(100vh - 280px); padding-bottom:80px; }
         .ag-week-row { display:flex; border-bottom:1px solid var(--border,#E5E2F5); min-height:46px; }
         .ag-week-time { flex:0 0 46px; padding:6px 6px 0 8px; font-size:10px; font-weight:600; color:var(--text-muted,#7C6FAE); border-right:1px solid var(--border,#E5E2F5); }
-        .ag-week-cell { flex:1; border-left:1px solid var(--border,#E5E2F5); padding:2px; min-height:46px; }
+        .ag-week-cell { flex:1; min-width:44px; border-left:1px solid var(--border,#E5E2F5); padding:2px; min-height:46px; cursor:pointer; transition:background .1s; }
+        .ag-week-cell:hover { background: var(--primary-light, #EDE9FE); }
+        .ag-week-cell.has-turno { cursor: default; }
+        .ag-week-cell.has-turno:hover { background: transparent; }
         .ag-week-ev {
           border-radius:5px; padding:3px 6px; font-size:10px; font-weight:700;
           cursor:pointer; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -250,7 +265,7 @@
           width:100%; padding:10px 12px; border-radius:10px;
           border:1.5px solid var(--border,#E5E2F5); font-size:14px; font-weight:500;
           background:var(--bg,#F8F7FF); color:var(--text,#1E1040); font-family:inherit;
-          outline:none; transition:border .15s;
+          outline:none; transition:border .15s; box-sizing:border-box;
         }
         .ag-field select:focus, .ag-field input:focus, .ag-field textarea:focus {
           border-color:var(--primary,#5B2FA8);
@@ -263,7 +278,7 @@
           margin-top:6px; transition:opacity .15s;
         }
         .ag-btn-primary:disabled { opacity:.5; cursor:not-allowed; }
-        .ag-msg-error { color:#D32F2F; font-size:12px; font-weight:600; margin-bottom:10px; display:none; }
+        .ag-msg-error { color:#D32F2F; font-size:12px; font-weight:600; margin-bottom:10px; display:none; padding:8px 12px; background:#FEE2E2; border-radius:8px; }
 
         /* Detalle */
         .ag-det-header { margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border,#E5E2F5); }
@@ -313,7 +328,7 @@
         <!-- DIA VIEW -->
         <div id="ag-dia-view" style="display:none">
           <div id="ag-day-strip"></div>
-          <div id="ag-time-grid"><div class="ag-empty"><div class="ag-empty-icon">⏳</div>Cargando...</div></div>
+          <div id="ag-time-grid"></div>
         </div>
 
         <!-- SEMANA VIEW -->
@@ -342,7 +357,7 @@
           <div class="ag-modal-handle"></div>
           <div class="ag-modal-title" id="ag-modal-title">📅 Nuevo turno</div>
           <div class="ag-modal-sub"   id="ag-modal-sub">Agendá un turno con un paciente.</div>
-          <div class="ag-msg-error" id="ag-msg-error"></div>
+          <div class="ag-msg-error"   id="ag-msg-error"></div>
 
           <div class="ag-field" id="ag-sec-paciente">
             <label>Paciente <span style="color:#E53935">*</span></label>
@@ -421,7 +436,7 @@
     // ── Bind de eventos ────────────────────────────────────
     document.getElementById('ag-nav-back').addEventListener('click', navBack);
     document.getElementById('ag-nav-fwd').addEventListener('click', navFwd);
-    document.getElementById('ag-fab').addEventListener('click', () => abrirModal('turno'));
+    document.getElementById('ag-fab').addEventListener('click', () => abrirModal('turno', null, null));
 
     ['dia','semana','mes'].forEach(v => {
       document.getElementById(`ag-btn-${v}`).addEventListener('click', () => setView(v));
@@ -441,12 +456,11 @@
   }
 
   // ── VIEWS ─────────────────────────────────────────────────
-  let _currentView = 'semana';
-
   function setView(v) {
     _currentView = v;
     ['dia','semana','mes'].forEach(x => {
-      document.getElementById(`ag-${x}-view`).style.display = x === v ? '' : 'none';
+      const el = document.getElementById(`ag-${x}-view`);
+      if (el) el.style.display = x === v ? '' : 'none';
       const btn = document.getElementById(`ag-btn-${x}`);
       if (btn) btn.classList.toggle('active', x === v);
     });
@@ -457,18 +471,17 @@
   }
 
   function actualizarHeader() {
-    const d = _fechaActual;
-    const el = document.getElementById('ag-t-main');
-    const es = document.getElementById('ag-t-sub');
+    const d   = _fechaActual;
+    const el  = document.getElementById('ag-t-main');
+    const es  = document.getElementById('ag-t-sub');
     if (!el) return;
     if (_currentView === 'dia') {
       el.textContent = `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;
       es.textContent = d.getFullYear();
     } else if (_currentView === 'semana') {
-      const lunes = new Date(d);
-      lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
-      const viernes = new Date(lunes); viernes.setDate(lunes.getDate() + 5);
-      el.textContent = `${lunes.getDate()} ${MESES[lunes.getMonth()].slice(0,3)} – ${viernes.getDate()} ${MESES[viernes.getMonth()].slice(0,3)}`;
+      const lunes  = lunesDe(d);
+      const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
+      el.textContent = `${lunes.getDate()} ${MESES[lunes.getMonth()].slice(0,3)} – ${domingo.getDate()} ${MESES[domingo.getMonth()].slice(0,3)}`;
       es.textContent = lunes.getFullYear();
     } else {
       el.textContent = `${MESES[d.getMonth()]} ${d.getFullYear()}`;
@@ -494,8 +507,7 @@
     const strip = document.getElementById('ag-day-strip');
     if (!strip) return;
     strip.innerHTML = '';
-    const lunes = new Date(_fechaActual);
-    lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+    const lunes = lunesDe(_fechaActual);
     for (let i = 0; i < 7; i++) {
       const d = new Date(lunes); d.setDate(lunes.getDate() + i);
       const tieneT = _todosTurnos.some(t => t.fecha === fmtDate(d));
@@ -520,15 +532,12 @@
     const grid = document.getElementById('ag-time-grid');
     if (!grid) return;
     const turnos = turnosDeFecha(_fechaActual);
-    if (!turnos.length) {
-      grid.innerHTML = `<div class="ag-empty"><div class="ag-empty-icon">📭</div>Sin turnos este día<br><small style="font-size:12px;margin-top:6px;display:block">Tocá ＋ para agendar</small></div>`;
-      return;
-    }
     let html = '';
     HORAS.forEach(h => {
-      const turno = turnos.find(t => parseInt(t.hora) === h);
+      const horaStr = String(h).padStart(2,'0') + ':00';
+      const turno   = turnos.find(t => parseInt((t.hora||'0').split(':')[0]) === h);
       html += `<div class="ag-time-row">
-                 <div class="ag-time-lbl">${h}:00</div>
+                 <div class="ag-time-lbl">${horaStr}</div>
                  <div class="ag-slot-area">`;
       if (turno) {
         const bg  = evBg(turno.tipo);
@@ -537,27 +546,27 @@
         html += `<div class="ag-ev-block" style="background:${bg};border-left-color:${brd}"
                       onclick="window._agDetalle('${turno.id}')">
                    <div class="ag-ev-name">${tipoEmoji(turno.tipo)} ${nom}</div>
-                   <div class="ag-ev-meta">${h}:00 · ${turno.duracion || 50} min · ${tipoLabel(turno.tipo)}</div>
+                   <div class="ag-ev-meta">${horaStr} · ${turno.duracion || 50} min · ${tipoLabel(turno.tipo)}</div>
                  </div>`;
-      } else if (h < 20) {
-        html += `<div class="ag-free-slot" onclick="window._agModalHora('${h}:00')">+ Agendar</div>`;
+      } else {
+        html += `<div class="ag-free-slot" onclick="window._agModalHora('${horaStr}')">+ Agendar</div>`;
       }
       html += `</div></div>`;
     });
     grid.innerHTML = html;
   }
 
-  // ── WEEK GRID ─────────────────────────────────────────────
+  // ── WEEK GRID (Lun–Dom, 7 días) ───────────────────────────
   function renderSemana() {
     const hdrEl  = document.getElementById('ag-week-header');
     const gridEl = document.getElementById('ag-week-grid');
     if (!hdrEl || !gridEl) return;
 
-    const lunes = new Date(_fechaActual);
-    lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+    const lunes = lunesDe(_fechaActual);
 
+    // Header: columna vacía de tiempo + 7 días
     let hdr = '<div class="ag-wh-col"></div>';
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       const d = new Date(lunes); d.setDate(lunes.getDate() + i);
       const esHoy = fmtDate(d) === fmtDate(_hoy);
       hdr += `<div class="ag-wh-col">
@@ -567,21 +576,27 @@
     }
     hdrEl.innerHTML = hdr;
 
+    // Filas de horas
     let rows = '';
     HORAS.forEach(h => {
-      rows += `<div class="ag-week-row"><div class="ag-week-time">${h}:00</div>`;
-      for (let i = 0; i < 6; i++) {
-        const d = new Date(lunes); d.setDate(lunes.getDate() + i);
-        const turno = _todosTurnos.find(t => t.fecha === fmtDate(d) && parseInt(t.hora) === h);
-        rows += '<div class="ag-week-cell">';
+      const horaStr = String(h).padStart(2,'0') + ':00';
+      rows += `<div class="ag-week-row"><div class="ag-week-time">${horaStr}</div>`;
+      for (let i = 0; i < 7; i++) {
+        const d     = new Date(lunes); d.setDate(lunes.getDate() + i);
+        const fecha = fmtDate(d);
+        const turno = _todosTurnos.find(t => t.fecha === fecha && parseInt((t.hora||'0').split(':')[0]) === h);
         if (turno) {
           const bg  = evBg(turno.tipo);
           const brd = evBorder(turno.tipo);
           const nom = turno.pacientes ? turno.pacientes.apellido : tipoLabel(turno.tipo);
-          rows += `<div class="ag-week-ev" style="background:${bg};border-left-color:${brd};color:${brd}"
-                        onclick="window._agDetalle('${turno.id}')">${nom}</div>`;
+          rows += `<div class="ag-week-cell has-turno">
+                     <div class="ag-week-ev" style="background:${bg};border-left-color:${brd};color:${brd}"
+                          onclick="window._agDetalle('${turno.id}')">${nom}</div>
+                   </div>`;
+        } else {
+          // Celda vacía clickeable → abrir modal precompletado
+          rows += `<div class="ag-week-cell" onclick="window._agModalFechaHora('${fecha}','${horaStr}')"></div>`;
         }
-        rows += '</div>';
       }
       rows += '</div>';
     });
@@ -617,6 +632,7 @@
         pill.className = 'ag-mc-pill';
         pill.style.cssText = `background:${bg};color:${brd}`;
         pill.textContent = nom;
+        pill.addEventListener('click', e => { e.stopPropagation(); abrirDetalle(t.id); });
         cell.appendChild(pill);
       });
       if (turnos.length > 3) {
@@ -634,7 +650,7 @@
   }
 
   // ── MODAL NUEVO TURNO ─────────────────────────────────────
-  function abrirModal(modo, hora) {
+  function abrirModal(modo, fecha, hora) {
     _modoModal = modo || 'turno';
     const esTurno = _modoModal === 'turno';
     document.getElementById('ag-modal-title').textContent = esTurno ? '📅 Nuevo turno' : '🗓 Nuevo evento';
@@ -643,13 +659,23 @@
     document.getElementById('ag-sec-paciente').style.display = esTurno ? '' : 'none';
     document.getElementById('ag-sec-tipo').style.display     = esTurno ? '' : 'none';
     document.getElementById('ag-sec-titulo').style.display   = esTurno ? 'none' : '';
-    document.getElementById('ag-f-fecha').value      = fmtDate(_fechaActual);
-    document.getElementById('ag-f-hora').value       = hora || horaActualRedondeada();
-    document.getElementById('ag-f-paciente').value   = '';
-    document.getElementById('ag-f-titulo').value     = '';
-    document.getElementById('ag-f-notas').value      = '';
-    document.getElementById('ag-f-tipo').value       = 'sesion';
-    document.getElementById('ag-msg-error').style.display = 'none';
+
+    // Pre-completar fecha y hora si se pasaron como parámetros
+    const fechaVal = fecha || fmtDate(_fechaActual);
+    const horaVal  = hora  || (String(new Date().getHours()).padStart(2,'0') + ':00');
+
+    document.getElementById('ag-f-fecha').value    = fechaVal;
+    document.getElementById('ag-f-hora').value     = horaVal;
+    document.getElementById('ag-f-paciente').value = '';
+    document.getElementById('ag-f-titulo').value   = '';
+    document.getElementById('ag-f-notas').value    = '';
+    document.getElementById('ag-f-tipo').value     = 'sesion';
+    document.getElementById('ag-f-duracion').value = '50';
+
+    const errEl = document.getElementById('ag-msg-error');
+    errEl.style.display = 'none';
+    errEl.textContent   = '';
+
     document.getElementById('ag-overlay').classList.add('open');
   }
 
@@ -666,60 +692,66 @@
     btn.disabled = true;
     btn.textContent = 'Guardando...';
 
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { btn.disabled = false; btn.textContent = '✓ Agendar turno'; return; }
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { mostrarError('No hay sesión activa.'); btn.disabled = false; btn.textContent = '✓ Agendar turno'; return; }
 
-    const horaFmt = hora.length === 5 ? hora + ':00' : hora;
+      // Normalizar hora a HH:MM:SS
+      const horaFmt = hora.length === 5 ? hora + ':00' : hora;
 
-    let insertData = {
-      user_id:  session.user.id,
-      fecha,
-      hora:     horaFmt,
-      duracion: parseInt(document.getElementById('ag-f-duracion').value),
-      estado:   'pendiente',
-      notas:    document.getElementById('ag-f-notas').value.trim() || null,
-    };
+      let insertData = {
+        user_id:  session.user.id,
+        fecha,
+        hora:     horaFmt,
+        duracion: parseInt(document.getElementById('ag-f-duracion').value) || 50,
+        estado:   'pendiente',
+        notas:    document.getElementById('ag-f-notas').value.trim() || null,
+      };
 
-    if (_modoModal === 'turno') {
-      const pacId = document.getElementById('ag-f-paciente').value;
-      if (!pacId) {
-        btn.disabled = false;
-        btn.textContent = '✓ Agendar turno';
-        mostrarError('Seleccioná un paciente.');
-        return;
+      if (_modoModal === 'turno') {
+        const pacId = document.getElementById('ag-f-paciente').value;
+        if (!pacId) {
+          btn.disabled = false;
+          btn.textContent = '✓ Agendar turno';
+          mostrarError('Seleccioná un paciente.');
+          return;
+        }
+        insertData.paciente_id = pacId;
+        insertData.tipo = document.getElementById('ag-f-tipo').value;
+      } else {
+        const titulo = document.getElementById('ag-f-titulo').value.trim();
+        if (!titulo) {
+          btn.disabled = false;
+          btn.textContent = '✓ Guardar evento';
+          mostrarError('Escribí un título para el evento.');
+          return;
+        }
+        insertData.tipo  = 'evento';
+        insertData.notas = titulo + (insertData.notas ? ' — ' + insertData.notas : '');
       }
-      insertData.paciente_id = pacId;
-      insertData.tipo = document.getElementById('ag-f-tipo').value;
-    } else {
-      const titulo = document.getElementById('ag-f-titulo').value.trim();
-      if (!titulo) {
-        btn.disabled = false;
-        btn.textContent = '✓ Guardar evento';
-        mostrarError('Escribí un título para el evento.');
-        return;
-      }
-      insertData.tipo  = 'evento';
-      insertData.notas = titulo + (insertData.notas ? ' — ' + insertData.notas : '');
+
+      const { error } = await sb.from('turnos').insert(insertData);
+      if (error) throw error;
+
+      cerrarModal();
+      toast('✅ Turno agendado');
+      await cargarTurnos();
+      buildDayStrip();
+      setView(_currentView);
+
+    } catch(e) {
+      mostrarError('Error al guardar: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = _modoModal === 'turno' ? '✓ Agendar turno' : '✓ Guardar evento';
     }
-
-    const { error } = await sb.from('turnos').insert(insertData);
-    btn.disabled = false;
-    btn.textContent = _modoModal === 'turno' ? '✓ Agendar turno' : '✓ Guardar evento';
-
-    if (error) { mostrarError('Error al guardar: ' + error.message); return; }
-
-    cerrarModal();
-    toast('✅ Turno agendado');
-    await cargarTurnos();
-    buildDayStrip();
-    setView(_currentView);
   }
 
   function mostrarError(msg) {
     const el = document.getElementById('ag-msg-error');
     if (!el) return;
-    el.textContent = msg;
-    el.style.display = 'block';
+    el.textContent    = msg;
+    el.style.display  = 'block';
   }
 
   // ── DETALLE ───────────────────────────────────────────────
@@ -743,7 +775,7 @@
     };
 
     let body = detRow('🕐', 'Duración', `${t.duracion || 50} min`);
-    body += detRow('📋', 'Estado', badgeMap[t.estado] || t.estado);
+    body += detRow('📋', 'Estado', badgeMap[t.estado] || t.estado || '—');
     if (t.notas) body += detRow('📝', 'Notas', t.notas);
     document.getElementById('ag-det-body').innerHTML = body;
 
@@ -767,28 +799,38 @@
 
   async function cambiarEstado(estado) {
     if (!_turnoSel) return;
-    const { error } = await sb.from('turnos').update({ estado }).eq('id', _turnoSel.id);
-    if (error) { toast('Error al actualizar estado'); return; }
-    cerrarDetalle();
-    await cargarTurnos();
-    setView(_currentView);
-    toast(estado === 'realizado' ? '✅ Sesión marcada como realizada' : '✓ Estado actualizado');
+    try {
+      const { error } = await sb.from('turnos').update({ estado }).eq('id', _turnoSel.id);
+      if (error) throw error;
+      cerrarDetalle();
+      await cargarTurnos();
+      setView(_currentView);
+      toast(estado === 'realizado' ? '✅ Sesión marcada como realizada' : '✓ Estado actualizado');
+    } catch(e) {
+      toast('⚠️ Error al actualizar: ' + e.message);
+    }
   }
 
   async function eliminarTurno() {
     if (!_turnoSel) return;
     if (!confirm('¿Eliminar este turno?')) return;
-    await sb.from('turnos').delete().eq('id', _turnoSel.id);
-    cerrarDetalle();
-    await cargarTurnos();
-    buildDayStrip();
-    setView(_currentView);
-    toast('🗑 Turno eliminado');
+    try {
+      const { error } = await sb.from('turnos').delete().eq('id', _turnoSel.id);
+      if (error) throw error;
+      cerrarDetalle();
+      await cargarTurnos();
+      buildDayStrip();
+      setView(_currentView);
+      toast('🗑 Turno eliminado');
+    } catch(e) {
+      toast('⚠️ Error al eliminar: ' + e.message);
+    }
   }
 
   // ── Hooks globales para onclick en HTML generado ───────────
-  window._agDetalle    = (id) => abrirDetalle(id);
-  window._agModalHora  = (h)  => abrirModal('turno', h);
+  window._agDetalle        = (id)          => abrirDetalle(id);
+  window._agModalHora      = (hora)        => abrirModal('turno', null, hora);
+  window._agModalFechaHora = (fecha, hora) => abrirModal('turno', fecha, hora);
 
   // ── ENTRY POINT ───────────────────────────────────────────
   window.onViewEnter_agenda = async function () {
@@ -796,15 +838,19 @@
     _hoy         = new Date();
     _currentView = 'semana';
 
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) return;
-    _userId = session.user.id;
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) return;
+      _userId = session.user.id;
 
-    renderAgenda();
+      renderAgenda();
 
-    await Promise.all([cargarPacientes(), cargarTurnos()]);
-    actualizarHeader();
-    setView('semana');
+      await Promise.all([cargarPacientes(), cargarTurnos()]);
+      actualizarHeader();
+      setView('semana');
+    } catch(e) {
+      console.error('[Agenda] onViewEnter_agenda:', e.message);
+    }
   };
 
 })();
