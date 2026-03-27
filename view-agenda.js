@@ -52,7 +52,8 @@
     return _todosTurnos.filter(t => t.fecha === key).sort((a,b) => (a.hora||'').localeCompare(b.hora||''));
   }
   function nombrePaciente(t) {
-    if (t.pacientes) return `${t.pacientes.nombre || ''} ${t.pacientes.apellido || ''}`.trim();
+    const p = _todosPacientes.find(x => x.id === t.paciente_id);
+    if (p) return `${p.nombre || ''} ${p.apellido || ''}`.trim();
     return t.notas || tipoLabel(t.tipo);
   }
   // Obtener lunes de la semana que contiene `d`
@@ -109,11 +110,12 @@
   async function cargarTurnos() {
     try {
       const { data, error } = await sb.from('turnos')
-        .select('id, fecha, hora, duracion, estado, paciente_id, user_id, pacientes(nombre,apellido)')
+        .select('*')
         .eq('user_id', _userId)
         .order('fecha', { ascending: true })
         .order('hora',  { ascending: true });
       if (error) throw error;
+      console.log('TURNOS:', data);
       _todosTurnos = data || [];
     } catch(e) {
       console.error('[Agenda] cargarTurnos:', e.message);
@@ -588,7 +590,7 @@
         if (turno) {
           const bg  = evBg(turno.tipo);
           const brd = evBorder(turno.tipo);
-          const nom = turno.pacientes ? turno.pacientes.apellido : tipoLabel(turno.tipo);
+          const nom = nombrePaciente(turno);
           rows += `<div class="ag-week-cell has-turno">
                      <div class="ag-week-ev" style="background:${bg};border-left-color:${brd};color:${brd}"
                           onclick="window._agDetalle('${turno.id}')">${nom}</div>
@@ -627,7 +629,7 @@
       turnos.slice(0, 3).forEach(t => {
         const bg  = evBg(t.tipo);
         const brd = evBorder(t.tipo);
-        const nom = t.pacientes ? t.pacientes.apellido : tipoLabel(t.tipo);
+        const nom = nombrePaciente(t);
         const pill = document.createElement('div');
         pill.className = 'ag-mc-pill';
         pill.style.cssText = `background:${bg};color:${brd}`;
