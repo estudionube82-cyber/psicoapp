@@ -178,6 +178,9 @@ function handleSubmitPerfil(e) {
 
   savePerfil(data);
 
+  /* Emitir evento global para sincronizar otras vistas */
+  window.dispatchEvent(new Event('perfilActualizado'));
+
   /* Actualizar sidebar con nuevo nombre */
   const sbName = document.getElementById('sb-user-name');
   if (sbName && data.nombre) sbName.textContent = data.nombre;
