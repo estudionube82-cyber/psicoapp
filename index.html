@@ -205,8 +205,11 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </button>
 
       <div class="sb-section">Cuenta</div>
+      <button class="sb-item" onclick="navigate('perfil')" data-view="perfil">
+        <span class="sb-icon">🪪</span> Perfil
+      </button>
       <button class="sb-item" onclick="navigate('cuenta')" data-view="cuenta">
-        <span class="sb-icon">👤</span> Cuenta
+        <span class="sb-icon">⭐</span> Suscripción
       </button>
     </nav>
 
@@ -262,10 +265,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     </section>
 
     <section id="view-perfil" class="view-section">
-      <div class="placeholder-view">
-        <div class="ph-icon">👤</div>
-        <h2>Perfil</h2>
-      </div>
     </section>
 
     <!-- Vista: Cuenta (suscripción) -->
@@ -288,8 +287,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     <button class="bn-item" onclick="navigate('whatsapp')" data-view="whatsapp">
       <span class="bn-icon">💬</span><span class="bn-label">WhatsApp</span>
     </button>
-    <button class="bn-item" onclick="navigate('cuenta')" data-view="cuenta">
-      <span class="bn-icon">👤</span><span class="bn-label">Cuenta</span>
+    <button class="bn-item" onclick="navigate('perfil')" data-view="perfil">
+      <span class="bn-icon">👤</span><span class="bn-label">Perfil</span>
     </button>
   </nav>
 
@@ -371,6 +370,7 @@ function navigate(viewId) {
 <script src="view-whatsapp.js"></script>
 <script src="view-pagos.js"></script>
 <script src="view-cuenta.js"></script>
+<script src="view-perfil.js"></script>
 
 </body>
 </html>
