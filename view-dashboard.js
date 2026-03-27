@@ -126,17 +126,7 @@
 
 /* ── INGRESOS ── */
 .income-card { background: var(--surface); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-sm); }
-.income-main { margin-bottom: 10px; }
-.income-amount { font-size: 28px; font-weight: 800; color: var(--text); }
-.income-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.income-bar-container { height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
-.income-bar { height: 100%; width: 75%; background: linear-gradient(90deg, var(--v1), var(--v3)); border-radius: 10px; }
-.income-rows { display: flex; flex-direction: column; gap: 10px; }
-.income-row { display: flex; align-items: center; justify-content: space-between; }
-.income-row-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
-.income-dot { width: 8px; height: 8px; border-radius: 50%; }
-.income-val { font-size: 14px; font-weight: 700; color: var(--text); text-align: right; }
-.income-meta { font-size: 11px; color: var(--text-muted); text-align: right; }
+.income-placeholder { text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px; }
 
 /* ── WHATSAPP ── */
 .wp-pending-list { display: flex; flex-direction: column; gap: 8px; }
@@ -177,12 +167,12 @@
   <div class="header-row">
     <div class="logo">Psico<span>App</span></div>
     <div class="header-icons">
-      <button class="icon-btn">💬<div class="notif-badge">3</div></button>
-      <button class="icon-btn">🔔<div class="notif-badge">5</div></button>
+      <button class="icon-btn">💬</button>
+      <button class="icon-btn">🔔</button>
     </div>
   </div>
   <div class="greeting">
-    <div class="greeting-sub">Buenos días</div>
+    <div class="greeting-sub">Bienvenido/a</div>
     <div class="greeting-name" id="dash-user-name">Cargando…</div>
     <div class="greeting-date" id="dash-fecha"></div>
     <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
@@ -193,7 +183,6 @@
 
 <!-- QUICK STATS — se renderizan desde dashLoadStats() -->
 <div class="quick-stats" id="dash-quick-stats">
-  <!-- skeleton -->
   <div class="stat-card"><div class="stat-num" style="color:var(--text-muted);font-size:18px">…</div><div class="stat-label">Turnos hoy</div></div>
   <div class="stat-card"><div class="stat-num" style="color:var(--text-muted);font-size:18px">…</div><div class="stat-label">Pacientes activos</div></div>
   <div class="stat-card"><div class="stat-num" style="color:var(--text-muted);font-size:18px">…</div><div class="stat-label">Pacientes nuevos</div></div>
@@ -213,71 +202,13 @@
 
 <!-- INGRESOS DEL MES -->
 <div class="section" style="margin-top:16px">
-  <div class="section-title">
-    Ingresos — Febrero
+  <div class="section-title" id="dash-ingresos-titulo">
+    Ingresos
     <span class="section-link" onclick="navigate('pagos')">Ver detalle →</span>
   </div>
   <div class="income-card">
-    <div class="income-main">
-      <div class="income-amount">$900.000</div>
-      <div class="income-sub">de $1.200.000 esperados</div>
-    </div>
-    <div class="income-bar-container"><div class="income-bar"></div></div>
-    <div class="income-rows">
-      <div class="income-row">
-        <div class="income-row-label">
-          <div class="income-dot" style="background:var(--primary)"></div>
-          Sesiones particulares
-        </div>
-        <div>
-          <div class="income-val">$720.000</div>
-          <div class="income-meta">16 sesiones cobradas</div>
-        </div>
-      </div>
-      <div class="income-row">
-        <div class="income-row-label">
-          <div class="income-dot" style="background:#7B5EA7"></div>
-          Obras sociales
-        </div>
-        <div>
-          <div class="income-val">$180.000</div>
-          <div class="income-meta">⏳ Pendiente presentación</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- WHATSAPP PENDIENTES -->
-<div class="section" style="margin-top:16px">
-  <div class="section-title">
-    WhatsApp
-    <span class="section-link" onclick="navigate('whatsapp')">Ver historial →</span>
-  </div>
-  <div class="wp-pending-list">
-    <div class="wp-pending-item">
-      <div class="wp-pi-avatar">👤</div>
-      <div class="wp-pi-info">
-        <div class="wp-pi-name">Recordatorio enviado — Ana Rodríguez</div>
-        <div class="wp-pi-meta">Turno hoy 15:00 · Entregado y leído ✓✓</div>
-      </div>
-      <div class="wp-pi-time">08:00</div>
-    </div>
-    <div class="wp-pending-item">
-      <div class="wp-pi-avatar">👤</div>
-      <div class="wp-pi-info">
-        <div class="wp-pi-name">Recordatorio enviado — Diego Martínez</div>
-        <div class="wp-pi-meta">Turno hoy 18:00 · Entregado ✓</div>
-      </div>
-      <div class="wp-pi-time">08:00</div>
-    </div>
-    <div class="wp-pending-item" style="border-left-color:var(--danger);background:var(--danger-light)">
-      <div class="wp-pi-avatar" style="background:#FFCDD2">⚠️</div>
-      <div class="wp-pi-info">
-        <div class="wp-pi-name" style="color:var(--danger)">Error — Laura Pérez</div>
-        <div class="wp-pi-meta">Número inválido · Actualizá el teléfono</div>
-      </div>
-      <div class="wp-pi-time" style="color:var(--danger)">Error</div>
+    <div class="income-placeholder">
+      💰 Sin datos disponibles
     </div>
   </div>
 </div>
@@ -347,14 +278,7 @@ async function dashLoadUser() {
   }
 }
 
-/**
- * Carga stats reales desde Supabase:
- *  - turnos de hoy (tabla: turnos, columna: fecha_hora o fecha + hora)
- *  - pacientes activos (tabla: pacientes, estado = 'activo')
- *  - pacientes nuevos este mes (tabla: pacientes, created_at >= inicio del mes)
- *
- * AJUSTÁ los nombres de columnas según tu esquema real.
- */
+/** Carga stats reales desde Supabase usando columnas fecha + hora */
 async function dashLoadStats() {
   try {
     const { data: { user } } = await sb.auth.getUser();
@@ -368,22 +292,20 @@ async function dashLoadStats() {
     const { count: turnosHoy } = await sb
       .from('turnos')
       .select('*', { count: 'exact', head: true })
-      .eq('profesional_id', user.id)
-      .gte('fecha_hora', `${fechaHoy}T00:00:00`)
-      .lte('fecha_hora', `${fechaHoy}T23:59:59`);
+      .eq('user_id', user.id)
+      .eq('fecha', fechaHoy);
 
     // ── Pacientes activos ──
     const { count: pacientesActivos } = await sb
       .from('pacientes')
       .select('*', { count: 'exact', head: true })
-      .eq('profesional_id', user.id)
-      .eq('estado', 'activo');
+      .eq('user_id', user.id);
 
     // ── Pacientes nuevos este mes ──
     const { count: pacientesNuevos } = await sb
       .from('pacientes')
       .select('*', { count: 'exact', head: true })
-      .eq('profesional_id', user.id)
+      .eq('user_id', user.id)
       .gte('created_at', inicioMes);
 
     // ── Renderizar stats ──
@@ -392,6 +314,15 @@ async function dashLoadStats() {
 
     const mesNombre = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
       'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][hoy.getMonth()];
+
+    // Actualizar título de ingresos con mes actual
+    const tituloIngresos = document.getElementById('dash-ingresos-titulo');
+    if (tituloIngresos) {
+      tituloIngresos.innerHTML = `
+        Ingresos — ${mesNombre}
+        <span class="section-link" onclick="navigate('pagos')">Ver detalle →</span>
+      `;
+    }
 
     container.innerHTML = `
       <div class="stat-card" onclick="navigate('agenda')">
@@ -405,7 +336,7 @@ async function dashLoadStats() {
       <div class="stat-card" onclick="navigate('pacientes')">
         <div class="stat-card-top">
           <div class="stat-icon si-blue">👥</div>
-          <div class="stat-trend trend-neutral">En curso</div>
+          <div class="stat-trend trend-neutral">Total</div>
         </div>
         <div class="stat-num" style="color:#1976D2">${pacientesActivos ?? 0}</div>
         <div class="stat-label">Pacientes activos</div>
@@ -432,13 +363,7 @@ async function dashLoadStats() {
   }
 }
 
-/**
- * Carga los turnos de hoy desde Supabase y los renderiza.
- * Asume columnas: fecha_hora (timestamptz), paciente_nombre (text),
- *   tipo_sesion (text), duracion_min (int), estado (text).
- *
- * AJUSTÁ si usás JOIN con tabla pacientes o columnas distintas.
- */
+/** Carga los turnos de hoy desde Supabase usando columnas fecha + hora */
 async function dashLoadTurnos() {
   const listEl = document.getElementById('dash-turnos-list');
   if (!listEl) return;
@@ -448,15 +373,26 @@ async function dashLoadTurnos() {
     if (!user) return;
 
     const hoy = new Date();
-    const fechaHoy = hoy.toISOString().split('T')[0];
+    const fechaHoy = hoy.toISOString().split('T')[0]; // "YYYY-MM-DD"
 
+    // JOIN con pacientes para obtener nombre y apellido
     const { data: turnos, error } = await sb
       .from('turnos')
-      .select('id, fecha_hora, paciente_nombre, tipo_sesion, duracion_min, estado')
-      .eq('profesional_id', user.id)
-      .gte('fecha_hora', `${fechaHoy}T00:00:00`)
-      .lte('fecha_hora', `${fechaHoy}T23:59:59`)
-      .order('fecha_hora', { ascending: true });
+      .select(`
+        id,
+        fecha,
+        hora,
+        duracion,
+        estado,
+        paciente_id,
+        pacientes (
+          nombre,
+          apellido
+        )
+      `)
+      .eq('user_id', user.id)
+      .eq('fecha', fechaHoy)
+      .order('hora', { ascending: true });
 
     if (error) throw error;
 
@@ -472,18 +408,23 @@ async function dashLoadTurnos() {
     let nowInserted = false;
     let html = '';
 
-    turnos.forEach((t, i) => {
-      const dt = new Date(t.fecha_hora);
-      const hora = dt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-      const duracion = t.duracion_min ? `${t.duracion_min} min` : '50 min';
-      const tipo = t.tipo_sesion || 'Sesión individual';
-      const nombre = t.paciente_nombre || 'Paciente';
+    turnos.forEach((t) => {
+      // Combinar fecha + hora para comparación temporal
+      const dt = new Date(t.fecha + 'T' + t.hora);
+      const horaFormateada = dt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      const duracion = t.duracion ? `${t.duracion} min` : '50 min';
+
+      // Nombre del paciente desde el JOIN
+      const paciente = t.pacientes;
+      const nombre = paciente
+        ? `${paciente.nombre || ''} ${paciente.apellido || ''}`.trim()
+        : 'Paciente';
 
       // Determinar estado visual
-      const esPasado = dt.getTime() < ahoraMs - 30 * 60 * 1000; // hace más de 30 min
+      const esPasado = dt.getTime() < ahoraMs - 30 * 60 * 1000;
       const esAhora  = !esPasado && dt.getTime() <= ahoraMs + 60 * 60 * 1000;
 
-      // Insertar indicador "AHORA" antes del primer turno futuro
+      // Insertar indicador "AHORA" antes del primer turno futuro/presente
       if (!nowInserted && !esPasado) {
         const horaActual = hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         html += `
@@ -495,7 +436,7 @@ async function dashLoadTurnos() {
         nowInserted = true;
       }
 
-      // Badge según estado de la BD
+      // Badge según estado
       let badge = '';
       const est = (t.estado || '').toLowerCase();
       if (est === 'realizado' || est === 'completado') {
@@ -516,10 +457,10 @@ async function dashLoadTurnos() {
 
       html += `
         <div class="${clases}" onclick="navigate('agenda')">
-          <div class="turno-time${esAhora ? ' now' : ''}">${hora}</div>
+          <div class="turno-time${esAhora ? ' now' : ''}">${horaFormateada}</div>
           <div class="turno-info">
             <div class="turno-name">${nombre}</div>
-            <div class="turno-meta">${tipo} · ${duracion}</div>
+            <div class="turno-meta">Sesión · ${duracion}</div>
           </div>
           ${badge}
         </div>`;
@@ -550,6 +491,7 @@ async function dashLoadTurnos() {
 /** Hook llamado por navigate() cada vez que se entra a esta vista */
 window.onViewEnter_dashboard = function() {
   dashUpdateFecha();
+  dashLoadUser();
   dashLoadStats();
   dashLoadTurnos();
 };
