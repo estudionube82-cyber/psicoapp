@@ -230,7 +230,7 @@ function renderCuenta() {
 
   const nombre    = perfil.nombre || 'Profesional';
   const email     = perfil.email  || '';
-  const iniciales = nombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).toUpperCase().join('');
+  const iniciales = nombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
   const avatarHTML = perfil.foto ? `<img src="${perfil.foto}">` : (iniciales || '👤');
 
   const diasUsados    = diasDesdeInicio(sus?.fechaInicio);
@@ -385,9 +385,13 @@ window.addEventListener('perfilActualizado', () => {
 });
 
 function initCuenta() {
-  const c = document.getElementById('view-cuenta');
-  if (!c) return;
-  renderCuenta();
+  try {
+    const c = document.getElementById('view-cuenta');
+    if (!c) return;
+    renderCuenta();
+  } catch(e) {
+    console.error('initCuenta error:', e);
+  }
 }
 
 window.onViewEnter_cuenta = initCuenta;
