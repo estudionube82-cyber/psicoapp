@@ -775,6 +775,24 @@
                   }),
                 }
               );
+
+              // ── Guardar en historial para que figure en la pestaña Historial ──
+              const msgHistorial = `Hola ${nombre}, te recuerdo tu turno para el día ${fechaLinda} a las ${horaLinda}. En caso de no poder asistir, por favor avisá con anticipación.`;
+              if (typeof window._wpGuardarEnHistorial === 'function') {
+                window._wpGuardarEnHistorial({
+                  paciente_id: insertData.paciente_id,
+                  tipo:        'confirmacion',
+                  mensaje:     msgHistorial,
+                });
+              } else {
+                // Fallback: guardar directo si view-whatsapp no está cargado aún
+                sb.from('wa_historial').insert({
+                  user_id:     sess.user.id,
+                  paciente_id: insertData.paciente_id || null,
+                  tipo:        'confirmacion',
+                  mensaje:     msgHistorial,
+                }).catch(() => {});
+              }
             }
           }
         } catch (waErr) {
