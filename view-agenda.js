@@ -759,30 +759,22 @@
 
             const { data: { session: sess } } = await sb.auth.getSession();
             if (sess) {
-              // Verificar límite antes de enviar
-              if (typeof puedeUsar === 'function' && !puedeUsar('whatsapp')) {
-                console.warn('[Agenda] Límite de WhatsApp alcanzado');
-              } else {
-                await fetch(
-                  'https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp',
-                  {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${sess.access_token}`,
-                    },
-                    body: JSON.stringify({
-                      to:     telNorm,
-                      nombre: nombre,
-                      fecha:  fechaLinda,
-                      hora:   horaLinda,
-                    }),
-                  }
-                );
-                // Descontar del contador de suscripción y sincronizar a Supabase
-                if (typeof registrarUso === 'function') registrarUso('whatsapp');
-                if (typeof window._syncWaUsos === 'function') window._syncWaUsos();
-              }
+              await fetch(
+                'https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp',
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sess.access_token}`,
+                  },
+                  body: JSON.stringify({
+                    to:     telNorm,
+                    nombre: nombre,
+                    fecha:  fechaLinda,
+                    hora:   horaLinda,
+                  }),
+                }
+              );
             }
           }
         } catch (waErr) {
