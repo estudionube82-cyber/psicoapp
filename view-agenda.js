@@ -735,77 +735,33 @@
       const { error } = await sb.from('turnos').insert(insertData);
       if (error) throw error;
 
-      // ── WHATSAPP: enviar confirmación si es turno con paciente ──
+      // ── WHATSAPP: la Edge Function envía automáticamente al agendar ──
+      // Solo registramos en historial para que el psicólogo vea que fue notificado
       if (_modoModal === 'turno' && insertData.paciente_id) {
         try {
           const paciente = _todosPacientes.find(p => p.id === insertData.paciente_id);
-          const tel    = paciente?.telefono;
-          const nombre = paciente?.nombre || 'Paciente';
-
-          if (tel) {
-            // Normalizar teléfono a formato internacional Argentina (5492346XXXXXX)
-            let telNorm = tel.replace(/\D/g, '');
-            if (telNorm.startsWith('0')) telNorm = telNorm.slice(1);
-            if (!telNorm.startsWith('54')) telNorm = '54' + telNorm;
-            if (telNorm.startsWith('54') && !telNorm.startsWith('549')) {
-              telNorm = '549' + telNorm.slice(2);
-            }
-
-            // Formatear fecha para el mensaje
+          if (paciente?.telefono) {
             const [y, m, d] = fecha.split('-');
             const fechaLinda = `${d}/${m}/${y}`;
             const horaLinda  = hora.slice(0, 5);
+            const nombre     = paciente.nombre || 'Paciente';
+            const mensaje    = `Hola ${nombre}, te recuerdo tu turno para el día ${fechaLinda} a las ${horaLinda}. En caso de no poder asistir, por favor avisá con anticipación.`;
 
-            const mensaje = `Hola ${nombre}, te recuerdo tu turno para el día ${fechaLinda} a las ${horaLinda}. En caso de no poder asistir, por favor avisá con anticipación.`;
-
-            // Verificar límite de suscripción
-            if (typeof puedeUsar === 'function' && !puedeUsar('whatsapp')) {
-              console.warn('[Agenda] Límite de WhatsApp alcanzado');
-            } else {
-              // ── Intentar Edge Function (automático/silencioso) ──
-              let edgeFuncOk = false;
-              try {
-                const { data: { session: sess } } = await sb.auth.getSession();
-                if (sess) {
-                  const res = await fetch(
-                    'https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp',
-                    {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sess.access_token}`,
-                      },
-                      body: JSON.stringify({ to: '+' + telNorm, nombre, fecha: fechaLinda, hora: horaLinda }),
-                    }
-                  );
-                  if (res.ok) edgeFuncOk = true;
-                }
-              } catch (_) { /* Edge Function no disponible, usamos fallback */ }
-
-              // ── Fallback: abrir WhatsApp Web directamente ──
-              // Siempre abre wa.me para garantizar el envío al profesional
-              const waUrl = `https://wa.me/${telNorm}?text=${encodeURIComponent(mensaje)}`;
-              window.open(waUrl, '_blank');
-
-              // ── Guardar en historial de WhatsApp ──
-              if (typeof window._wpGuardarEnHistorial === 'function') {
-                window._wpGuardarEnHistorial({
-                  paciente_id: insertData.paciente_id,
-                  tipo: 'confirmacion',
-                  mensaje,
-                });
-              }
-
-              // Descontar del contador de suscripción y sincronizar a Supabase
-              if (typeof registrarUso === 'function') registrarUso('whatsapp');
-              if (typeof window._syncWaUsos === 'function') window._syncWaUsos();
-
-              console.log('[Agenda] WhatsApp abierto para:', nombre, telNorm, edgeFuncOk ? '(+ edge func)' : '(solo wa.me)');
+            // Guardar en historial (para el psicólogo vea la notificación enviada)
+            if (typeof window._wpGuardarEnHistorial === 'function') {
+              window._wpGuardarEnHistorial({
+                paciente_id: insertData.paciente_id,
+                tipo: 'confirmacion',
+                mensaje,
+              });
             }
+
+            // Descontar contador de suscripción
+            if (typeof registrarUso === 'function') registrarUso('whatsapp');
+            if (typeof window._syncWaUsos === 'function') window._syncWaUsos();
           }
         } catch (waErr) {
-          // Error de WA no debe bloquear el flujo principal
-          console.warn('[Agenda] WhatsApp no enviado:', waErr.message);
+          console.warn('[Agenda] Error al registrar historial WA:', waErr.message);
         }
       }
       // ────────────────────────────────────────────────────────
