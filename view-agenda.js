@@ -735,33 +735,59 @@
       const { error } = await sb.from('turnos').insert(insertData);
       if (error) throw error;
 
-      // ── WHATSAPP: la Edge Function envía automáticamente al agendar ──
-      // Solo registramos en historial para que el psicólogo vea que fue notificado
+      // ── WHATSAPP: enviar confirmación si es turno con paciente ──
       if (_modoModal === 'turno' && insertData.paciente_id) {
         try {
           const paciente = _todosPacientes.find(p => p.id === insertData.paciente_id);
-          if (paciente?.telefono) {
+          const tel = paciente?.telefono;
+          const nombre = paciente?.nombre || 'Paciente';
+
+          if (tel) {
+            // Normalizar teléfono a formato internacional Argentina
+            let telNorm = tel.replace(/\D/g, '');
+            if (telNorm.startsWith('0')) telNorm = telNorm.slice(1);
+            if (!telNorm.startsWith('54')) telNorm = '54' + telNorm;
+            if (telNorm.startsWith('54') && !telNorm.startsWith('549')) {
+              telNorm = '549' + telNorm.slice(2);
+            }
+            telNorm = '+' + telNorm;
+
+            // Formatear fecha para el mensaje
             const [y, m, d] = fecha.split('-');
             const fechaLinda = `${d}/${m}/${y}`;
             const horaLinda  = hora.slice(0, 5);
-            const nombre     = paciente.nombre || 'Paciente';
-            const mensaje    = `Hola ${nombre}, te recuerdo tu turno para el día ${fechaLinda} a las ${horaLinda}. En caso de no poder asistir, por favor avisá con anticipación.`;
 
-            // Guardar en historial (para el psicólogo vea la notificación enviada)
-            if (typeof window._wpGuardarEnHistorial === 'function') {
-              window._wpGuardarEnHistorial({
-                paciente_id: insertData.paciente_id,
-                tipo: 'confirmacion',
-                mensaje,
-              });
+            const { data: { session: sess } } = await sb.auth.getSession();
+            if (sess) {
+              // Verificar límite antes de enviar
+              if (typeof puedeUsar === 'function' && !puedeUsar('whatsapp')) {
+                console.warn('[Agenda] Límite de WhatsApp alcanzado');
+              } else {
+                await fetch(
+                  'https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp',
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${sess.access_token}`,
+                    },
+                    body: JSON.stringify({
+                      to:     telNorm,
+                      nombre: nombre,
+                      fecha:  fechaLinda,
+                      hora:   horaLinda,
+                    }),
+                  }
+                );
+                // Descontar del contador de suscripción y sincronizar a Supabase
+                if (typeof registrarUso === 'function') registrarUso('whatsapp');
+                if (typeof window._syncWaUsos === 'function') window._syncWaUsos();
+              }
             }
-
-            // Descontar contador de suscripción
-            if (typeof registrarUso === 'function') registrarUso('whatsapp');
-            if (typeof window._syncWaUsos === 'function') window._syncWaUsos();
           }
         } catch (waErr) {
-          console.warn('[Agenda] Error al registrar historial WA:', waErr.message);
+          // Error de WA no debe bloquear el flujo principal
+          console.warn('[Agenda] WhatsApp no enviado:', waErr.message);
         }
       }
       // ────────────────────────────────────────────────────────
