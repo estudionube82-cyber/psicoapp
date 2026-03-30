@@ -278,9 +278,36 @@ function toggleTheme() {
   if (th) th.textContent = next === 'dark' ? '🌙' : '☀️';
 }
 
-/* ── AUTH GUARD ── */
-sb.auth.getSession().then(({ data }) => {
-  if (!data.session) window.location.href = 'login.html';
+/* ── AUTH GUARD + CARGA DE SUSCRIPCIÓN ── */
+sb.auth.getSession().then(async ({ data }) => {
+  if (!data.session) { window.location.href = 'login.html'; return; }
+
+  // Cargar plan y usos desde Supabase y sincronizar localStorage
+  try {
+    const userId = data.session.user.id;
+    const { data: perfil } = await sb
+      .from('profiles')
+      .select('plan, wa_usos, wa_extra')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (perfil) {
+      // Preservar fechaInicio si ya existe en localStorage
+      let sus = {};
+      try { sus = JSON.parse(localStorage.getItem('suscripcion')) || {}; } catch {}
+
+      const planActual = perfil.plan || 'free';
+      localStorage.setItem('suscripcion', JSON.stringify({
+        plan:        planActual,
+        estado:      'activa',
+        fechaInicio: sus.fechaInicio || new Date().toISOString(),
+        usos:        { whatsapp: perfil.wa_usos || 0, informesIA: sus.usos?.informesIA || 0 },
+        extra:       { whatsapp: perfil.wa_extra || 0 },
+      }));
+    }
+  } catch(e) {
+    console.warn('[Auth] No se pudo sincronizar suscripción:', e.message);
+  }
 });
 
 /* ── SIDEBAR: cargar perfil ── */
@@ -302,7 +329,20 @@ function syncSidebarPerfil() {
 syncSidebarPerfil();
 window.addEventListener('perfilActualizado', syncSidebarPerfil);
 
-/* ── NAVIGATE ── */
+/* ── SINCRONIZAR wa_usos A SUPABASE ── */
+// Se llama desde view-agenda.js y view-whatsapp.js después de enviar WA
+window._syncWaUsos = async function() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    let sus = {};
+    try { sus = JSON.parse(localStorage.getItem('suscripcion')) || {}; } catch {}
+    const usos = sus.usos?.whatsapp || 0;
+    await sb.from('profiles').update({ wa_usos: usos }).eq('id', session.user.id);
+  } catch(e) {
+    console.warn('[WA] No se pudo sincronizar wa_usos:', e.message);
+  }
+};
 const VISTAS_VALIDAS = ['dashboard','agenda','pacientes','whatsapp','pagos','perfil','cuenta'];
 let _currentView = null;
 

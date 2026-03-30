@@ -779,8 +779,9 @@
                     }),
                   }
                 );
-                // Descontar del contador de suscripción
+                // Descontar del contador de suscripción y sincronizar a Supabase
                 if (typeof registrarUso === 'function') registrarUso('whatsapp');
+                if (typeof window._syncWaUsos === 'function') window._syncWaUsos();
               }
             }
           }
