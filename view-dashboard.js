@@ -1,482 +1,477 @@
 /**
- * view-dashboard.js
- * ─────────────────────────────────────────────────────────────
- * Dashboard conectado a pagos (localStorage).
- * No duplica: Supabase, toggleTheme, auth guard, ni fuentes.
- * ─────────────────────────────────────────────────────────────
+ * view-dashboard.js — PsicoApp SPA
+ * Datos 100% desde Supabase (pagos + turnos + pacientes)
  */
 
-/* ── 1. CSS PROPIO DE ESTA VISTA ── */
 (function injectDashboardStyles() {
   if (document.getElementById('view-dashboard-styles')) return;
   const style = document.createElement('style');
   style.id = 'view-dashboard-styles';
   style.textContent = `
+#view-dashboard { min-height: 100vh; background: var(--bg); }
+
 /* ── HEADER ── */
-#view-dashboard .header {
-  background: linear-gradient(145deg, #1E1040 0%, #2D1B69 60%, #4C2A9A 100%);
-  padding: 20px 20px 28px;
+#view-dashboard .dash-header {
+  background: linear-gradient(145deg, #1E1040 0%, #2D1B69 55%, #4C2A9A 100%);
+  padding: 20px 20px 32px;
   position: relative; overflow: hidden;
 }
-#view-dashboard .header::after {
-  content: ''; position: absolute;
-  right: -40px; top: -40px;
-  width: 180px; height: 180px; border-radius: 50%;
+#view-dashboard .dash-header::after {
+  content: ''; position: absolute; right: -40px; top: -40px;
+  width: 200px; height: 200px; border-radius: 50%;
   background: rgba(255,255,255,0.05);
 }
-#view-dashboard .header::before {
-  content: ''; position: absolute;
-  left: -30px; bottom: -60px;
+#view-dashboard .dash-header::before {
+  content: ''; position: absolute; left: -30px; bottom: -60px;
   width: 160px; height: 160px; border-radius: 50%;
-  background: rgba(255,255,255,0.04);
+  background: rgba(167,139,250,0.08);
 }
 @media (min-width: 768px) {
-  #view-dashboard .header { padding: 24px 32px 32px; }
+  #view-dashboard .dash-header { padding: 28px 32px 40px; }
 }
-.header-row {
+#view-dashboard .dash-header-row {
   display: flex; align-items: center; justify-content: space-between;
   position: relative; z-index: 1;
 }
-.logo { font-family: var(--font-display); font-size: 22px; color: white; }
-.logo span { color: var(--accent); }
-.header-icons { display: flex; gap: 8px; }
-.icon-btn {
+#view-dashboard .dash-logo { font-family: var(--font-display); font-size: 22px; color: white; }
+#view-dashboard .dash-logo span { color: var(--v3); }
+#view-dashboard .dash-header-actions { display: flex; gap: 8px; }
+#view-dashboard .dash-icon-btn {
   width: 36px; height: 36px; border-radius: 11px;
   background: rgba(255,255,255,0.15); border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 17px; position: relative;
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
 }
-.greeting { margin-top: 16px; position: relative; z-index: 1; }
-.greeting-sub { font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-.greeting-name { font-size: 24px; font-weight: 800; color: white; margin-top: 2px; line-height: 1.1; }
-.greeting-date { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 4px; }
-.theme-toggle {
-  margin-top: 10px; background: rgba(255,255,255,0.12);
-  border: none; border-radius: 20px; padding: 4px 12px;
-  cursor: pointer; font-size: 16px;
+#view-dashboard .dash-greeting { margin-top: 16px; position: relative; z-index: 1; }
+#view-dashboard .dash-greeting-sub {
+  font-size: 11px; color: rgba(255,255,255,0.55);
+  text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700;
 }
-.toggle-thumb { display: inline-block; }
+#view-dashboard .dash-greeting-name {
+  font-size: 26px; font-weight: 800; color: white; margin-top: 3px; line-height: 1.1;
+}
+#view-dashboard .dash-greeting-date { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+#view-dashboard .dash-theme-btn {
+  margin-top: 12px; background: rgba(255,255,255,0.12);
+  border: none; border-radius: 20px; padding: 5px 14px;
+  cursor: pointer; font-size: 15px; color: white; font-family: var(--font);
+}
 
-/* ── QUICK STATS ── */
-.quick-stats {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-  padding: 16px 16px 0; margin-top: -20px; position: relative; z-index: 5;
-}
-@media (min-width: 768px) {
-  .quick-stats { grid-template-columns: repeat(4, 1fr) !important; padding: 20px 24px !important; }
-}
-.stat-card {
-  background: var(--surface); border-radius: var(--radius);
-  padding: 14px 16px; box-shadow: var(--shadow-md);
-  cursor: pointer; transition: transform 0.15s;
-}
-.stat-card:hover { transform: translateY(-2px); }
-.stat-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.stat-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
-.si-green { background: var(--primary-light); }
-.si-orange { background: var(--accent-light); }
-.si-red { background: var(--danger-light); }
-.si-blue { background: #E3F2FD; }
-.stat-trend { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 20px; }
-.trend-up { background: var(--primary-light); color: var(--primary); }
-.trend-down { background: var(--danger-light); color: var(--danger); }
-.trend-neutral { background: var(--bg); color: var(--text-muted); }
-.stat-num { font-size: 26px; font-weight: 800; line-height: 1; color: var(--text); }
-.stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 3px; }
-
-/* ── SECTION ── */
-.section { padding: 16px 16px 0; }
-@media (min-width: 768px) { .section { padding: 16px 24px 0; } }
-.section-title {
-  font-size: 13px; font-weight: 800; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.section-link { font-size: 12px; font-weight: 600; color: var(--primary); cursor: pointer; text-transform: none; letter-spacing: 0; }
-
-/* ── TURNOS ── */
-.turnos-list { display: flex; flex-direction: column; gap: 8px; }
-.turno-card {
-  background: var(--surface); border-radius: var(--radius-sm);
-  padding: 12px 14px; display: flex; align-items: center; gap: 12px;
-  box-shadow: var(--shadow-sm); border-left: 3px solid transparent;
+/* ── HERO FINANCIERO ── */
+#view-dashboard .dash-hero-fin {
+  margin: -18px 16px 0;
+  position: relative; z-index: 10;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 18px 20px 16px;
+  display: flex; align-items: center; gap: 16px;
   cursor: pointer; transition: transform .12s;
 }
-.turno-card:hover { transform: translateX(2px); }
-.tc-pac { border-left-color: var(--primary-mid); }
-.tc-past { opacity: 0.6; }
-.tc-now { border-left-color: var(--accent2); box-shadow: 0 0 0 2px rgba(52,211,153,0.2); }
-.turno-time { font-size: 15px; font-weight: 800; color: var(--text); min-width: 40px; }
-.turno-time.now { color: var(--accent2); }
-.turno-info { flex: 1; }
-.turno-name { font-size: 14px; font-weight: 700; color: var(--text); }
-.turno-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-.turno-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
-.tb-done { background: var(--surface2); color: var(--text-muted); }
-.tb-ok { background: rgba(52,211,153,0.15); color: #059669; }
-.tb-wait { background: var(--primary-light); color: var(--primary); }
-.now-indicator { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
-.now-dot-h { width: 10px; height: 10px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; }
-.now-label { font-size: 10px; font-weight: 800; color: var(--accent2); letter-spacing: .5px; white-space: nowrap; }
-.now-line-h { flex: 1; height: 1px; background: var(--accent2); opacity: 0.4; }
+#view-dashboard .dash-hero-fin:hover { transform: translateY(-2px); }
+#view-dashboard .dash-hero-fin-left { flex: 1; }
+#view-dashboard .dash-hero-label {
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .8px;
+}
+#view-dashboard .dash-hero-amount {
+  font-size: 32px; font-weight: 800; color: var(--text); line-height: 1.1; margin-top: 3px;
+}
+#view-dashboard .dash-hero-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+#view-dashboard .dash-hero-badge {
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 800;
+  background: rgba(52,211,153,0.15); color: #059669; white-space: nowrap;
+}
 
-/* ── PAGOS RESUMEN ── */
-.pagos-resumen-grid {
+/* ── ALERTAS ── */
+#view-dashboard .dash-alerts { padding: 12px 16px 0; display: flex; flex-direction: column; gap: 8px; }
+#view-dashboard .dash-alert {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: transform .12s;
+}
+#view-dashboard .dash-alert:hover { transform: translateX(2px); }
+#view-dashboard .dash-alert-yellow { background: rgba(251,191,36,0.08); border: 1.5px solid rgba(251,191,36,0.25); }
+#view-dashboard .dash-alert-green  { background: rgba(52,211,153,0.08); border: 1.5px solid rgba(52,211,153,0.25); }
+#view-dashboard .dash-alert-icon  { font-size: 20px; flex-shrink: 0; }
+#view-dashboard .dash-alert-text  { flex: 1; }
+#view-dashboard .dash-alert-title { font-size: 13px; font-weight: 700; color: var(--text); }
+#view-dashboard .dash-alert-sub   { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+#view-dashboard .dash-alert-arrow { font-size: 16px; color: var(--text-muted); }
+
+/* ── STATS 4 CARDS ── */
+#view-dashboard .dash-stats-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  padding: 14px 16px 0;
 }
 @media (min-width: 768px) {
-  .pagos-resumen-grid { grid-template-columns: repeat(4, 1fr); }
+  #view-dashboard .dash-stats-row { grid-template-columns: repeat(4, 1fr); padding: 16px 24px 0; }
 }
-.pr-card {
-  background: var(--surface); border-radius: var(--radius);
+#view-dashboard .dash-stat {
+  background: var(--surface); border-radius: var(--radius-sm);
   padding: 14px 16px; box-shadow: var(--shadow-sm);
   cursor: pointer; transition: transform .12s;
 }
-.pr-card:hover { transform: translateY(-2px); }
-.pr-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.pr-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
-.pr-num { font-size: 20px; font-weight: 800; line-height: 1; }
-.pr-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 3px; }
+#view-dashboard .dash-stat:hover { transform: translateY(-2px); }
+#view-dashboard .dash-stat-top {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+#view-dashboard .dash-stat-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+#view-dashboard .dsi-violet { background: var(--primary-light); }
+#view-dashboard .dsi-orange { background: #FEF3C7; }
+#view-dashboard .dsi-green  { background: rgba(52,211,153,0.12); }
+#view-dashboard .dash-stat-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+}
+#view-dashboard .dsb-up  { background: rgba(52,211,153,0.15); color: #059669; }
+#view-dashboard .dsb-neu { background: var(--surface2); color: var(--text-muted); }
+#view-dashboard .dash-stat-num   { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
+#view-dashboard .dash-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 3px; }
 
-/* ── DEUDORES ── */
-.deudores-table {
-  background: var(--surface); border-radius: var(--radius);
-  box-shadow: var(--shadow-sm); overflow: hidden;
+/* ── SECTION ── */
+#view-dashboard .dash-section { padding: 16px 16px 0; }
+@media (min-width: 768px) { #view-dashboard .dash-section { padding: 16px 24px 0; } }
+#view-dashboard .dash-section-title {
+  font-size: 12px; font-weight: 800; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
 }
-.dt-header {
-  display: grid; grid-template-columns: 1fr auto;
-  padding: 10px 16px;
-  background: var(--surface2);
-  font-size: 11px; font-weight: 800; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: .6px;
-}
-.dt-row {
-  display: grid; grid-template-columns: 1fr auto;
-  padding: 11px 16px; align-items: center;
-  border-top: 1px solid var(--border);
-  transition: background .12s;
-}
-.dt-row:hover { background: var(--surface2); }
-.dt-pac { font-size: 14px; font-weight: 600; color: var(--text); }
-.dt-deuda { font-size: 15px; font-weight: 800; color: var(--danger); }
-.dt-empty {
-  padding: 24px; text-align: center;
-  color: var(--text-muted); font-size: 13px;
+#view-dashboard .dash-section-link {
+  font-size: 12px; font-weight: 600; color: var(--primary); cursor: pointer;
+  text-transform: none; letter-spacing: 0;
 }
 
-/* ── ACCESOS RÁPIDOS ── */
-.quick-access { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.qa-item {
+/* ── QUICK ACCESS ── */
+#view-dashboard .dash-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+#view-dashboard .dash-qa {
   background: var(--surface); border-radius: var(--radius-sm);
   padding: 14px 8px; display: flex; flex-direction: column;
   align-items: center; gap: 6px; box-shadow: var(--shadow-sm);
   cursor: pointer; transition: transform .12s; border: none;
 }
-.qa-item:hover { transform: translateY(-2px); }
-.qa-icon { font-size: 22px; }
-.qa-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-align: center; }
+#view-dashboard .dash-qa:hover { transform: translateY(-2px); }
+#view-dashboard .dash-qa-icon  { font-size: 22px; }
+#view-dashboard .dash-qa-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-align: center; }
 
-/* ── PADDING BOTTOM ── */
-#view-dashboard .dash-bottom-pad { height: 24px; }
+/* ── TURNOS ── */
+#view-dashboard .dash-turnos { display: flex; flex-direction: column; gap: 8px; }
+#view-dashboard .dash-turno {
+  background: var(--surface); border-radius: var(--radius-sm);
+  padding: 12px 14px; display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-sm); border-left: 3px solid var(--primary-mid);
+  cursor: pointer; transition: transform .12s;
+}
+#view-dashboard .dash-turno:hover { transform: translateX(2px); }
+#view-dashboard .dash-turno.tc-past { opacity: .55; }
+#view-dashboard .dash-turno.tc-now  { border-left-color: var(--accent2); box-shadow: 0 0 0 2px rgba(52,211,153,.18); }
+#view-dashboard .dt-hora { font-size: 15px; font-weight: 800; color: var(--text); min-width: 44px; }
+#view-dashboard .dt-hora.now { color: var(--accent2); }
+#view-dashboard .dt-info { flex: 1; }
+#view-dashboard .dt-nombre { font-size: 14px; font-weight: 700; color: var(--text); }
+#view-dashboard .dt-meta   { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+#view-dashboard .dt-badge  { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+#view-dashboard .dtb-done  { background: var(--surface2); color: var(--text-muted); }
+#view-dashboard .dtb-ok    { background: rgba(52,211,153,.15); color: #059669; }
+#view-dashboard .dtb-wait  { background: var(--primary-light); color: var(--primary); }
+#view-dashboard .dash-now-line { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+#view-dashboard .dnl-dot  { width: 9px; height: 9px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; }
+#view-dashboard .dnl-lbl  { font-size: 10px; font-weight: 800; color: var(--accent2); letter-spacing: .5px; white-space: nowrap; }
+#view-dashboard .dnl-line { flex: 1; height: 1px; background: var(--accent2); opacity: .35; }
+
+#view-dashboard .dash-pad { height: 32px; }
   `;
   document.head.appendChild(style);
 })();
 
 
-/* ── 2. LÓGICA DE PAGOS ── */
-
-function getPagos() {
-  try { return JSON.parse(localStorage.getItem('pagos')) || []; }
-  catch { return []; }
-}
-
-function calcularResumen() {
-  const pagos = getPagos();
-  const totalCobrado    = pagos.filter(p => p.estado === 'pagado').reduce((s, p) => s + (Number(p.monto) || 0), 0);
-  const totalPendiente  = pagos.filter(p => p.estado === 'pendiente').reduce((s, p) => s + (Number(p.monto) || 0), 0);
-  const cantidadPagos   = pagos.length;
-  const pacientesUnicos = new Set(pagos.map(p => p.paciente).filter(Boolean)).size;
-  return { totalCobrado, totalPendiente, cantidadPagos, pacientesUnicos };
-}
-
-function obtenerDeudores() {
-  const pagos = getPagos();
-  const pendientes = pagos.filter(p => p.estado === 'pendiente');
-  const mapa = {};
-  pendientes.forEach(p => {
-    const nombre = p.paciente || 'Desconocido';
-    mapa[nombre] = (mapa[nombre] || 0) + (Number(p.monto) || 0);
-  });
-  return Object.entries(mapa)
-    .map(([paciente, deuda]) => ({ paciente, deuda }))
-    .sort((a, b) => b.deuda - a.deuda);
-}
-
-function renderDashboard() {
-  const fmt = v => '$' + Number(v).toLocaleString('es-AR');
-  const { totalCobrado, totalPendiente, cantidadPagos, pacientesUnicos } = calcularResumen();
-  const deudores = obtenerDeudores();
-
-  /* ── Tarjetas de pagos ── */
-  const statsEl = document.getElementById('dash-pagos-stats');
-  if (statsEl) {
-    statsEl.innerHTML = `
-      <div class="pr-card" onclick="navigate('pagos')">
-        <div class="pr-card-top">
-          <div class="pr-icon si-green">✅</div>
-          <div class="stat-trend trend-up">Cobrado</div>
-        </div>
-        <div class="pr-num" style="color:#388E3C">${fmt(totalCobrado)}</div>
-        <div class="pr-label">Total cobrado</div>
-      </div>
-      <div class="pr-card" onclick="navigate('pagos')">
-        <div class="pr-card-top">
-          <div class="pr-icon si-orange">⏳</div>
-          <div class="stat-trend trend-down">Pendiente</div>
-        </div>
-        <div class="pr-num" style="color:var(--danger)">${fmt(totalPendiente)}</div>
-        <div class="pr-label">Total pendiente</div>
-      </div>
-      <div class="pr-card" onclick="navigate('pagos')">
-        <div class="pr-card-top">
-          <div class="pr-icon si-blue">🧾</div>
-          <div class="stat-trend trend-neutral">Registros</div>
-        </div>
-        <div class="pr-num">${cantidadPagos}</div>
-        <div class="pr-label">Cantidad de pagos</div>
-      </div>
-      <div class="pr-card" onclick="navigate('pacientes')">
-        <div class="pr-card-top">
-          <div class="pr-icon si-green">👥</div>
-          <div class="stat-trend trend-neutral">Distintos</div>
-        </div>
-        <div class="pr-num">${pacientesUnicos}</div>
-        <div class="pr-label">Pacientes únicos</div>
-      </div>
-    `;
-  }
-
-  /* ── Tabla de deudores ── */
-  const deudEl = document.getElementById('dash-deudores-table');
-  if (deudEl) {
-    if (!deudores.length) {
-      deudEl.innerHTML = `
-        <div class="dt-header"><span>Paciente</span><span>Deuda total</span></div>
-        <div class="dt-empty">🎉 Sin deudores pendientes</div>
-      `;
-    } else {
-      deudEl.innerHTML = `
-        <div class="dt-header"><span>Paciente</span><span>Deuda total</span></div>
-        ${deudores.map(d => `
-          <div class="dt-row">
-            <div class="dt-pac">${d.paciente}</div>
-            <div class="dt-deuda">${fmt(d.deuda)}</div>
-          </div>
-        `).join('')}
-      `;
-    }
-  }
-}
-
-
-/* ── 3. HTML DE LA VISTA ── */
-function initDashboard() {
-  const container = document.getElementById('view-dashboard');
-  if (!container) return;
-
-  /* ── Fecha ── */
-  const hoy = new Date();
-  const fechaStr = hoy.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
-  const mesNombre = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][hoy.getMonth()];
-  const temaActual = document.documentElement.getAttribute('data-theme') || 'light';
-
-  container.innerHTML = `
-<div class="header">
-  <div class="header-row">
-    <div class="logo">Psico<span>App</span></div>
-    <div class="header-icons">
-      <button class="icon-btn" onclick="navigate('whatsapp')">💬</button>
-    </div>
-  </div>
-  <div class="greeting">
-    <div class="greeting-sub">Bienvenido/a</div>
-    <div class="greeting-name" id="dash-user-name">Cargando…</div>
-    <div class="greeting-date">${fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1)}</div>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
-      <span class="toggle-thumb" id="toggle-thumb">${temaActual === 'dark' ? '🌙' : '☀️'}</span>
-    </button>
-  </div>
-</div>
-
-<!-- ACCESOS RÁPIDOS -->
-<div class="section" style="margin-top:12px">
-  <div class="quick-access">
-    <button class="qa-item" onclick="navigate('agenda')">
-      <div class="qa-icon">📅</div><div class="qa-label">Agenda</div>
-    </button>
-    <button class="qa-item" onclick="navigate('pacientes')">
-      <div class="qa-icon">👥</div><div class="qa-label">Pacientes</div>
-    </button>
-    <button class="qa-item" onclick="navigate('pagos')">
-      <div class="qa-icon">💰</div><div class="qa-label">Pagos</div>
-    </button>
-    <button class="qa-item" onclick="navigate('whatsapp')">
-      <div class="qa-icon">💬</div><div class="qa-label">WhatsApp</div>
-    </button>
-  </div>
-</div>
-
-<!-- TURNOS DE HOY -->
-<div class="section" style="margin-top:16px">
-  <div class="section-title">
-    Turnos de hoy
-    <span class="section-link" onclick="navigate('agenda')">Ver agenda →</span>
-  </div>
-  <div class="turnos-list" id="dash-turnos-list">
-    <div style="padding:20px;color:var(--text-muted);font-size:13px;text-align:center">⏳ Cargando…</div>
-  </div>
-</div>
-
-<!-- RESUMEN FINANCIERO (desde localStorage) -->
-<div class="section" style="margin-top:20px">
-  <div class="section-title">
-    Resumen financiero
-    <span class="section-link" onclick="navigate('pagos')">Ver pagos →</span>
-  </div>
-  <div class="pagos-resumen-grid" id="dash-pagos-stats">
-    <div class="pr-card"><div class="pr-num" style="color:var(--text-muted);font-size:18px">…</div><div class="pr-label">Total cobrado</div></div>
-    <div class="pr-card"><div class="pr-num" style="color:var(--text-muted);font-size:18px">…</div><div class="pr-label">Total pendiente</div></div>
-    <div class="pr-card"><div class="pr-num" style="color:var(--text-muted);font-size:18px">…</div><div class="pr-label">Cantidad de pagos</div></div>
-    <div class="pr-card"><div class="pr-num" style="color:var(--text-muted);font-size:18px">…</div><div class="pr-label">Pacientes únicos</div></div>
-  </div>
-</div>
-
-<!-- TABLA DE DEUDORES -->
-<div class="section" style="margin-top:20px">
-  <div class="section-title">
-    Deudores pendientes
-    <span class="section-link" onclick="navigate('pagos')">Ver todos →</span>
-  </div>
-  <div class="deudores-table" id="dash-deudores-table">
-    <div class="dt-header"><span>Paciente</span><span>Deuda total</span></div>
-    <div class="dt-empty" style="color:var(--text-muted);font-size:13px">⏳ Cargando…</div>
-  </div>
-</div>
-
-<div class="dash-bottom-pad"></div>
-  `;
-
-  /* ── Cargar usuario ── */
-  sb.auth.getUser().then(({ data }) => {
-    const nameEl = document.getElementById('dash-user-name');
-    if (!nameEl) return;
-    if (data?.user?.user_metadata?.nombre) {
-      nameEl.textContent = data.user.user_metadata.nombre;
-    } else if (data?.user?.email) {
-      nameEl.textContent = data.user.email.split('@')[0];
-    } else {
-      nameEl.textContent = 'Psicólogo/a';
-    }
-    // Sidebar también
-    const sbName = document.getElementById('sb-user-name');
-    if (sbName) sbName.textContent = nameEl.textContent;
-    const sbAvatar = document.getElementById('sb-avatar-initials');
-    if (sbAvatar) sbAvatar.textContent = nameEl.textContent.slice(0, 2).toUpperCase();
-  });
-
-  /* ── Cargar turnos de hoy ── */
-  dashLoadTurnos();
-
-  /* ── Renderizar datos de pagos ── */
-  renderDashboard();
-}
-
-
-/* ── 4. TURNOS DE HOY (Supabase) ── */
-async function dashLoadTurnos() {
-  const listEl = document.getElementById('dash-turnos-list');
-  if (!listEl) return;
-
+/* ════════════════════════════════════════
+   DATOS DESDE SUPABASE
+   ════════════════════════════════════════ */
+async function dashCargarDatos() {
   try {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
-    const hoy = new Date();
-    const fechaHoy = hoy.toISOString().split('T')[0];
+    const hoy          = new Date();
+    const fechaHoy     = hoy.toISOString().split('T')[0];
+    const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
 
-    const { data: turnos, error } = await sb
-      .from('turnos')
-      .select(`id, fecha, hora, duracion, estado, paciente_id, pacientes(nombre, apellido)`)
-      .eq('user_id', user.id)
-      .eq('fecha', fechaHoy)
-      .order('hora', { ascending: true });
+    const [resPagos, resTurnos] = await Promise.all([
+      sb.from('pagos')
+        .select('id, paciente_id, monto, fecha, metodo')
+        .eq('user_id', user.id),
+      sb.from('turnos')
+        .select('id, fecha, hora, duracion, estado, paciente_id, pacientes(nombre, apellido)')
+        .eq('user_id', user.id)
+        .eq('fecha', fechaHoy)
+        .order('hora', { ascending: true }),
+    ]);
 
-    if (error) throw error;
+    const pagos  = resPagos.data  || [];
+    const turnos = resTurnos.data || [];
 
-    if (!turnos || turnos.length === 0) {
-      listEl.innerHTML = `<div style="padding:20px;color:var(--text-muted);font-size:13px;text-align:center">📭 Sin turnos para hoy</div>`;
-      return;
-    }
+    /* Resumen del mes actual */
+    const pagosMes      = pagos.filter(p => p.fecha >= primerDiaMes);
+    const totalMes      = pagosMes.reduce((s, p) => s + (Number(p.monto) || 0), 0);
+    const cantPagos     = pagosMes.length;
+    const pacUnicos     = new Set(pagosMes.map(p => p.paciente_id)).size;
+    const turnosHoy     = turnos.length;
 
-    const ahoraMs = hoy.getTime();
-    let nowInserted = false;
-    let html = '';
-
-    turnos.forEach(t => {
-      const dt = new Date(t.fecha + 'T' + t.hora);
-      const horaFormateada = dt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-      const duracion = t.duracion ? `${t.duracion} min` : '50 min';
-      const paciente = t.pacientes;
-      const nombre = paciente ? `${paciente.nombre || ''} ${paciente.apellido || ''}`.trim() : 'Paciente';
-      const esPasado = dt.getTime() < ahoraMs - 30 * 60 * 1000;
-      const esAhora  = !esPasado && dt.getTime() <= ahoraMs + 60 * 60 * 1000;
-
-      if (!nowInserted && !esPasado) {
-        const horaActual = hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-        html += `<div class="now-indicator"><div class="now-dot-h"></div><div class="now-label">AHORA · ${horaActual}</div><div class="now-line-h"></div></div>`;
-        nowInserted = true;
-      }
-
-      let badge = '';
+    /* Sesiones realizadas sin cobro registrado */
+    const sesionSinCobro = turnos.filter(t => {
       const est = (t.estado || '').toLowerCase();
-      if (est === 'realizado' || est === 'completado') {
-        badge = `<div class="turno-badge tb-done">Realizada</div>`;
-      } else if (est === 'confirmado') {
-        badge = `<div class="turno-badge tb-ok">✓ Confirmó</div>`;
-      } else if (est === 'cancelado') {
-        badge = `<div class="turno-badge tb-done" style="background:var(--danger-light);color:var(--danger)">Cancelado</div>`;
-      } else {
-        badge = `<div class="turno-badge tb-wait">⏳ Sin confirmar</div>`;
+      return est === 'realizado' || est === 'completado';
+    }).length;
+
+    /* Render */
+    _dashRenderHeroFin(totalMes, cantPagos, pacUnicos);
+    _dashRenderAlertas(sesionSinCobro, pacUnicos, pagos);
+    _dashRenderStats(totalMes, cantPagos, pacUnicos, turnosHoy);
+    _dashRenderTurnos(turnos, hoy);
+
+    /* Nombre usuario */
+    const nameEl   = document.getElementById('dash-user-name');
+    const sbName   = document.getElementById('sb-user-name');
+    const sbAvatar = document.getElementById('sb-avatar-initials');
+    try {
+      const perfil = JSON.parse(localStorage.getItem('perfil')) || {};
+      if (perfil.nombre) {
+        if (nameEl)   nameEl.textContent = perfil.nombre;
+        if (sbName)   sbName.textContent = perfil.nombre;
+        if (sbAvatar) sbAvatar.innerHTML = `<span>${perfil.nombre.slice(0,2).toUpperCase()}</span>`;
+        return;
       }
+    } catch(e) {}
+    const nombre = user.user_metadata?.nombre || user.email?.split('@')[0] || 'Psicólogo/a';
+    if (nameEl)   nameEl.textContent = nombre;
+    if (sbName)   sbName.textContent = nombre;
+    if (sbAvatar) sbAvatar.innerHTML = `<span>${nombre.slice(0,2).toUpperCase()}</span>`;
 
-      const clases = ['turno-card tc-pac', esPasado ? 'tc-past' : '', esAhora ? 'tc-now' : ''].join(' ').trim();
-
-      html += `
-        <div class="${clases}" onclick="navigate('agenda')">
-          <div class="turno-time${esAhora ? ' now' : ''}">${horaFormateada}</div>
-          <div class="turno-info">
-            <div class="turno-name">${nombre}</div>
-            <div class="turno-meta">Sesión · ${duracion}</div>
-          </div>
-          ${badge}
-        </div>`;
-    });
-
-    if (!nowInserted) {
-      const horaActual = hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-      html += `<div class="now-indicator"><div class="now-dot-h"></div><div class="now-label">AHORA · ${horaActual}</div><div class="now-line-h"></div></div>`;
-    }
-
-    listEl.innerHTML = html;
-
-  } catch (e) {
-    console.warn('dashLoadTurnos:', e.message);
-    const listEl = document.getElementById('dash-turnos-list');
-    if (listEl) listEl.innerHTML = `<div style="padding:12px;color:var(--danger);font-size:13px;text-align:center">⚠️ Error al cargar turnos</div>`;
+  } catch(e) {
+    console.error('[Dashboard]', e.message);
   }
 }
 
+function _dashRenderHeroFin(totalMes, cantPagos, pacUnicos) {
+  const fmt = v => '$' + Number(v).toLocaleString('es-AR');
+  const mes = new Date().toLocaleString('es-AR', { month: 'long' });
+  const amountEl = document.getElementById('dash-hero-amount');
+  const subEl    = document.getElementById('dash-hero-sub');
+  if (amountEl) amountEl.textContent = fmt(totalMes);
+  if (subEl)    subEl.textContent =
+    `${cantPagos} cobro${cantPagos !== 1 ? 's' : ''} · ${pacUnicos} paciente${pacUnicos !== 1 ? 's' : ''} · ${mes}`;
+}
 
-/* ── 5. HOOK DE NAVEGACIÓN ── */
+function _dashRenderAlertas(sesionSinCobro, pacUnicos, todosLosPagos) {
+  const el = document.getElementById('dash-alerts');
+  if (!el) return;
+  const alertas = [];
+
+  if (sesionSinCobro > 0) {
+    alertas.push(`
+      <div class="dash-alert dash-alert-yellow" onclick="navigate('pagos')">
+        <div class="dash-alert-icon">⚠️</div>
+        <div class="dash-alert-text">
+          <div class="dash-alert-title">${sesionSinCobro} sesión${sesionSinCobro > 1 ? 'es realizadas' : ' realizada'} sin cobro registrado</div>
+          <div class="dash-alert-sub">Registrá el pago en Pagos →</div>
+        </div>
+        <div class="dash-alert-arrow">›</div>
+      </div>`);
+  }
+
+  if (todosLosPagos.length === 0) {
+    alertas.push(`
+      <div class="dash-alert dash-alert-green" onclick="navigate('pagos')">
+        <div class="dash-alert-icon">💡</div>
+        <div class="dash-alert-text">
+          <div class="dash-alert-title">Registrá tu primer cobro del mes</div>
+          <div class="dash-alert-sub">Llevá el control de tus ingresos →</div>
+        </div>
+        <div class="dash-alert-arrow">›</div>
+      </div>`);
+  } else if (pacUnicos > 0) {
+    alertas.push(`
+      <div class="dash-alert dash-alert-green" onclick="navigate('pagos')">
+        <div class="dash-alert-icon">🎉</div>
+        <div class="dash-alert-text">
+          <div class="dash-alert-title">${pacUnicos} paciente${pacUnicos > 1 ? 's' : ''} pagaron este mes</div>
+          <div class="dash-alert-sub">Ver detalle de cobros →</div>
+        </div>
+        <div class="dash-alert-arrow">›</div>
+      </div>`);
+  }
+
+  el.innerHTML = alertas.join('');
+}
+
+function _dashRenderStats(totalMes, cantPagos, pacUnicos, turnosHoy) {
+  const el = document.getElementById('dash-stats-row');
+  if (!el) return;
+  const fmt = v => '$' + Number(v).toLocaleString('es-AR');
+  el.innerHTML = `
+    <div class="dash-stat" onclick="navigate('pagos')">
+      <div class="dash-stat-top"><div class="dash-stat-icon dsi-violet">💰</div><div class="dash-stat-badge dsb-up">Este mes</div></div>
+      <div class="dash-stat-num">${fmt(totalMes)}</div>
+      <div class="dash-stat-label">Cobrado</div>
+    </div>
+    <div class="dash-stat" onclick="navigate('pagos')">
+      <div class="dash-stat-top"><div class="dash-stat-icon dsi-green">🧾</div><div class="dash-stat-badge dsb-neu">Pagos</div></div>
+      <div class="dash-stat-num">${cantPagos}</div>
+      <div class="dash-stat-label">Cobros registrados</div>
+    </div>
+    <div class="dash-stat" onclick="navigate('pacientes')">
+      <div class="dash-stat-top"><div class="dash-stat-icon dsi-orange">👥</div><div class="dash-stat-badge dsb-neu">Mes</div></div>
+      <div class="dash-stat-num">${pacUnicos}</div>
+      <div class="dash-stat-label">Pacientes activos</div>
+    </div>
+    <div class="dash-stat" onclick="navigate('agenda')">
+      <div class="dash-stat-top"><div class="dash-stat-icon dsi-green">📅</div><div class="dash-stat-badge dsb-neu">Hoy</div></div>
+      <div class="dash-stat-num">${turnosHoy}</div>
+      <div class="dash-stat-label">Turnos de hoy</div>
+    </div>`;
+}
+
+function _dashRenderTurnos(turnos, hoy) {
+  const el = document.getElementById('dash-turnos-list');
+  if (!el) return;
+
+  if (!turnos.length) {
+    el.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">📭 Sin turnos para hoy</div>`;
+    return;
+  }
+
+  const ahoraMs = hoy.getTime();
+  let nowInserted = false;
+  let html = '';
+
+  turnos.forEach(t => {
+    const dt      = new Date(t.fecha + 'T' + t.hora);
+    const horaFmt = dt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    const duracion = t.duracion ? `${t.duracion} min` : '50 min';
+    const pac    = t.pacientes;
+    const nombre = pac ? `${pac.nombre || ''} ${pac.apellido || ''}`.trim() : 'Paciente';
+    const esPasado = dt.getTime() < ahoraMs - 30 * 60 * 1000;
+    const esAhora  = !esPasado && dt.getTime() <= ahoraMs + 60 * 60 * 1000;
+
+    if (!nowInserted && !esPasado) {
+      const aFmt = hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      html += `<div class="dash-now-line"><div class="dnl-dot"></div><div class="dnl-lbl">AHORA · ${aFmt}</div><div class="dnl-line"></div></div>`;
+      nowInserted = true;
+    }
+
+    const est = (t.estado || '').toLowerCase();
+    let badge = '';
+    if (est === 'realizado' || est === 'completado') badge = `<div class="dt-badge dtb-done">Realizada</div>`;
+    else if (est === 'confirmado')                   badge = `<div class="dt-badge dtb-ok">✓ Confirmó</div>`;
+    else if (est === 'cancelado')                    badge = `<div class="dt-badge dtb-done" style="background:var(--danger-light);color:var(--danger)">Cancelado</div>`;
+    else                                             badge = `<div class="dt-badge dtb-wait">⏳ Pendiente</div>`;
+
+    html += `
+      <div class="dash-turno${esPasado ? ' tc-past' : ''}${esAhora ? ' tc-now' : ''}" onclick="navigate('agenda')">
+        <div class="dt-hora${esAhora ? ' now' : ''}">${horaFmt}</div>
+        <div class="dt-info">
+          <div class="dt-nombre">${nombre}</div>
+          <div class="dt-meta">Sesión · ${duracion}</div>
+        </div>
+        ${badge}
+      </div>`;
+  });
+
+  if (!nowInserted) {
+    const aFmt = hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    html += `<div class="dash-now-line"><div class="dnl-dot"></div><div class="dnl-lbl">AHORA · ${aFmt}</div><div class="dnl-line"></div></div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+
+/* ════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════ */
+function initDashboard() {
+  const container = document.getElementById('view-dashboard');
+  if (!container) return;
+
+  const hoy     = new Date();
+  const fechaStr = hoy.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const tema    = document.documentElement.getAttribute('data-theme') || 'light';
+
+  container.innerHTML = `
+<div class="dash-header">
+  <div class="dash-header-row">
+    <div class="dash-logo">Psico<span>App</span></div>
+    <div class="dash-header-actions">
+      <button class="dash-icon-btn" onclick="navigate('whatsapp')">💬</button>
+    </div>
+  </div>
+  <div class="dash-greeting">
+    <div class="dash-greeting-sub">Bienvenido/a</div>
+    <div class="dash-greeting-name" id="dash-user-name">Cargando…</div>
+    <div class="dash-greeting-date">${fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1)}</div>
+    <button class="dash-theme-btn" onclick="toggleTheme()">
+      <span id="toggle-thumb">${tema === 'dark' ? '🌙' : '☀️'}</span>
+    </button>
+  </div>
+</div>
+
+<!-- EL NÚMERO QUE IMPORTA -->
+<div class="dash-hero-fin" id="dash-hero-fin" onclick="navigate('pagos')">
+  <div class="dash-hero-fin-left">
+    <div class="dash-hero-label">💰 Cobrado este mes</div>
+    <div class="dash-hero-amount" id="dash-hero-amount">⏳ …</div>
+    <div class="dash-hero-sub" id="dash-hero-sub">Cargando…</div>
+  </div>
+  <div class="dash-hero-badge">Ver pagos →</div>
+</div>
+
+<!-- ALERTAS -->
+<div class="dash-alerts" id="dash-alerts"></div>
+
+<!-- ACCESOS RÁPIDOS -->
+<div class="dash-section" style="margin-top:14px">
+  <div class="dash-quick">
+    <button class="dash-qa" onclick="navigate('agenda')">
+      <div class="dash-qa-icon">📅</div><div class="dash-qa-label">Agenda</div>
+    </button>
+    <button class="dash-qa" onclick="navigate('pacientes')">
+      <div class="dash-qa-icon">👥</div><div class="dash-qa-label">Pacientes</div>
+    </button>
+    <button class="dash-qa" onclick="navigate('pagos')">
+      <div class="dash-qa-icon">💰</div><div class="dash-qa-label">Pagos</div>
+    </button>
+    <button class="dash-qa" onclick="navigate('whatsapp')">
+      <div class="dash-qa-icon">💬</div><div class="dash-qa-label">WhatsApp</div>
+    </button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="dash-stats-row" id="dash-stats-row">
+  <div class="dash-stat"><div class="dash-stat-num" style="color:var(--text-muted)">…</div><div class="dash-stat-label">Cobrado</div></div>
+  <div class="dash-stat"><div class="dash-stat-num" style="color:var(--text-muted)">…</div><div class="dash-stat-label">Cobros</div></div>
+  <div class="dash-stat"><div class="dash-stat-num" style="color:var(--text-muted)">…</div><div class="dash-stat-label">Pacientes</div></div>
+  <div class="dash-stat"><div class="dash-stat-num" style="color:var(--text-muted)">…</div><div class="dash-stat-label">Turnos hoy</div></div>
+</div>
+
+<!-- TURNOS DE HOY -->
+<div class="dash-section" style="margin-top:18px">
+  <div class="dash-section-title">
+    Turnos de hoy
+    <span class="dash-section-link" onclick="navigate('agenda')">Ver agenda →</span>
+  </div>
+  <div class="dash-turnos" id="dash-turnos-list">
+    <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">⏳ Cargando…</div>
+  </div>
+</div>
+
+<div class="dash-pad"></div>
+  `;
+
+  dashCargarDatos();
+}
+
 window.onViewEnter_dashboard = initDashboard;
