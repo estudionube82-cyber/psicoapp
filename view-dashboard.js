@@ -248,11 +248,12 @@ async function dashCargarDatos() {
     console.log('PENDIENTES (turnos):', turnosPendientes);
     console.log('Total cobrado:', totalCobrado, '| Total pendiente:', totalPendiente);
 
-    /* Sesiones realizadas sin cobro registrado */
-    const sesionSinCobro = turnos.filter(t => {
+    /* Sesiones realizadas del mes sin cobro (CORRECCIÓN: turnosMes, no solo hoy) */
+    const sesionSinCobro = turnosMes.filter(t => {
       const est = (t.estado || '').toLowerCase();
       return est === 'realizado' || est === 'completado';
     }).length;
+    console.log('[Dashboard] Sesiones sin cobro (mes):', sesionSinCobro);
 
     /* Render */
     _dashRenderHeroFin(totalCobrado, cantPagos, pacUnicos);
