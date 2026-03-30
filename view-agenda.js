@@ -787,6 +787,15 @@
               const waUrl = `https://wa.me/${telNorm}?text=${encodeURIComponent(mensaje)}`;
               window.open(waUrl, '_blank');
 
+              // ── Guardar en historial de WhatsApp ──
+              if (typeof window._wpGuardarEnHistorial === 'function') {
+                window._wpGuardarEnHistorial({
+                  paciente_id: insertData.paciente_id,
+                  tipo: 'confirmacion',
+                  mensaje,
+                });
+              }
+
               // Descontar del contador de suscripción y sincronizar a Supabase
               if (typeof registrarUso === 'function') registrarUso('whatsapp');
               if (typeof window._syncWaUsos === 'function') window._syncWaUsos();

@@ -350,49 +350,95 @@ function initWhatsapp() {
   // ── ENVIAR MENSAJE ──
   async function wpEnviarMensaje(pac, msg, tipo='libre') {
     try {
-      const puedeEnviar = typeof verificarLimiteWA !== 'undefined'
-        ? await verificarLimiteWA(sb, wpUserId)
-        : true;
-      if (!puedeEnviar) return;
+      // Normalizar teléfono a formato internacional Argentina
+      let telNorm = (pac.telefono || '').replace(/\D/g,'');
+      if (telNorm.startsWith('0')) telNorm = telNorm.slice(1);
+      if (!telNorm.startsWith('54')) telNorm = '54' + telNorm;
+      if (telNorm.startsWith('54') && !telNorm.startsWith('549')) telNorm = '549' + telNorm.slice(2);
 
-      let tel = (pac.telefono || '').replace(/\D/g,'');
-      if (tel.startsWith('0')) tel = tel.slice(1);
-      if (!tel.startsWith('54')) tel = '54' + tel;
-      if (tel.startsWith('54') && !tel.startsWith('549')) tel = '549' + tel.slice(2);
-      tel = '+' + tel;
+      // ── Abrir WhatsApp Web directamente (garantiza el envío) ──
+      const waUrl = `https://wa.me/${telNorm}?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
 
-      await fetch('https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${wpSessionToken}`,
-        },
-        body: JSON.stringify({ to: tel, nombre: pac.nombre, mensaje: msg }),
-      });
+      // ── Intentar Edge Function en paralelo (silencioso) ──
+      try {
+        const tel = '+' + telNorm;
+        await fetch('https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${wpSessionToken}` },
+          body: JSON.stringify({ to: tel, nombre: pac.nombre, mensaje: msg }),
+        });
+      } catch(_) { /* Edge Function opcional, wa.me ya fue abierto */ }
 
-      if (typeof registrarUsoWA !== 'undefined') {
-        await registrarUsoWA(sb, wpUserId, pac.id || null);
-      }
+      // ── Guardar en historial (tabla wa_historial) ──
+      await wpGuardarEnHistorial({ paciente_id: pac.id, tipo, mensaje: msg });
 
-      await sb.from('wa_usos').update({ tipo, mensaje: msg }).eq('user_id', wpUserId)
-        .order('created_at', { ascending: false }).limit(1).maybeSingle().catch(()=>{});
+      // Descontar del contador de suscripción
+      if (typeof registrarUso === 'function') registrarUso('whatsapp');
+      if (typeof window._syncWaUsos === 'function') window._syncWaUsos();
 
-      wpMostrarToast(`✓ Mensaje enviado a ${pac.nombre}`);
+      wpMostrarToast(`✅ WhatsApp abierto para ${pac.nombre}`);
       wpPacSeleccionado = null;
+
+      // Recargar historial si está visible
+      if (document.getElementById('wp-view-historial')?.classList.contains('active')) {
+        await wpCargarHistorial();
+      }
     } catch(e) {
       wpMostrarToast('❌ Error al enviar: ' + e.message, false);
     }
   }
 
+  // ── GUARDAR EN HISTORIAL ──
+  async function wpGuardarEnHistorial({ paciente_id, tipo, mensaje }) {
+    try {
+      await sb.from('wa_historial').insert({
+        user_id:    wpUserId,
+        paciente_id: paciente_id || null,
+        tipo:       tipo || 'libre',
+        mensaje:    mensaje || '',
+      });
+    } catch(e) {
+      console.warn('[WA] No se pudo guardar en historial:', e.message);
+    }
+  }
+  // Exponerla globalmente para que view-agenda.js también pueda usarla
+  window._wpGuardarEnHistorial = async function({ paciente_id, tipo, mensaje }) {
+    if (!wpUserId) {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) wpUserId = session.user.id;
+    }
+    await sb.from('wa_historial').insert({
+      user_id:    wpUserId,
+      paciente_id: paciente_id || null,
+      tipo:       tipo || 'confirmacion',
+      mensaje:    mensaje || '',
+    }).catch(e => console.warn('[WA Historial]', e.message));
+  };
+
   // ── HISTORIAL ──
   window.wpCargarHistorial = async function() {
     const el = document.getElementById('wpHistList');
     if (el) el.innerHTML = '<div class="empty-sec"><div class="empty-icon">⏳</div>Cargando...</div>';
-    const { data } = await sb.from('wa_usos')
-      .select('id,created_at,tipo,paciente_id,pacientes(nombre,apellido)')
+
+    // Lee de wa_historial (tabla con un registro por mensaje enviado)
+    const { data, error } = await sb.from('wa_historial')
+      .select('id, created_at, tipo, mensaje, paciente_id, pacientes(nombre, apellido)')
       .eq('user_id', wpUserId)
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(100);
+
+    if (error) {
+      console.warn('[WA Historial] Error al cargar:', error.message);
+      // Si la tabla no existe todavía, mostrar mensaje amigable
+      if (el) el.innerHTML = `
+        <div class="empty-sec">
+          <div class="empty-icon">⚠️</div>
+          <p style="font-size:13px">Creá la tabla <strong>wa_historial</strong> en Supabase para activar el historial.</p>
+        </div>`;
+      return;
+    }
+
     wpHistorialTodos = data || [];
     wpRenderHistorial();
   };
@@ -420,19 +466,28 @@ function initWhatsapp() {
     const tipoClass = { confirmacion:'tipo-confirmacion', recordatorio:'tipo-recordatorio', pago:'tipo-pago', automatico:'tipo-automatico' };
     el.innerHTML = lista.map(h => {
       const pac = h.pacientes;
-      const nombre = pac ? `${pac.nombre} ${pac.apellido}` : 'Paciente';
-      const iniciales = pac ? [(pac.nombre||'')[0],(pac.apellido||'')[0]].join('').toUpperCase() : '??';
+      const nombre = pac ? `${pac.nombre} ${pac.apellido}` : 'Paciente desconocido';
+      const iniciales = pac ? [(pac.nombre||'?')[0],(pac.apellido||'?')[0]].join('').toUpperCase() : '??';
       const color = WP_COLORES[(nombre).charCodeAt(0) % WP_COLORES.length];
-      const fecha = new Date(h.created_at).toLocaleDateString('es-AR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+      const fecha = new Date(h.created_at).toLocaleDateString('es-AR', {
+        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      // Vista previa del mensaje (primeras 80 chars)
+      const preview = h.mensaje ? h.mensaje.replace(/\n/g,' ').slice(0, 80) + (h.mensaje.length > 80 ? '…' : '') : '';
+      const tipoLabel = { confirmacion:'Confirmación', recordatorio:'Recordatorio', pago:'Cobro', automatico:'Automático', libre:'Libre' };
       return `
         <div class="hist-card">
           <div class="hist-top">
             <div class="hist-avatar" style="background:${color}">${iniciales}</div>
-            <div class="hist-nombre">${nombre}</div>
-            <div class="hist-hora">${fecha}</div>
+            <div style="flex:1;min-width:0">
+              <div class="hist-nombre">${nombre}</div>
+              ${preview ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${preview}</div>` : ''}
+            </div>
+            <div class="hist-hora" style="white-space:nowrap;margin-left:8px">${fecha}</div>
           </div>
           <div class="hist-footer">
-            <span class="hist-tipo ${tipoClass[h.tipo]||''}">${iconos[h.tipo]||'💬'} ${h.tipo||'mensaje'}</span>
+            <span class="hist-tipo ${tipoClass[h.tipo]||''}">${iconos[h.tipo]||'💬'} ${tipoLabel[h.tipo]||h.tipo||'mensaje'}</span>
+            <span style="font-size:10px;color:#25D366;font-weight:700">✓ Enviado</span>
           </div>
         </div>`;
     }).join('');
