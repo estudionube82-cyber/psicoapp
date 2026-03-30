@@ -84,7 +84,7 @@
   async function cargarPacientes() {
     try {
       const { data, error } = await sb.from('pacientes')
-        .select('id,nombre,apellido')
+        .select('id,nombre,apellido,telefono')
         .eq('user_id', _userId)
         .order('apellido');
       if (error) throw error;
@@ -734,6 +734,55 @@
 
       const { error } = await sb.from('turnos').insert(insertData);
       if (error) throw error;
+
+      // ── WHATSAPP: enviar confirmación si es turno con paciente ──
+      if (_modoModal === 'turno' && insertData.paciente_id) {
+        try {
+          const paciente = _todosPacientes.find(p => p.id === insertData.paciente_id);
+          const tel = paciente?.telefono;
+          const nombre = paciente?.nombre || 'Paciente';
+
+          if (tel) {
+            // Normalizar teléfono a formato internacional Argentina
+            let telNorm = tel.replace(/\D/g, '');
+            if (telNorm.startsWith('0')) telNorm = telNorm.slice(1);
+            if (!telNorm.startsWith('54')) telNorm = '54' + telNorm;
+            if (telNorm.startsWith('54') && !telNorm.startsWith('549')) {
+              telNorm = '549' + telNorm.slice(2);
+            }
+            telNorm = '+' + telNorm;
+
+            // Formatear fecha para el mensaje
+            const [y, m, d] = fecha.split('-');
+            const fechaLinda = `${d}/${m}/${y}`;
+            const horaLinda  = hora.slice(0, 5);
+
+            const { data: { session: sess } } = await sb.auth.getSession();
+            if (sess) {
+              await fetch(
+                'https://terlbqrcampdqtxjbihg.supabase.co/functions/v1/enviar-whatsapp',
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sess.access_token}`,
+                  },
+                  body: JSON.stringify({
+                    to:      telNorm,
+                    nombre:  nombre,
+                    hora:    horaLinda,
+                    mensaje: `Hola ${nombre}, te recuerdo tu turno para el día ${fechaLinda} a las ${horaLinda}. En caso de no poder asistir, por favor avisá con anticipación.`,
+                  }),
+                }
+              );
+            }
+          }
+        } catch (waErr) {
+          // Error de WA no debe bloquear el flujo principal
+          console.warn('[Agenda] WhatsApp no enviado:', waErr.message);
+        }
+      }
+      // ────────────────────────────────────────────────────────
 
       cerrarModal();
       toast('✅ Turno agendado');
