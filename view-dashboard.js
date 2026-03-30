@@ -480,6 +480,3 @@ async function dashLoadTurnos() {
 
 /* ── 5. HOOK DE NAVEGACIÓN ── */
 window.onViewEnter_dashboard = initDashboard;
-
-/* ── INIT al cargar por primera vez ── */
-initDashboard();
