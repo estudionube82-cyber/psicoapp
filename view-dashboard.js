@@ -198,27 +198,55 @@ async function dashCargarDatos() {
     const hoy          = new Date();
     const fechaHoy     = hoy.toISOString().split('T')[0];
     const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
+    // Último día del mes correcto (día 0 del mes siguiente)
+    const ultimoDiaMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().split('T')[0];
 
-    const [resPagos, resTurnos] = await Promise.all([
+    const [resPagos, resTurnosHoy, resTurnosMes] = await Promise.all([
+      // Pagos: filtrar por mes en Supabase (no traer historial completo)
       sb.from('pagos')
         .select('id, paciente_id, monto, fecha, metodo')
-        .eq('user_id', user.id),
+        .eq('user_id', user.id)
+        .gte('fecha', primerDiaMes)
+        .lte('fecha', ultimoDiaMes),
+      // Turnos de hoy (para la lista)
       sb.from('turnos')
         .select('id, fecha, hora, duracion, estado, paciente_id, pacientes(nombre, apellido)')
         .eq('user_id', user.id)
         .eq('fecha', fechaHoy)
         .order('hora', { ascending: true }),
+      // Turnos del mes (para calcular pendiente por precio de sesión)
+      sb.from('turnos')
+        .select('id, estado, precio')
+        .eq('user_id', user.id)
+        .gte('fecha', primerDiaMes)
+        .lte('fecha', ultimoDiaMes)
+        .neq('estado', 'cancelado'),
     ]);
 
-    const pagos  = resPagos.data  || [];
-    const turnos = resTurnos.data || [];
+    const pagos     = resPagos.data     || [];
+    const turnos    = resTurnosHoy.data || [];
+    const turnosMes = resTurnosMes.data || [];
 
-    /* Resumen del mes actual */
-    const pagosMes      = pagos.filter(p => p.fecha >= primerDiaMes);
-    const totalMes      = pagosMes.reduce((s, p) => s + (Number(p.monto) || 0), 0);
-    const cantPagos     = pagosMes.length;
-    const pacUnicos     = new Set(pagosMes.map(p => p.paciente_id)).size;
-    const turnosHoy     = turnos.length;
+    // ── DEBUG ──
+    console.log('DATA (pagos del mes):', pagos);
+    console.log('TURNOS DEL MES:', turnosMes);
+
+    /* Cobrado = suma de pagos registrados este mes */
+    const totalCobrado = pagos.reduce((s, p) => s + (Number(p.monto) || 0), 0);
+    const cantPagos    = pagos.length;
+    const pacUnicos    = new Set(pagos.map(p => p.paciente_id)).size;
+    const turnosHoy    = turnos.length;
+
+    /* Pendiente = turnos pendientes/confirmados del mes que tienen precio */
+    const turnosPendientes = turnosMes.filter(t => {
+      const est = (t.estado || '').toLowerCase();
+      return est === 'pendiente' || est === 'confirmado';
+    });
+    const totalPendiente = turnosPendientes.reduce((s, t) => s + (Number(t.precio) || 0), 0);
+
+    console.log('COBRADOS (pagos):', pagos);
+    console.log('PENDIENTES (turnos):', turnosPendientes);
+    console.log('Total cobrado:', totalCobrado, '| Total pendiente:', totalPendiente);
 
     /* Sesiones realizadas sin cobro registrado */
     const sesionSinCobro = turnos.filter(t => {
@@ -227,9 +255,9 @@ async function dashCargarDatos() {
     }).length;
 
     /* Render */
-    _dashRenderHeroFin(totalMes, cantPagos, pacUnicos);
+    _dashRenderHeroFin(totalCobrado, cantPagos, pacUnicos);
     _dashRenderAlertas(sesionSinCobro, pacUnicos, pagos);
-    _dashRenderStats(totalMes, cantPagos, pacUnicos, turnosHoy);
+    _dashRenderStats(totalCobrado, totalPendiente, pacUnicos, turnosHoy);
     _dashRenderTurnos(turnos, hoy);
 
     /* Nombre usuario */
@@ -307,20 +335,20 @@ function _dashRenderAlertas(sesionSinCobro, pacUnicos, todosLosPagos) {
   el.innerHTML = alertas.join('');
 }
 
-function _dashRenderStats(totalMes, cantPagos, pacUnicos, turnosHoy) {
+function _dashRenderStats(totalCobrado, totalPendiente, pacUnicos, turnosHoy) {
   const el = document.getElementById('dash-stats-row');
   if (!el) return;
   const fmt = v => '$' + Number(v).toLocaleString('es-AR');
   el.innerHTML = `
     <div class="dash-stat" onclick="navigate('pagos')">
       <div class="dash-stat-top"><div class="dash-stat-icon dsi-violet">💰</div><div class="dash-stat-badge dsb-up">Este mes</div></div>
-      <div class="dash-stat-num">${fmt(totalMes)}</div>
+      <div class="dash-stat-num">${fmt(totalCobrado)}</div>
       <div class="dash-stat-label">Cobrado</div>
     </div>
-    <div class="dash-stat" onclick="navigate('pagos')">
-      <div class="dash-stat-top"><div class="dash-stat-icon dsi-green">🧾</div><div class="dash-stat-badge dsb-neu">Pagos</div></div>
-      <div class="dash-stat-num">${cantPagos}</div>
-      <div class="dash-stat-label">Cobros registrados</div>
+    <div class="dash-stat" onclick="navigate('agenda')">
+      <div class="dash-stat-top"><div class="dash-stat-icon dsi-orange">⏳</div><div class="dash-stat-badge dsb-neu">Pendiente</div></div>
+      <div class="dash-stat-num">${fmt(totalPendiente)}</div>
+      <div class="dash-stat-label">Por cobrar</div>
     </div>
     <div class="dash-stat" onclick="navigate('pacientes')">
       <div class="dash-stat-top"><div class="dash-stat-icon dsi-orange">👥</div><div class="dash-stat-badge dsb-neu">Mes</div></div>

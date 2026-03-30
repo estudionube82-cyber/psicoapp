@@ -768,10 +768,10 @@
                     'Authorization': `Bearer ${sess.access_token}`,
                   },
                   body: JSON.stringify({
-                    to:      telNorm,
-                    nombre:  nombre,
-                    hora:    horaLinda,
-                    mensaje: `Hola ${nombre}, te recuerdo tu turno para el día ${fechaLinda} a las ${horaLinda}. En caso de no poder asistir, por favor avisá con anticipación.`,
+                    to:     telNorm,
+                    nombre: nombre,
+                    fecha:  fechaLinda,
+                    hora:   horaLinda,
                   }),
                 }
               );
